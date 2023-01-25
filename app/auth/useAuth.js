@@ -8,9 +8,11 @@ import {
   removeToken,
   removeUser,
 } from "../redux-toolkit/counter/userCounter";
+import useStorage from "./useStorage";
 
 const useAuth = () => {
   const { isOpen: isLoading, onToggle, onClose } = useDisclosure();
+  const { storeToken } = useStorage();
   const dispatch = useDispatch();
 
   const login = async (values) => {
@@ -21,9 +23,10 @@ const useAuth = () => {
       body: JSON.stringify(values),
     })
       .then((res) => res.json())
-      .then((data) => {
+      .then(async (data) => {
         dispatch(addToken(data));
         dispatch(addUser(jwtDecode(data.token)));
+        storeToken(data.token);
         onClose();
       })
       .catch((error) => {
