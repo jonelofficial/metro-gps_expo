@@ -1,15 +1,28 @@
-import { Formik } from "formik";
 import React from "react";
-import { TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { Formik } from "formik";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { Button, Divider, Text, TextInput } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import Screen from "../components/Screen";
 import { addToken } from "../redux-toolkit/counter/userCounter";
-// import "../assets/fonts/Khyay-Regular.ttf";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import useDisclosure from "../hooks/useDisclosure";
+import { withTheme } from "react-native-paper";
+import { loginSchema } from "../utility/schema/validation";
+import TextField from "../components/form/TextField";
+import SubmitButton from "../components/form/SubmitButton";
 
-const LoginScreen = () => {
+const LoginScreen = ({ navigation, theme }) => {
+  const { colors } = theme;
   const dispatch = useDispatch();
+
+  const { isOpen, onToggle } = useDisclosure();
+
   const onSubmit = async (values) => {
     await fetch(`${process.env.BASEURL}/auth/login`, {
       method: "POST",
@@ -25,49 +38,36 @@ const LoginScreen = () => {
   return (
     <Screen>
       <View style={{ padding: 20, marginTop: 50 }}>
-        <Text
-          style={{
-            fontSize: 40,
-            fontWeight: "600",
-            fontFamily: "Khyay",
-            lineHeight: 45,
-          }}
-        >
-          Login to your
-        </Text>
-        <Text
-          style={{
-            fontSize: 40,
-            fontWeight: "600",
-            fontFamily: "Khyay",
-            lineHeight: 45,
-          }}
-        >
-          Account
-        </Text>
+        <Text style={styles.title}>Login to your</Text>
+        <Text style={styles.title}>Account</Text>
       </View>
 
-      <View style={{ padding: 20 }}>
+      <View style={styles.formWrapper}>
         <Formik
           initialValues={{ username: "", password: "" }}
+          validationSchema={loginSchema}
           onSubmit={onSubmit}
         >
-          {({ handleChange, handleBlur, handleSubmit, values, errors }) => (
+          {({
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            values,
+            errors,
+            touched,
+          }) => (
             <View>
-              <TextInput
-                mode="outlined"
+              <TextField
+                touched={touched}
+                errors={errors}
+                handleChange={handleChange}
+                handleBlur={handleBlur}
+                values={values}
+                name="username"
                 label="Username"
-                placeholder="Input username"
-                onChangeText={handleChange("username")}
-                onBlur={handleBlur("username")}
-                value={values.username}
-                autoCorrect={false}
-                outlineStyle={{
-                  borderRadius: 15,
-                }}
               />
-              <Divider style={{ height: 15, backgroundColor: "transparent" }} />
-              <View style={{ position: "relative" }}>
+
+              <View style={styles.passwordWrapper}>
                 <TextInput
                   mode="outlined"
                   label="Password"
@@ -79,35 +79,30 @@ const LoginScreen = () => {
                   outlineStyle={{
                     borderRadius: 15,
                   }}
-                  secureTextEntry
+                  secureTextEntry={!isOpen}
                 />
-                <TouchableWithoutFeedback onPress={() => console.log("click")}>
+                <TouchableWithoutFeedback onPress={onToggle}>
                   <MaterialCommunityIcons
-                    name={true ? "eye-off-outline" : "eye-outline"}
+                    name={!isOpen ? "eye-off-outline" : "eye-outline"}
                     size={20}
-                    style={{
-                      position: "absolute",
-                      right: 0,
-                      marginRight: 10,
-                      top: 20,
-                    }}
+                    style={styles.icon}
                   />
                 </TouchableWithoutFeedback>
+                {touched.password && errors.password ? (
+                  <Text style={styles.textError}>{errors.password}</Text>
+                ) : (
+                  <Divider style={styles.divider} />
+                )}
               </View>
-              <Divider style={{ height: 20, backgroundColor: "transparent" }} />
 
-              <Button
-                mode="contained"
-                onPress={handleSubmit}
-                style={{ borderRadius: 35 }}
-                labelStyle={{
-                  fontSize: 18,
-                  lineHeight: 35,
-                  fontFamily: "Khyay",
-                }}
-              >
-                Sign In
-              </Button>
+              <View style={styles.scanWrapper}>
+                <TouchableOpacity onPress={() => navigation.navigate("Scan")}>
+                  <Text style={{ color: colors.primary }}>Scan ID</Text>
+                </TouchableOpacity>
+              </View>
+              <Divider style={styles.divider} />
+
+              <SubmitButton onPress={handleSubmit} title="Sign In" />
             </View>
           )}
         </Formik>
@@ -116,4 +111,38 @@ const LoginScreen = () => {
   );
 };
 
-export default LoginScreen;
+const styles = StyleSheet.create({
+  title: {
+    fontSize: 40,
+    fontWeight: "600",
+    lineHeight: 45,
+  },
+  formWrapper: {
+    padding: 20,
+  },
+  passwordWrapper: {
+    position: "relative",
+  },
+  icon: {
+    position: "absolute",
+    right: 0,
+    marginRight: 10,
+    top: 20,
+    zIndex: 2,
+  },
+  textError: {
+    color: "red",
+    fontSize: 14,
+    padding: 5,
+  },
+  divider: {
+    height: 10,
+    backgroundColor: "transparent",
+  },
+  scanWrapper: {
+    alignItems: "flex-end",
+    marginRight: 10,
+  },
+});
+
+export default withTheme(LoginScreen);

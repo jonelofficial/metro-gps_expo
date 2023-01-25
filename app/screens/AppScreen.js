@@ -10,7 +10,6 @@ import Screen from "../components/Screen";
 
 const AppScreen = () => {
   const token = useSelector((state) => state.token.value);
-  console.log(token);
   return (
     <Screen>
       <StatusBar style="dark" />
