@@ -1,20 +1,31 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import {
+  MD3LightTheme as DefaultTheme,
+  Provider as PaperProvider,
+  configureFonts,
+} from "react-native-paper";
+import { Provider as StoreProvider } from "react-redux";
+import { store } from "./app/redux-toolkit/store";
+import AppScreen from "./app/screens/AppScreen";
+// import "./app/assets/fonts/Khyay-Regular.ttf";
+
+const fontConfig = {};
+
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: "#f6a03d",
+    secondary: "#e8673d",
+  },
+  fonts: configureFonts({ config: fontConfig }),
+};
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <StoreProvider store={store}>
+      <PaperProvider theme={theme}>
+        <AppScreen />
+      </PaperProvider>
+    </StoreProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

@@ -1,33 +1,51 @@
 {
   "expo": {
-    "name": "metro-gps_expo",
-    "slug": "metro-gps_expo",
+    "name": "Metro GPS",
+    "slug": "metroGPS",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./app/assets/icon.png",
+    "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
+      "image": "./app/assets/splash.png",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./app/assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDbCxrt0H-TQpGGDLlloTLfNKK5AAgtVVc"
+        }
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f68e3908-3451-44d9-aa95-65d29ae7cdfb"
+      }
+    },
+    "rnpm": {
+      "assets": ["./app/assets/fonts"]
+    }
+  },
+  "android": {
+    "config": {
+      "googleMaps": {
+        "apiKey": "AIzaSyDbCxrt0H-TQpGGDLlloTLfNKK5AAgtVVc"
+      }
     }
   }
 }
