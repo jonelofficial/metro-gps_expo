@@ -22,6 +22,9 @@ export default function App() {
       ...DefaultTheme.colors,
       primary: "#f6a03d",
       secondary: "#e8673d",
+      danger: "#f56565",
+      warning: "#eed202",
+      success: "#48bb78",
     },
     fonts: configureFonts({ config: { fontFamily: "Khyay", fontSize: 16 } }),
   };

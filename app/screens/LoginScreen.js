@@ -6,34 +6,24 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { Button, Divider, Text, TextInput } from "react-native-paper";
-import { useDispatch } from "react-redux";
+import { Divider, Text, TextInput } from "react-native-paper";
 import Screen from "../components/Screen";
-import { addToken } from "../redux-toolkit/counter/userCounter";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import useDisclosure from "../hooks/useDisclosure";
 import { withTheme } from "react-native-paper";
 import { loginSchema } from "../utility/schema/validation";
 import TextField from "../components/form/TextField";
 import SubmitButton from "../components/form/SubmitButton";
+import useAuth from "../auth/useAuth";
 
 const LoginScreen = ({ navigation, theme }) => {
   const { colors } = theme;
-  const dispatch = useDispatch();
 
   const { isOpen, onToggle } = useDisclosure();
+  const { login, isLoading } = useAuth();
 
   const onSubmit = async (values) => {
-    await fetch(`${process.env.BASEURL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        dispatch(addToken(data));
-      })
-      .catch((error) => console.error("Error:", error));
+    login(values);
   };
   return (
     <Screen>
@@ -102,7 +92,11 @@ const LoginScreen = ({ navigation, theme }) => {
               </View>
               <Divider style={styles.divider} />
 
-              <SubmitButton onPress={handleSubmit} title="Sign In" />
+              <SubmitButton
+                onPress={handleSubmit}
+                title="Sign In"
+                isLoading={isLoading}
+              />
             </View>
           )}
         </Formik>

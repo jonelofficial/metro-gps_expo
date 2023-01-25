@@ -36,9 +36,6 @@
       "eas": {
         "projectId": "f68e3908-3451-44d9-aa95-65d29ae7cdfb"
       }
-    },
-    "rnpm": {
-      "assets": ["./app/assets/fonts"]
     }
   },
   "android": {

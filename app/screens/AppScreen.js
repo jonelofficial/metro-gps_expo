@@ -6,17 +6,16 @@ import { Text } from "react-native-paper";
 import { useSelector } from "react-redux";
 import AuthNavigator from "../utility/navigation/AuthNavigator";
 import AppNavigator from "../utility/navigation/AppNavigator";
-import Screen from "../components/Screen";
 
 const AppScreen = () => {
   const token = useSelector((state) => state.token.value);
   return (
-    <Screen>
+    <>
       <StatusBar style="dark" />
       <NavigationContainer>
         {token ? <AppNavigator /> : <AuthNavigator />}
       </NavigationContainer>
-    </Screen>
+    </>
   );
 };
 
