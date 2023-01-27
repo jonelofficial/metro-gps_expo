@@ -11,16 +11,35 @@ import { addToken, addUser } from "../redux-toolkit/counter/userCounter";
 import useDisclosure from "../hooks/useDisclosure";
 import { View } from "react-native";
 import runSQLite from "../config/runSQLite";
+import { useNetInfo } from "@react-native-community/netinfo";
+import { netStatus } from "../redux-toolkit/counter/netSlice";
 
 const AppScreen = () => {
+  const netInfo = useNetInfo();
+  runSQLite();
+
   const dispatch = useDispatch();
+  const token = useSelector((state) => state.token.value);
+
   const { getToken, getUser, removeToken, removeUser } = useStorage();
   const { isOpen, onToggle, onClose } = useDisclosure();
 
-  runSQLite();
+  // CHECKING OF INTERNET
+  useEffect(() => {
+    if (netInfo.type !== "unknown" && netInfo.isInternetReachable === false) {
+      return dispatch(netStatus(false));
+    }
+    dispatch(netStatus(true));
+    return () => {
+      null;
+    };
+  }, [netInfo]);
 
+  // CHECKING IF ALREADY LOGIN
   useEffect(() => {
     (async () => {
+      // removeToken();
+      // removeUser();
       const user = await JSON.parse(await getUser());
       const token = await JSON.parse(await getToken());
 
@@ -33,8 +52,6 @@ const AppScreen = () => {
       null;
     };
   }, []);
-
-  const token = useSelector((state) => state.token.value);
 
   if (!isOpen) {
     return (

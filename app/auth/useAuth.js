@@ -1,6 +1,7 @@
-import jwtDecode from "jwt-decode";
 import React from "react";
-import { useDispatch } from "react-redux";
+import jwtDecode from "jwt-decode";
+import { Keyboard } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 import useDisclosure from "../hooks/useDisclosure";
 import {
   addToken,
@@ -8,9 +9,12 @@ import {
   removeToken,
   removeUser,
 } from "../redux-toolkit/counter/userCounter";
+import { deleteFromTable, insertToTable, selectTable } from "../utility/sqlite";
 import useStorage from "./useStorage";
 
 const useAuth = () => {
+  const netStatus = useSelector((state) => state.net.value);
+
   const { isOpen: isLoading, onToggle, onClose } = useDisclosure();
   const {
     storeToken,
@@ -20,7 +24,102 @@ const useAuth = () => {
   } = useStorage();
   const dispatch = useDispatch();
 
+  const getVehicles = async (token) => {
+    try {
+      const response = await fetch(`${process.env.BASEURL}/vehicle/cars`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const vehicles = await response.json();
+      if (vehicles.data) {
+        // Handle store and update vehicles master list to local storage
+
+        let vehicleCount;
+        vehicleCount = vehicles.data.length;
+        const data = await selectTable("vehicles");
+        if (data.length === 0) {
+          await vehicles.data.map(async (item) => {
+            await insertToTable(
+              "INSERT INTO vehicles (_id, plate_no, vehicle_type, name,brand, fuel_type, km_per_liter) values (?,?,?,?,?,?,?)",
+              [
+                item._id,
+                item.plate_no,
+                item.vehicle_type,
+                item.name,
+                item.brand,
+                item.fuel_type,
+                item.km_per_liter,
+              ]
+            );
+          });
+        } else if (vehicleCount !== data.length) {
+          await deleteFromTable("vehicles");
+          await vehicles.data.map(async (item) => {
+            await insertToTable(
+              "INSERT INTO vehicles (_id, plate_no, vehicle_type, name,brand, fuel_type, km_per_liter) values (?,?,?,?,?,?,?)",
+              [
+                item._id,
+                item.plate_no,
+                item.vehicle_type,
+                item.name,
+                item.brand,
+                item.fuel_type,
+                item.km_per_liter,
+              ]
+            );
+          });
+        }
+
+        // End
+      }
+    } catch (error) {
+      console.log("GET VEHICLES API ERROR: ", error);
+    }
+  };
+
+  const getGasStation = async (token) => {
+    try {
+      const response = await fetch(
+        `${process.env.BASEURL}/gas-station/stations`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const gasStation = await response.json();
+      if (gasStation.data) {
+        // Handle store and update gas station master list to local storage
+        let stationCount;
+        stationCount = gasStation.data.length;
+        const data = await selectTable("gas_station");
+        if (data.length === 0) {
+          await gasStation.data.map(async (item) => {
+            await insertToTable(
+              "INSERT INTO gas_station (_id, label) values (?,?)",
+              [item._id, item.label]
+            );
+          });
+        } else if (stationCount !== data.length) {
+          await deleteFromTable("gas_station");
+          await gasStation.data.map(async (item) => {
+            await insertToTable(
+              "INSERT INTO gas_station (_id,label) values (?,?)",
+              [item._id, item.label]
+            );
+          });
+        }
+
+        // End
+      }
+    } catch (error) {
+      console.log("GET GAS STATION API ERROR: ", error);
+    }
+  };
+
   const login = async (values) => {
+    Keyboard.dismiss();
     onToggle();
     await fetch(`${process.env.BASEURL}/auth/login`, {
       method: "POST",
@@ -29,10 +128,37 @@ const useAuth = () => {
     })
       .then((res) => res.json())
       .then(async (data) => {
-        storeToken(data.token);
-        storeUser(jwtDecode(data.token));
-        dispatch(addToken(data));
-        dispatch(addUser(jwtDecode(data.token)));
+        if (data?.message) {
+          onClose();
+          return alert(`${data.message}`);
+        }
+        if (!netStatus) {
+          await getVehicles(data.token);
+          await getGasStation(data.token);
+
+          storeToken(data.token);
+          storeUser(jwtDecode(data.token));
+          dispatch(addToken(data));
+          dispatch(addUser(jwtDecode(data.token)));
+        } else {
+          const offlineData = await selectTable("user");
+          offlineData.map((item) => {
+            if (
+              (item.password === values.password) &
+              (item.username === values.username)
+            ) {
+              storeToken(item.token);
+              storeUser(jwtDecode(item.token));
+              dispatch(addToken({ token: item.token }));
+              dispatch(addUser(jwtDecode(item.token)));
+            } else {
+              alert(
+                `Could not find user. Login with internet connection instead`
+              );
+            }
+          });
+        }
+
         onClose();
       })
       .catch((error) => {

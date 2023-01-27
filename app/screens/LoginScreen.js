@@ -23,7 +23,7 @@ const LoginScreen = ({ navigation, theme }) => {
   const { login, isLoading } = useAuth();
 
   const onSubmit = async (values) => {
-    login(values);
+    await login(values);
   };
   return (
     <Screen>

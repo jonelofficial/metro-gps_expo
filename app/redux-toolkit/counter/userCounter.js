@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import useStorage from "../../auth/useStorage";
 
 export const tokenSlice = createSlice({
   name: "token",
