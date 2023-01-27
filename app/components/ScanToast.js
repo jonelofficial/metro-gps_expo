@@ -102,7 +102,7 @@ const ScanToast = ({ showToast, vehicleData, onToastClose, theme }) => {
         labelStyle={{ fontSize: 18, textTransform: "uppercase" }}
         onPress={() => {
           onToastClose();
-          navigation.navigate("TripDetails");
+          navigation.navigate("TripForm");
         }}
       >
         Drive

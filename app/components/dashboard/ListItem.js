@@ -5,7 +5,7 @@ import React from "react";
 import { TouchableOpacity, View } from "react-native";
 import { Text, withTheme } from "react-native-paper";
 
-const ListItem = ({ item, theme }) => {
+const ListItem = ({ item, theme, onPress }) => {
   const { colors } = theme;
 
   const newLocations = item.locations.filter(
@@ -28,7 +28,7 @@ const ListItem = ({ item, theme }) => {
   const date = dayjs(item.trip_date).format("MM-DD-YY");
 
   return (
-    <TouchableOpacity onPress={() => console.log(item)}>
+    <TouchableOpacity onPress={onPress}>
       <View
         style={{
           flexDirection: "row",

@@ -21,8 +21,8 @@ const AppScreen = () => {
   const dispatch = useDispatch();
   const token = useSelector((state) => state.token.value);
 
-  const { getToken, getUser, removeToken, removeUser } = useStorage();
-  const { isOpen, onToggle, onClose } = useDisclosure();
+  const { getToken, getUser } = useStorage();
+  const { isOpen, onToggle } = useDisclosure();
 
   // CHECKING OF INTERNET
   useEffect(() => {
@@ -38,8 +38,6 @@ const AppScreen = () => {
   // CHECKING IF ALREADY LOGIN
   useEffect(() => {
     (async () => {
-      // removeToken();
-      // removeUser();
       const user = await JSON.parse(await getUser());
       const token = await JSON.parse(await getToken());
 

@@ -30,7 +30,7 @@ import ListItem from "../components/dashboard/ListItem";
 import DashboardCamera from "../components/DashboardCamera";
 import useAuth from "../auth/useAuth";
 
-const DashboardScreen = ({ theme }) => {
+const DashboardScreen = ({ theme, navigation }) => {
   const { colors } = theme;
   const { logout } = useAuth();
   // STATE
@@ -126,7 +126,13 @@ const DashboardScreen = ({ theme }) => {
   };
 
   const renderItem = ({ item, index }) => {
-    return <ListItem key={index} item={item} />;
+    return (
+      <ListItem
+        key={index}
+        item={item}
+        onPress={() => navigation.navigate("TripDetails", { item })}
+      />
+    );
   };
 
   // ANIMATION
@@ -246,11 +252,13 @@ const DashboardScreen = ({ theme }) => {
         {/* TOTAL ITEMS */}
         <View style={{ alignItems: "center" }}>
           <Text style={{ fontSize: 17, color: colors.light }}>
-            {trip.length === 1
+            {trip.length === 1 && !isFetching
               ? `${trip.length} item`
-              : trip.length > 1
+              : trip.length > 1 && !isFetching
               ? `${trip.length} items`
-              : "No item found"}
+              : !isFetching
+              ? "No item found"
+              : "Loading"}
           </Text>
         </View>
 

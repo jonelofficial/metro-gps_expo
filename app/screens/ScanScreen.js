@@ -107,67 +107,67 @@ const ScanScreen = ({ theme }) => {
   }
 
   return (
-    <>
-      <Screen>
-        <View style={styles.scanWrapper}>
-          <BarCodeScanner
-            onBarCodeScanned={showScan || isLoading ? undefined : handleScan}
-            style={[
-              StyleSheet.absoluteFillObject,
-              {
-                width: width * 1.8,
-                height: height * 1.1,
-                position: "absolute",
-                left: "-30%",
-              },
-            ]}
-          />
-          <ViewFinder
-            height={250}
-            width={250}
-            borderLength={50}
-            borderRadius={15}
-            loading={isLoading}
-          />
-          {showScan && (
-            <Button
-              onPress={() => {
-                onScanClose();
-                onToastClose();
-                onLoadingClose();
-              }}
-            >
-              Tap to Scan Again
-            </Button>
-          )}
-        </View>
-
-        {/* ERROR HANDLING */}
-        <Snackbar
-          style={{
-            backgroundColor: colors.danger,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          visible={showError}
-          onDismiss={onErrorClose}
-          action={{
-            label: "close",
-            onPress: () => {
-              onErrorClose();
+    <Screen>
+      <View style={styles.scanWrapper}>
+        <BarCodeScanner
+          onBarCodeScanned={showScan || isLoading ? undefined : handleScan}
+          style={[
+            StyleSheet.absoluteFillObject,
+            {
+              width: width * 1.8,
+              height: height * 1.1,
+              position: "absolute",
+              left: "-30%",
             },
-          }}
-        >
-          <Text style={styles.snackbarText}>{error}</Text>
-        </Snackbar>
-      </Screen>
+          ]}
+        />
+        <ViewFinder
+          height={250}
+          width={250}
+          borderLength={50}
+          borderRadius={15}
+          loading={isLoading}
+        />
+        {showScan && (
+          <Button
+            onPress={() => {
+              onScanClose();
+              onToastClose();
+              onLoadingClose();
+            }}
+          >
+            Tap to Scan Again
+          </Button>
+        )}
+      </View>
+
+      {/* ERROR HANDLING */}
+      <Snackbar
+        style={{
+          backgroundColor: colors.danger,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        visible={showError}
+        onDismiss={onErrorClose}
+        action={{
+          label: "close",
+          onPress: () => {
+            onErrorClose();
+          },
+        }}
+      >
+        <Text style={styles.snackbarText}>{error}</Text>
+      </Snackbar>
+
+      {/* TOAST */}
 
       <ScanToast
         showToast={showToast}
         vehicleData={vehicleData}
         onToastClose={onToastClose}
       />
-    </>
+    </Screen>
   );
 };
 
