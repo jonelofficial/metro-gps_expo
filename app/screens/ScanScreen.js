@@ -8,8 +8,9 @@ import useAuth from "../auth/useAuth";
 import ScanToast from "../components/ScanToast";
 import Screen from "../components/Screen";
 import useDisclosure from "../hooks/useDisclosure";
+import { selectTable } from "../utility/sqlite";
 
-const ScanScreen = ({ theme, navigation }) => {
+const ScanScreen = ({ theme }) => {
   const { colors } = theme;
   const { height, width } = Dimensions.get("screen");
   const [permission, setPermission] = useState(null);
@@ -59,10 +60,19 @@ const ScanScreen = ({ theme, navigation }) => {
       if (json.username && json.password && !token) {
         login(json);
       } else if (json.vehicle_id && token) {
-        onScanToggle();
-        onToastToggle();
-        console.log(data);
-        // navigation.navigate("TripDetails");
+        const vehicles = await selectTable("vehicles");
+        const vehicle = vehicles.find(
+          (vehicle) => vehicle.plate_no === json.vehicle_id.toUpperCase()
+        );
+        if (vehicle) {
+          setVehicleData(vehicle);
+          onScanToggle();
+          onToastToggle();
+        } else {
+          setError("No vehicle found");
+          onErrorToggle();
+          onScanToggle();
+        }
       } else if (json.vehicle_id && !token) {
         setError("Please use account QR Code");
         onErrorToggle();
@@ -152,7 +162,11 @@ const ScanScreen = ({ theme, navigation }) => {
         </Snackbar>
       </Screen>
 
-      <ScanToast showToast={showToast} vehicleData={vehicleData} />
+      <ScanToast
+        showToast={showToast}
+        vehicleData={vehicleData}
+        onToastClose={onToastClose}
+      />
     </>
   );
 };

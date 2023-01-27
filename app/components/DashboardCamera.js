@@ -11,7 +11,9 @@ const DashboardCamera = ({ theme }) => {
   const { colors } = theme;
   return (
     <BlurView intensity={90} tint="light" style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.navigate("Scan")}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate("DashboardStackScan")}
+      >
         <LinearGradient
           start={[0, 1]}
           end={[1, 0]}

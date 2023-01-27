@@ -1,9 +1,11 @@
+import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Image, View } from "react-native";
 import { Button, Text, withTheme } from "react-native-paper";
 
-const ScanToast = ({ showToast, theme }) => {
+const ScanToast = ({ showToast, vehicleData, onToastClose, theme }) => {
   const { colors } = theme;
+  const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(300)).current;
 
   const slideIn = () => {
@@ -82,7 +84,7 @@ const ScanToast = ({ showToast, theme }) => {
               fontSize: 20,
             }}
           >
-            testing
+            {`${vehicleData.plate_no} ${vehicleData.brand}`}
           </Text>
           <Text
             style={{
@@ -90,7 +92,7 @@ const ScanToast = ({ showToast, theme }) => {
               textTransform: "capitalize",
             }}
           >
-            test test
+            {vehicleData.vehicle_type}
           </Text>
         </View>
       </View>
@@ -98,6 +100,10 @@ const ScanToast = ({ showToast, theme }) => {
         mode="contained"
         style={{ padding: 5 }}
         labelStyle={{ fontSize: 18, textTransform: "uppercase" }}
+        onPress={() => {
+          onToastClose();
+          navigation.navigate("TripDetails");
+        }}
       >
         Drive
       </Button>

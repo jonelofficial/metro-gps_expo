@@ -132,7 +132,7 @@ const useAuth = () => {
           onClose();
           return alert(`${data.message}`);
         }
-        if (!netStatus) {
+        if (netStatus) {
           await getVehicles(data.token);
           await getGasStation(data.token);
 

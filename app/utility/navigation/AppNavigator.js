@@ -3,6 +3,7 @@ import React from "react";
 import DashboardScreen from "../../screens/DashboardScreen";
 import ScanScreen from "../../screens/ScanScreen";
 import TripDetailsScreen from "../../screens/TripDetailsScreen";
+import DashboardNavigator from "./DashboardNavigator";
 
 const Stack = createNativeStackNavigator();
 
@@ -14,12 +15,12 @@ const AppNavigator = () => {
         animation: "none",
       }}
     >
-      <Stack.Screen name="Dashboard" component={DashboardScreen} />
-      <Stack.Screen
+      <Stack.Screen name="Dashboard" component={DashboardNavigator} />
+      {/* <Stack.Screen
         name="Scan"
         component={ScanScreen}
         options={{ animation: "slide_from_bottom" }}
-      />
+      /> */}
       <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
     </Stack.Navigator>
   );

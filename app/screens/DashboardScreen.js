@@ -9,7 +9,10 @@ import {
 } from "react-native";
 import {
   ActivityIndicator,
+  Button,
   Divider,
+  Modal,
+  Portal,
   Searchbar,
   Snackbar,
   Text,
@@ -25,16 +28,17 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import dayjs from "dayjs";
 import ListItem from "../components/dashboard/ListItem";
 import DashboardCamera from "../components/DashboardCamera";
+import useAuth from "../auth/useAuth";
 
 const DashboardScreen = ({ theme }) => {
   const { colors } = theme;
+  const { logout } = useAuth();
   // STATE
   const [noData, setNoData] = useState(false);
   // SCROLL
   const [prevScrollPos, setPrevScrollPos] = useState(0);
   // FOR USER DETAILS
   const user = useSelector((state) => state.token.userDetails);
-
   // FOR TRIP
   const [trip, setTrip] = useState([]);
 
@@ -51,6 +55,12 @@ const DashboardScreen = ({ theme }) => {
   } = useDisclosure();
   const [errorMsg, setErrorMsg] = useState();
 
+  // FOR LOGOUT MODAL
+  const {
+    isOpen: showLogout,
+    onToggle: onLogoutToggle,
+    onClose: onLogoutClose,
+  } = useDisclosure();
   // FOR RTK
   const { reset, setState, state } = useParams();
   const { data, isLoading, isError, isFetching, error, refetch } =
@@ -177,10 +187,11 @@ const DashboardScreen = ({ theme }) => {
           <View>
             <Text style={{ color: colors.primary }}>Welcome</Text>
             <Text style={styles.name}>
-              {user && `${user?.first_name.split(" ")[0]} ${user.last_name}`}
+              {user?.first_name &&
+                `${user.first_name.split(" ")[0]} ${user.last_name}`}
             </Text>
           </View>
-          <TouchableOpacity onPress={() => console.log("image select")}>
+          <TouchableOpacity onPress={onLogoutToggle}>
             {user?.profile ? (
               <Image
                 source={{ uri: `${process.env.BASEURL}/${user.profile}` }}
@@ -314,6 +325,41 @@ const DashboardScreen = ({ theme }) => {
       >
         <Text style={{ fontSize: 14, color: "#fff" }}>{errorMsg}</Text>
       </Snackbar>
+
+      {/* LOGOUT MODAL */}
+      <Portal>
+        <Modal
+          visible={showLogout}
+          onDismiss={onLogoutClose}
+          contentContainerStyle={{
+            backgroundColor: "white",
+            padding: 20,
+            margin: 20,
+            borderRadius: 20,
+          }}
+        >
+          <View
+            style={{
+              alignItems: "flex-end",
+            }}
+          >
+            <TouchableOpacity onPress={onLogoutClose}>
+              <Ionicons name="ios-close-outline" size={30} />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={{ textAlign: "center" }}>Are you sure to logout?</Text>
+
+          <Divider style={{ height: 15, backgroundColor: "transparent" }} />
+          <Button
+            mode="contained"
+            contentStyle={{ backgroundColor: colors.danger }}
+            onPress={logout}
+          >
+            Logout
+          </Button>
+        </Modal>
+      </Portal>
     </>
   );
 };
