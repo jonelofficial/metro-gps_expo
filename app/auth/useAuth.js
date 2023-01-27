@@ -12,7 +12,12 @@ import useStorage from "./useStorage";
 
 const useAuth = () => {
   const { isOpen: isLoading, onToggle, onClose } = useDisclosure();
-  const { storeToken } = useStorage();
+  const {
+    storeToken,
+    storeUser,
+    removeToken: removeTokenState,
+    removeUser: removeUserState,
+  } = useStorage();
   const dispatch = useDispatch();
 
   const login = async (values) => {
@@ -24,9 +29,10 @@ const useAuth = () => {
     })
       .then((res) => res.json())
       .then(async (data) => {
+        storeToken(data.token);
+        storeUser(jwtDecode(data.token));
         dispatch(addToken(data));
         dispatch(addUser(jwtDecode(data.token)));
-        storeToken(data.token);
         onClose();
       })
       .catch((error) => {
@@ -38,6 +44,8 @@ const useAuth = () => {
   const logout = async () => {
     dispatch(removeToken());
     dispatch(removeUser());
+    removeTokenState();
+    removeUserState();
   };
 
   return { logout, login, isLoading };

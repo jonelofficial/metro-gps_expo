@@ -2,6 +2,7 @@ import * as SecureStore from "expo-secure-store";
 
 const useStorage = () => {
   const key = "authToken";
+  const userKey = "authUser";
 
   const storeToken = async (authToken) => {
     try {
@@ -11,11 +12,27 @@ const useStorage = () => {
     }
   };
 
+  const storeUser = async (data) => {
+    try {
+      await SecureStore.setItemAsync(userKey, JSON.stringify(data));
+    } catch (error) {
+      console.log("ERROR ON STORING USER: ", error);
+    }
+  };
+
   const getUser = async () => {
+    try {
+      return await SecureStore.getItemAsync(userKey);
+    } catch (error) {
+      console.log("ERROR ON GETTING USER: ", error);
+    }
+  };
+
+  const getToken = async () => {
     try {
       return await SecureStore.getItemAsync(key);
     } catch (error) {
-      console.log("ERROR ON GETTING AUTH TOKEN: ", error);
+      console.log("ERROR ON GETTING  TOKEN: ", error);
     }
   };
 
@@ -26,7 +43,15 @@ const useStorage = () => {
       console.log("ERROR ON REMOVING AUTH TOKEN: ", error);
     }
   };
-  return { storeToken, getUser, removeToken };
+
+  const removeUser = async () => {
+    try {
+      await SecureStore.deleteItemAsync(userKey);
+    } catch (error) {
+      console.log("ERROR ON REMOVING USER: ", error);
+    }
+  };
+  return { storeToken, getUser, removeToken, getToken, storeUser, removeUser };
 };
 
 export default useStorage;

@@ -1,6 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Searchbar, Text, withTheme } from "react-native-paper";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  FlatList,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  ActivityIndicator,
+  Divider,
+  Searchbar,
+  Snackbar,
+  Text,
+  withTheme,
+} from "react-native-paper";
 import { useSelector } from "react-redux";
 import { useGetAllTripsQuery } from "../api/metroApi";
 import Screen from "../components/Screen";
@@ -9,36 +23,132 @@ import { Ionicons } from "@expo/vector-icons";
 import useDisclosure from "../hooks/useDisclosure";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import dayjs from "dayjs";
+import ListItem from "../components/dashboard/ListItem";
+import DashboardCamera from "../components/DashboardCamera";
 
 const DashboardScreen = ({ theme }) => {
   const { colors } = theme;
-  const { reset, setState, state } = useParams();
+  // STATE
+  const [noData, setNoData] = useState(false);
+  // SCROLL
+  const [prevScrollPos, setPrevScrollPos] = useState(0);
+  // FOR USER DETAILS
   const user = useSelector((state) => state.token.userDetails);
+
+  // FOR TRIP
+  const [trip, setTrip] = useState([]);
+
+  // FOR SEARCH BAR
   const { isOpen, onClose, onToggle } = useDisclosure();
   const [date, setDate] = useState(new Date());
   const [search, setSearch] = useState(null);
 
-  const { data, isLoading, isError, isFetching, error } = useGetAllTripsQuery({
-    page: state.page,
-    limit: state.limit,
-    search: state.search,
-    searchBy: state.searchBy,
-    date: state.date,
-  });
+  // FOR SNACKBAR
+  const {
+    isOpen: isShow,
+    onToggle: onShowToggle,
+    onClose: onShowClose,
+  } = useDisclosure();
+  const [errorMsg, setErrorMsg] = useState();
+
+  // FOR RTK
+  const { reset, setState, state } = useParams();
+  const { data, isLoading, isError, isFetching, error, refetch } =
+    useGetAllTripsQuery(
+      {
+        page: state.page,
+        limit: state.limit,
+        search: state.search,
+        searchBy: state.searchBy,
+        date: state.date,
+      },
+      { refetchOnMountOrArgChange: true }
+    );
+
+  useEffect(() => {
+    if (!isLoading && !isFetching) {
+      if (data?.data.length === 0) {
+        setNoData(true);
+      }
+      data?.data.map((item) => {
+        setTrip((prevState) => [...prevState, item]);
+      });
+    }
+
+    return () => {
+      null;
+    };
+  }, [data]);
 
   // Function
 
-  console.log(state);
-
   const onDateSelected = async (event, value) => {
     if (event.type === "dismissed") return null;
+    setTrip([]);
     onClose();
     setDate(value);
     setSearch(dayjs(value).format("MM-DD-YY"));
     setState((prevState) => ({
       ...prevState,
       date: dayjs(value).format("YYYY-MM-DD"),
+      searchBy: "trip_date",
+      page: 1,
     }));
+  };
+
+  const onRefresh = () => {
+    if (isFetching) {
+      setErrorMsg("Please wait fecthing to finish");
+      onShowToggle();
+    } else if (trip.length > 25) {
+      setTrip([]);
+      setNoData(false);
+      setSearch(null);
+      reset();
+      refetch();
+    }
+  };
+
+  const onEndReached = async () => {
+    if (trip.length >= 25 && !isFetching && !noData) {
+      setState((prevState) => ({ ...prevState, page: prevState.page + 1 }));
+    }
+  };
+
+  const renderItem = ({ item, index }) => {
+    return <ListItem key={index} item={item} />;
+  };
+
+  // ANIMATION
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const slideIn = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      duration: 300,
+    }).start();
+  };
+
+  const slideOut = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 300,
+      useNativeDriver: true,
+      duration: 300,
+    }).start();
+  };
+
+  const onScroll = (e) => {
+    const currentScrollPos = e.nativeEvent.contentOffset.y;
+
+    if (currentScrollPos > prevScrollPos) {
+      // Scroll Down
+      slideOut();
+    } else {
+      // Scroll Up
+      slideIn();
+    }
+    return setPrevScrollPos(currentScrollPos);
   };
 
   if (isLoading) {
@@ -67,7 +177,7 @@ const DashboardScreen = ({ theme }) => {
           <View>
             <Text style={{ color: colors.primary }}>Welcome</Text>
             <Text style={styles.name}>
-              {user && `${user.first_name.split(" ")[0]} ${user.last_name}`}
+              {user && `${user?.first_name.split(" ")[0]} ${user.last_name}`}
             </Text>
           </View>
           <TouchableOpacity onPress={() => console.log("image select")}>
@@ -95,7 +205,11 @@ const DashboardScreen = ({ theme }) => {
             editable={false}
             value={search}
             onIconPress={false}
-            onChangeText={() => setSearch(null)}
+            onChangeText={() => {
+              setSearch(null);
+              setTrip([]);
+              reset();
+            }}
           />
           <View
             style={{
@@ -120,14 +234,57 @@ const DashboardScreen = ({ theme }) => {
 
         {/* TOTAL ITEMS */}
         <View style={{ alignItems: "center" }}>
-          <Text style={{ fontSize: 18, color: colors.light }}>
-            {data?.data.length === 1
-              ? `${data.data.length} item`
-              : data?.data.length > 1
-              ? `${data.data.length} items`
+          <Text style={{ fontSize: 17, color: colors.light }}>
+            {trip.length === 1
+              ? `${trip.length} item`
+              : trip.length > 1
+              ? `${trip.length} items`
               : "No item found"}
           </Text>
         </View>
+
+        {/* LIST ITEM */}
+        {trip && !isLoading ? (
+          <FlatList
+            onScroll={onScroll}
+            showsVerticalScrollIndicator={false}
+            refreshing={false}
+            data={trip}
+            onRefresh={onRefresh}
+            renderItem={renderItem}
+            onEndReached={onEndReached}
+            onEndReachedThreshold={0.0001}
+            ItemSeparatorComponent={<Divider style={{ height: 1 }} />}
+            ListFooterComponent={
+              isFetching && !noData ? (
+                <ActivityIndicator animating={true} color={colors.primary} />
+              ) : (
+                !isFetching &&
+                noData && (
+                  <Text style={{ textAlign: "center" }}>No data to show</Text>
+                )
+              )
+            }
+          />
+        ) : (
+          <Text>loading</Text>
+        )}
+
+        {/* CAMERA */}
+        {trip && !isFetching && (
+          <Animated.View
+            style={{
+              transform: [{ translateY: fadeAnim }],
+              alignItems: "center",
+              height: 50,
+              width: "100%",
+              position: "absolute",
+              bottom: 0,
+            }}
+          >
+            <DashboardCamera />
+          </Animated.View>
+        )}
       </Screen>
 
       {isOpen && (
@@ -139,6 +296,24 @@ const DashboardScreen = ({ theme }) => {
           onChange={onDateSelected}
         />
       )}
+
+      <Snackbar
+        style={{
+          backgroundColor: colors.danger,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        visible={isShow}
+        onDismiss={onShowClose}
+        action={{
+          label: "close",
+          onPress: () => {
+            onShowClose();
+          },
+        }}
+      >
+        <Text style={{ fontSize: 14, color: "#fff" }}>{errorMsg}</Text>
+      </Snackbar>
     </>
   );
 };

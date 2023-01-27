@@ -4,7 +4,7 @@ import useStorage from "../auth/useStorage";
 
 const baseURL = process.env.BASEURL;
 
-const { getUser } = useStorage();
+const { getToken } = useStorage();
 
 export const metroApi = createApi({
   reducerPath: "metroApi",
@@ -12,11 +12,10 @@ export const metroApi = createApi({
     baseUrl: baseURL,
     mode: "cors",
     prepareHeaders: async (headers) => {
-      const token = JSON.parse(await getUser());
+      const token = JSON.parse(await getToken());
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
-
       return headers;
     },
   }),

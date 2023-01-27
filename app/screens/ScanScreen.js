@@ -1,29 +1,40 @@
 import { BarCodeScanner } from "expo-barcode-scanner";
 import React, { useEffect, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
-import { Snackbar, Text, withTheme } from "react-native-paper";
+import { Button, Snackbar, Text, withTheme } from "react-native-paper";
 import ViewFinder from "react-native-view-finder";
 import { useSelector } from "react-redux";
 import useAuth from "../auth/useAuth";
+import ScanToast from "../components/ScanToast";
 import Screen from "../components/Screen";
 import useDisclosure from "../hooks/useDisclosure";
 
-const ScanScreen = ({ theme }) => {
+const ScanScreen = ({ theme, navigation }) => {
   const { colors } = theme;
   const { height, width } = Dimensions.get("screen");
   const [permission, setPermission] = useState(null);
   const [error, setError] = useState();
+  const [vehicleData, setVehicleData] = useState({});
 
-  const { isOpen: isLoading, onToggle, onClose } = useDisclosure();
   const {
-    isOpen: scan,
+    isOpen: isLoading,
+    onToggle: onLoadingToggle,
+    onClose: onLoadingClose,
+  } = useDisclosure();
+  const {
+    isOpen: showScan,
     onClose: onScanClose,
     onToggle: onScanToggle,
   } = useDisclosure();
   const {
-    isOpen: isShow,
-    onToggle: onShowToggle,
-    onClose: onShowClose,
+    isOpen: showError,
+    onToggle: onErrorToggle,
+    onClose: onErrorClose,
+  } = useDisclosure();
+  const {
+    isOpen: showToast,
+    onToggle: onToastToggle,
+    onClose: onToastClose,
   } = useDisclosure();
 
   const token = useSelector((state) => state.token.value);
@@ -41,31 +52,28 @@ const ScanScreen = ({ theme }) => {
 
   const handleScan = async ({ type, data }) => {
     try {
-      onToggle();
+      onLoadingToggle();
 
-      onScanToggle();
       const json = await JSON.parse(data);
 
       if (json.username && json.password && !token) {
         login(json);
       } else if (json.vehicle_id && token) {
-        onShowToggle();
-        setError("Valid");
+        onScanToggle();
+        onToastToggle();
+        console.log(data);
+        // navigation.navigate("TripDetails");
       } else if (json.vehicle_id && !token) {
-        onShowToggle();
         setError("Please use account QR Code");
+        onErrorToggle();
       } else if (json.username && json.password && token) {
-        onShowToggle();
-        setError("Please scan vehicle QR Code to start trip");
+        setError("Please showScan vehicle QR Code to start trip");
+        onErrorToggle();
       } else {
-        onShowToggle();
         setError("QR not valid");
+        onErrorToggle();
       }
-      onClose();
-
-      setTimeout(() => {
-        onScanClose();
-      }, 3000);
+      onLoadingClose();
     } catch (error) {
       setError("Sorry, can't read the QR code.");
       console.log(error);
@@ -74,7 +82,7 @@ const ScanScreen = ({ theme }) => {
 
   if (permission == null) {
     return (
-      <View>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>Requesting for camera permission.</Text>
       </View>
     );
@@ -82,53 +90,70 @@ const ScanScreen = ({ theme }) => {
 
   if (!permission) {
     return (
-      <View>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>Accept Camera permission and try again.</Text>
       </View>
     );
   }
 
   return (
-    <Screen>
-      <View style={styles.scanWrapper}>
-        <BarCodeScanner
-          onBarCodeScanned={scan ? undefined : handleScan}
-          style={[
-            StyleSheet.absoluteFillObject,
-            {
-              width: width * 1.8,
-              height: height * 1.1,
-              position: "absolute",
-              left: "-30%",
+    <>
+      <Screen>
+        <View style={styles.scanWrapper}>
+          <BarCodeScanner
+            onBarCodeScanned={showScan || isLoading ? undefined : handleScan}
+            style={[
+              StyleSheet.absoluteFillObject,
+              {
+                width: width * 1.8,
+                height: height * 1.1,
+                position: "absolute",
+                left: "-30%",
+              },
+            ]}
+          />
+          <ViewFinder
+            height={250}
+            width={250}
+            borderLength={50}
+            borderRadius={15}
+            loading={isLoading}
+          />
+          {showScan && (
+            <Button
+              onPress={() => {
+                onScanClose();
+                onToastClose();
+                onLoadingClose();
+              }}
+            >
+              Tap to Scan Again
+            </Button>
+          )}
+        </View>
+
+        {/* ERROR HANDLING */}
+        <Snackbar
+          style={{
+            backgroundColor: colors.danger,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          visible={showError}
+          onDismiss={onErrorClose}
+          action={{
+            label: "close",
+            onPress: () => {
+              onErrorClose();
             },
-          ]}
-        />
-        <ViewFinder
-          height={250}
-          width={250}
-          borderLength={50}
-          borderRadius={15}
-          loading={isLoading}
-        />
-      </View>
-      <Snackbar
-        style={{
-          backgroundColor: colors.danger,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-        visible={isShow}
-        onDismiss={onShowClose}
-        action={{
-          label: "close",
-          onPress: () => {
-            onShowClose();
-          },
-        }}
-      >
-        <Text style={styles.snackbarText}>{error}</Text>
-      </Snackbar>
-    </Screen>
+          }}
+        >
+          <Text style={styles.snackbarText}>{error}</Text>
+        </Snackbar>
+      </Screen>
+
+      <ScanToast showToast={showToast} vehicleData={vehicleData} />
+    </>
   );
 };
 
