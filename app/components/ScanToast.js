@@ -105,7 +105,7 @@ const ScanToast = ({ showToast, vehicleData, onToastClose, theme }) => {
           navigation.navigate("TripForm");
         }}
       >
-        Drive
+        Next
       </Button>
     </Animated.View>
   );

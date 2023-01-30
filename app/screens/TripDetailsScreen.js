@@ -34,6 +34,9 @@ const TripDetailsScreen = ({ route, theme }) => {
 
             <View style={{ flexDirection: "column" }}>
               {item?.locations.map((loc, i) => {
+                if (loc?.status !== "left" && loc?.status !== "arrived") {
+                  return null;
+                }
                 return (
                   <View style={{ marginBottom: 5 }}>
                     <View style={{ paddingBottom: 5, width: "90%" }}>
@@ -45,9 +48,7 @@ const TripDetailsScreen = ({ route, theme }) => {
                             color:
                               loc?.status === "left"
                                 ? colors.danger
-                                : loc?.status === "arrived"
-                                ? colors.success
-                                : colors.primary,
+                                : colors.success,
                           },
                         ]}
                       >
@@ -76,7 +77,7 @@ const TripDetailsScreen = ({ route, theme }) => {
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Companion: </Text>
             {item?.companion.map((comp, i) => {
-              return <Text key={i}>{comp?.firstName}</Text>;
+              return <Text key={i}>{comp?.first_name}</Text>;
             })}
           </View>
           <View style={styles.textWrapper}>
@@ -95,7 +96,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     flex: 1,
-    // overflow: "scroll",
   },
   textWrapper: { flexDirection: "row", marginBottom: 2 },
   label: { minWidth: 100 },

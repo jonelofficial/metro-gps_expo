@@ -9,6 +9,7 @@ const TextField = ({
   handleChange,
   handleBlur,
   values,
+  ...etc
 }) => {
   return (
     <>
@@ -23,6 +24,7 @@ const TextField = ({
         outlineStyle={{
           borderRadius: 15,
         }}
+        {...etc}
       />
       {touched[name] && errors[name] ? (
         <Text style={{ color: "red", fontSize: 14, padding: 5 }}>

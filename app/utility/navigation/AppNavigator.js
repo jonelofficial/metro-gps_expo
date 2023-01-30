@@ -16,9 +16,9 @@ const AppNavigator = () => {
         animation: "none",
       }}
     >
+      <Stack.Screen name="TripForm" component={TripFormScreen} />
       <Stack.Screen name="Dashboard" component={DashboardNavigator} />
       <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
-      <Stack.Screen name="TripForm" component={TripFormScreen} />
     </Stack.Navigator>
   );
 };
