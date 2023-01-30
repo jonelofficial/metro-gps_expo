@@ -197,7 +197,12 @@ const DashboardScreen = ({ theme, navigation }) => {
                 `${user.first_name.split(" ")[0]} ${user.last_name}`}
             </Text>
           </View>
-          <TouchableOpacity onPress={onLogoutToggle}>
+          <TouchableOpacity
+            onPress={() => {
+              onLogoutToggle();
+              onClose();
+            }}
+          >
             {user?.profile ? (
               <Image
                 source={{ uri: `${process.env.BASEURL}/${user.profile}` }}
@@ -250,7 +255,7 @@ const DashboardScreen = ({ theme, navigation }) => {
         </View>
 
         {/* TOTAL ITEMS */}
-        <View style={{ alignItems: "center" }}>
+        <View style={{ alignItems: "center", marginBottom: 8 }}>
           <Text style={{ fontSize: 17, color: colors.light }}>
             {trip.length === 1 && !isFetching
               ? `${trip.length} item`

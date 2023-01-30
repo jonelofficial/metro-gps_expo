@@ -35,6 +35,7 @@ const ListItem = ({ item, theme, onPress }) => {
           justifyContent: "space-between",
           padding: 15,
           alignItems: "center",
+          backgroundColor: colors.white,
         }}
       >
         <View>

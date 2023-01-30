@@ -28,7 +28,7 @@ export default function App() {
       warning: "#eed202",
       success: "#48bb78",
       light: "#6e6969",
-      white: "#fff",
+      white: "#fdfdfd",
       dark: "#0c0c0c",
     },
     fonts: configureFonts({ config: { fontFamily: "Khyay", fontSize: 16 } }),
