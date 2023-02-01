@@ -102,8 +102,11 @@ const ScanToast = ({ showToast, vehicleData, onToastClose, theme }) => {
         labelStyle={{ fontSize: 18, textTransform: "uppercase" }}
         onPress={() => {
           onToastClose();
-          navigation.navigate("TripForm", {
-            vehicle_id: vehicleData,
+          navigation.navigate("Office", {
+            screen: "OfficeTripForm",
+            params: {
+              vehicle_id: vehicleData,
+            },
           });
         }}
       >

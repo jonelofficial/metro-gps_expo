@@ -6,6 +6,7 @@ import {
   Image,
   Keyboard,
   StyleSheet,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -21,11 +22,12 @@ import { removeImage } from "../redux-toolkit/counter/imageSlice";
 import Scanner from "../components/Scanner";
 import { officeFormSchema } from "../utility/schema/validation";
 import { spliceCompanion } from "../redux-toolkit/counter/companionSlice";
+import { insertToTable } from "../utility/sqlite";
+import moment from "moment-timezone";
 
 const TripFormScreen = ({ theme, route, navigation }) => {
   const { colors } = theme;
   const { vehicle_id } = route.params;
-  console.log(vehicle_id);
   const image = useSelector((state) => state.image.value);
   const companion = useSelector((state) => state.companion.value);
   const dispatch = useDispatch();
@@ -42,11 +44,47 @@ const TripFormScreen = ({ theme, route, navigation }) => {
     onToggle: onToggleScanner,
   } = useDisclosure();
 
-  const onSubmit = async (data) => {
-    console.log(data);
+  const {
+    isOpen: showLoadingBtn,
+    onClose: onCloseLoadingBtn,
+    onToggle: onToggleLoadingBtn,
+  } = useDisclosure();
+
+  const onSubmit = async (data, { resetForm }) => {
+    onToggleLoadingBtn();
+    Keyboard.dismiss();
+    // await insertToTable(
+    //   "INSERT INTO offline_trip (vehicle_id, odometer, image, companion, others, locations, gas, date, odometer_done) values (?,?,?,?,?,?,?,?,?)",
+    //   [
+    //     vehicle_id._id,
+    //     data.odometer,
+    //     JSON.stringify({
+    //       name: new Date() + "_odometer",
+    //       uri: data.odometer_image_path?.uri || null,
+    //       type: "image/jpg",
+    //     }),
+    //     JSON.stringify(companion),
+    //     data.others,
+    //     JSON.stringify([]),
+    //     JSON.stringify([]),
+    //     JSON.stringify(moment(Date.now()).tz("Asia/Manila")),
+    //     "null",
+    //   ]
+    // );
+    resetForm();
+    dispatch(removeImage());
+    onCloseLoadingBtn();
+
+    navigation.navigate("OfficeMap");
   };
 
   const backAction = () => {
+    if (navigation.isFocused() && navigation.canGoBack()) {
+      ToastAndroid.show("Back button is pressed", ToastAndroid.SHORT);
+      navigation.navigate("DashboardStack");
+      return true;
+    }
+    return false;
     Alert.alert(
       "Hold on!",
       "This action will be back on the dashboard, continue?",
@@ -129,7 +167,6 @@ const TripFormScreen = ({ theme, route, navigation }) => {
               }) => {
                 useEffect(() => {
                   if (image) {
-                    console.log("working");
                     setFieldValue("odometer_image_path", image);
                     setErrors("odometer_image_path", null);
                   }
@@ -160,6 +197,7 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                         values={values}
                         name="odometer"
                         label="Odometer"
+                        keyboardType="numeric"
                       />
 
                       {/* IMAGE */}

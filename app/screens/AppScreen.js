@@ -13,6 +13,7 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import { netStatus } from "../redux-toolkit/counter/netSlice";
 import { Snackbar, Text, withTheme } from "react-native-paper";
 import { setVisible } from "../redux-toolkit/counter/snackbarSlice";
+import OfflineNotice from "../components/OfflineNotice";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -71,6 +72,7 @@ const AppScreen = ({ theme }) => {
   return (
     <>
       <StatusBar style="dark" />
+      <OfflineNotice />
       <NavigationContainer>
         {token ? <AppNavigator /> : <AuthNavigator />}
       </NavigationContainer>
