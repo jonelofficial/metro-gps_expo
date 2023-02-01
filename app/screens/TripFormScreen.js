@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Formik } from "formik";
 import {
+  Alert,
+  BackHandler,
   Image,
   Keyboard,
   StyleSheet,
@@ -20,8 +22,10 @@ import Scanner from "../components/Scanner";
 import { officeFormSchema } from "../utility/schema/validation";
 import { spliceCompanion } from "../redux-toolkit/counter/companionSlice";
 
-const TripFormScreen = ({ theme }) => {
+const TripFormScreen = ({ theme, route, navigation }) => {
   const { colors } = theme;
+  const { vehicle_id } = route.params;
+  console.log(vehicle_id);
   const image = useSelector((state) => state.image.value);
   const companion = useSelector((state) => state.companion.value);
   const dispatch = useDispatch();
@@ -42,6 +46,32 @@ const TripFormScreen = ({ theme }) => {
     console.log(data);
   };
 
+  const backAction = () => {
+    Alert.alert(
+      "Hold on!",
+      "This action will be back on the dashboard, continue?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: "YES",
+          onPress: () => navigation.navigate("DashboardStack"),
+        },
+      ]
+    );
+    return true;
+  };
+
+  useEffect(() => {
+    // HANDLE BACK
+    BackHandler.addEventListener("hardwareBackPress", backAction);
+    return () =>
+      BackHandler.removeEventListener("hardwareBackPress", backAction);
+  }, []);
+
   return (
     <>
       <Screen>
@@ -60,7 +90,7 @@ const TripFormScreen = ({ theme }) => {
               },
             ]}
           >
-            <Text>Vehicle Plate: AAL4975</Text>
+            <Text>Vehicle Plate: {vehicle_id?.plate_no}</Text>
           </View>
 
           <View>

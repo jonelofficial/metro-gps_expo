@@ -4,6 +4,7 @@ import tokenReducer from "../redux-toolkit/counter/userCounter";
 import netReducer from "../redux-toolkit/counter/netSlice";
 import imageReducer from "../redux-toolkit/counter/imageSlice";
 import companionReducer from "../redux-toolkit/counter/companionSlice";
+import snackbarReducer from "./counter/snackbarSlice";
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     net: netReducer,
     image: imageReducer,
     companion: companionReducer,
+    snackbar: snackbarReducer,
     [metroApi.reducerPath]: metroApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

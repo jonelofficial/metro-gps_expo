@@ -11,6 +11,11 @@ import {
 } from "../redux-toolkit/counter/userCounter";
 import { deleteFromTable, insertToTable, selectTable } from "../utility/sqlite";
 import useStorage from "./useStorage";
+import {
+  setColor,
+  setMsg,
+  setVisible,
+} from "../redux-toolkit/counter/snackbarSlice";
 
 const useAuth = () => {
   const netStatus = useSelector((state) => state.net.value);
@@ -130,7 +135,10 @@ const useAuth = () => {
       .then(async (data) => {
         if (data?.message) {
           onClose();
-          return alert(`${data.message}`);
+          dispatch(setMsg(data.message));
+          dispatch(setVisible(true));
+          dispatch(setColor("danger"));
+          return;
         }
         if (netStatus) {
           await getVehicles(data.token);
@@ -152,9 +160,13 @@ const useAuth = () => {
               dispatch(addToken({ token: item.token }));
               dispatch(addUser(jwtDecode(item.token)));
             } else {
-              alert(
-                `Could not find user. Login with internet connection instead`
+              dispatch(
+                setMsg(
+                  `Could not find user. Login with internet connection instead`
+                )
               );
+              dispatch(setVisible(true));
+              dispatch(setColor("danger"));
             }
           });
         }

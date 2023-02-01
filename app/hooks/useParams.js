@@ -16,6 +16,7 @@ const useParams = () => {
       limit: 25,
       search: "",
       searchBy: "_id",
+      date: null,
     });
   };
 

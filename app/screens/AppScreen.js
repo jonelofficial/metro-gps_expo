@@ -1,28 +1,32 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
-import { Text } from "react-native-paper";
+import React, { useEffect, useState } from "react";
+import * as SplashScreen from "expo-splash-screen";
 
 import { useDispatch, useSelector } from "react-redux";
 import AuthNavigator from "../utility/navigation/AuthNavigator";
 import AppNavigator from "../utility/navigation/AppNavigator";
 import useStorage from "../auth/useStorage";
 import { addToken, addUser } from "../redux-toolkit/counter/userCounter";
-import useDisclosure from "../hooks/useDisclosure";
-import { View } from "react-native";
 import runSQLite from "../config/runSQLite";
 import { useNetInfo } from "@react-native-community/netinfo";
 import { netStatus } from "../redux-toolkit/counter/netSlice";
+import { Snackbar, Text, withTheme } from "react-native-paper";
+import { setVisible } from "../redux-toolkit/counter/snackbarSlice";
 
-const AppScreen = () => {
+SplashScreen.preventAutoHideAsync();
+
+const AppScreen = ({ theme }) => {
   const netInfo = useNetInfo();
+  const { colors } = theme;
   runSQLite();
 
   const dispatch = useDispatch();
   const token = useSelector((state) => state.token.value);
+  const snackbar = useSelector((state) => state.snackbar.value);
 
-  const { getToken, getUser } = useStorage();
-  const { isOpen, onToggle } = useDisclosure();
+  const { getToken, getUser, removeToken, removeUser } = useStorage();
+  const [isOpen, setIsOpen] = useState(false);
 
   // CHECKING OF INTERNET
   useEffect(() => {
@@ -38,12 +42,22 @@ const AppScreen = () => {
   // CHECKING IF ALREADY LOGIN
   useEffect(() => {
     (async () => {
-      const user = await JSON.parse(await getUser());
-      const token = await JSON.parse(await getToken());
+      try {
+        // await removeToken();
+        // await removeUser();
+        const user = await JSON.parse(await getUser());
+        const token = await JSON.parse(await getToken());
 
-      dispatch(addUser(user));
-      dispatch(addToken({ token: token }));
-      onToggle();
+        if (!token) return null;
+
+        dispatch(addUser(user));
+        dispatch(addToken({ token: token }));
+      } catch (error) {
+        console.log(error);
+      } finally {
+        SplashScreen.hideAsync();
+        setIsOpen(true);
+      }
     })();
 
     return () => {
@@ -52,12 +66,7 @@ const AppScreen = () => {
   }, []);
 
   if (!isOpen) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <StatusBar style="dark" />
-        <Text>Checking token</Text>
-      </View>
-    );
+    return null;
   }
   return (
     <>
@@ -65,8 +74,34 @@ const AppScreen = () => {
       <NavigationContainer>
         {token ? <AppNavigator /> : <AuthNavigator />}
       </NavigationContainer>
+
+      {/* FOR ERROR OR SUCCESS MESSAGE */}
+      <Snackbar
+        style={{
+          backgroundColor: colors[snackbar.color],
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        visible={snackbar.visible}
+        onDismiss={() => dispatch(setVisible(false))}
+        action={{
+          label: "close",
+          onPress: () => {
+            dispatch(setVisible(false));
+          },
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 14,
+            color: "#fff",
+          }}
+        >
+          {snackbar.msg}
+        </Text>
+      </Snackbar>
     </>
   );
 };
 
-export default AppScreen;
+export default withTheme(AppScreen);

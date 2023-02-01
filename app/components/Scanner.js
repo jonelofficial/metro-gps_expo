@@ -2,27 +2,25 @@ import { Alert, BackHandler, Dimensions, StyleSheet, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import ViewFinder from "react-native-view-finder";
-import { Button, Snackbar, Text, withTheme } from "react-native-paper";
+import { Button, Text } from "react-native-paper";
 import useDisclosure from "../hooks/useDisclosure";
 import { useDispatch } from "react-redux";
 import { setCompanion } from "../redux-toolkit/counter/companionSlice";
+import {
+  setColor,
+  setMsg,
+  setVisible,
+} from "../redux-toolkit/counter/snackbarSlice";
 
-const Scanner = ({ onCloseScanner, theme }) => {
-  const { colors } = theme;
+const Scanner = ({ onCloseScanner }) => {
   const dispatch = useDispatch();
   const { height, width } = Dimensions.get("screen");
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [error, setError] = useState(null);
   const {
     isOpen: showLoading,
     onClose: onCloseLoading,
     onToggle: onToggleLoading,
-  } = useDisclosure();
-  const {
-    isOpen: showError,
-    onToggle: onErrorToggle,
-    onClose: onErrorClose,
   } = useDisclosure();
 
   const backAction = () => {
@@ -48,8 +46,9 @@ const Scanner = ({ onCloseScanner, theme }) => {
       setScanned(true);
       onCloseScanner();
     } else {
-      setError("QR code not valid. Use ID QR code");
-      onErrorToggle();
+      dispatch(setMsg("QR code not valid. Use ID QR code"));
+      dispatch(setVisible(true));
+      dispatch(setColor("danger"));
     }
     onCloseLoading();
 
@@ -131,32 +130,6 @@ const Scanner = ({ onCloseScanner, theme }) => {
           </Button>
         )}
       </View>
-
-      {/* ERROR HANDLING */}
-      <Snackbar
-        style={{
-          backgroundColor: colors.danger,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-        visible={showError}
-        onDismiss={onErrorClose}
-        action={{
-          label: "close",
-          onPress: () => {
-            onErrorClose();
-          },
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 14,
-            color: "#fff",
-          }}
-        >
-          {error}
-        </Text>
-      </Snackbar>
     </>
   );
 };
@@ -182,4 +155,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withTheme(Scanner);
+export default Scanner;

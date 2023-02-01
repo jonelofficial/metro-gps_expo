@@ -14,7 +14,9 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -27,7 +29,8 @@
         "googleMaps": {
           "apiKey": "AIzaSyDbCxrt0H-TQpGGDLlloTLfNKK5AAgtVVc"
         }
-      }
+      },
+      "package": "com.jonelofficial.metroGPS"
     },
     "web": {
       "favicon": "./assets/favicon.png"

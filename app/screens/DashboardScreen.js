@@ -14,7 +14,6 @@ import {
   Modal,
   Portal,
   Searchbar,
-  Snackbar,
   Text,
   withTheme,
 } from "react-native-paper";
@@ -47,14 +46,6 @@ const DashboardScreen = ({ theme, navigation }) => {
   const [date, setDate] = useState(new Date());
   const [search, setSearch] = useState(null);
 
-  // FOR SNACKBAR
-  const {
-    isOpen: isShow,
-    onToggle: onShowToggle,
-    onClose: onShowClose,
-  } = useDisclosure();
-  const [errorMsg, setErrorMsg] = useState();
-
   // FOR LOGOUT MODAL
   const {
     isOpen: showLogout,
@@ -63,17 +54,16 @@ const DashboardScreen = ({ theme, navigation }) => {
   } = useDisclosure();
   // FOR RTK
   const { reset, setState, state } = useParams();
-  const { data, isLoading, isError, isFetching, error, refetch } =
-    useGetAllTripsQuery(
-      {
-        page: state.page,
-        limit: state.limit,
-        search: state.search,
-        searchBy: state.searchBy,
-        date: state.date,
-      },
-      { refetchOnMountOrArgChange: true }
-    );
+  const { data, isLoading, isError, isFetching, error } = useGetAllTripsQuery(
+    {
+      page: state.page,
+      limit: state.limit,
+      search: state.search,
+      searchBy: state.searchBy,
+      date: state.date,
+    },
+    { refetchOnMountOrArgChange: true }
+  );
 
   useEffect(() => {
     if (!isLoading && !isFetching) {
@@ -93,7 +83,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   // Function
 
   const onDateSelected = async (event, value) => {
-    if (event.type === "dismissed") return null;
+    if (event.type === "dismissed") return onClose();
     setTrip([]);
     onClose();
     setDate(value);
@@ -108,14 +98,14 @@ const DashboardScreen = ({ theme, navigation }) => {
 
   const onRefresh = () => {
     if (isFetching) {
-      setErrorMsg("Please wait fecthing to finish");
-      onShowToggle();
+      dispatch(setMsg("Please wait fecthing to finish"));
+      dispatch(setVisible(true));
+      dispatch(setColor("warning"));
     } else if (trip.length > 25) {
       setTrip([]);
       setNoData(false);
       setSearch(null);
       reset();
-      refetch();
     }
   };
 
@@ -228,9 +218,11 @@ const DashboardScreen = ({ theme, navigation }) => {
             value={search}
             onIconPress={false}
             onChangeText={() => {
+              setNoData(false);
               setSearch(null);
               setTrip([]);
               reset();
+              setDate(new Date());
             }}
           />
           <View
@@ -311,6 +303,7 @@ const DashboardScreen = ({ theme, navigation }) => {
         )}
       </Screen>
 
+      {/* CALENDAR */}
       {isOpen && (
         <DateTimePicker
           value={date}
@@ -320,24 +313,6 @@ const DashboardScreen = ({ theme, navigation }) => {
           onChange={onDateSelected}
         />
       )}
-
-      <Snackbar
-        style={{
-          backgroundColor: colors.danger,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-        visible={isShow}
-        onDismiss={onShowClose}
-        action={{
-          label: "close",
-          onPress: () => {
-            onShowClose();
-          },
-        }}
-      >
-        <Text style={{ fontSize: 14, color: "#fff" }}>{errorMsg}</Text>
-      </Snackbar>
 
       {/* LOGOUT MODAL */}
       <Portal>

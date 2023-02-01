@@ -38,10 +38,9 @@ const TripDetailsScreen = ({ route, theme }) => {
                   return null;
                 }
                 return (
-                  <View style={{ marginBottom: 5 }}>
+                  <View key={i} style={{ marginBottom: 5 }}>
                     <View style={{ paddingBottom: 5, width: "90%" }}>
                       <Text
-                        key={i}
                         style={[
                           styles.text,
                           {

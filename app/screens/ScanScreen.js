@@ -1,7 +1,7 @@
 import { BarCodeScanner } from "expo-barcode-scanner";
 import React, { useEffect, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
-import { Button, Snackbar, Text, withTheme } from "react-native-paper";
+import { Button, Text } from "react-native-paper";
 import ViewFinder from "react-native-view-finder";
 import { useSelector } from "react-redux";
 import useAuth from "../auth/useAuth";
@@ -10,11 +10,9 @@ import Screen from "../components/Screen";
 import useDisclosure from "../hooks/useDisclosure";
 import { selectTable } from "../utility/sqlite";
 
-const ScanScreen = ({ theme }) => {
-  const { colors } = theme;
+const ScanScreen = () => {
   const { height, width } = Dimensions.get("screen");
   const [permission, setPermission] = useState(null);
-  const [error, setError] = useState();
   const [vehicleData, setVehicleData] = useState({});
 
   const {
@@ -27,11 +25,7 @@ const ScanScreen = ({ theme }) => {
     onClose: onScanClose,
     onToggle: onScanToggle,
   } = useDisclosure();
-  const {
-    isOpen: showError,
-    onToggle: onErrorToggle,
-    onClose: onErrorClose,
-  } = useDisclosure();
+
   const {
     isOpen: showToast,
     onToggle: onToastToggle,
@@ -69,23 +63,29 @@ const ScanScreen = ({ theme }) => {
           onScanToggle();
           onToastToggle();
         } else {
-          setError("No vehicle found");
-          onErrorToggle();
+          dispatch(setMsg("No vehicle found"));
+          dispatch(setVisible(true));
+          dispatch(setColor("danger"));
           onScanToggle();
         }
       } else if (json.vehicle_id && !token) {
-        setError("Please use account QR Code");
-        onErrorToggle();
+        dispatch(setMsg("Please use account QR Code"));
+        dispatch(setVisible(true));
+        dispatch(setColor("danger"));
       } else if (json.username && json.password && token) {
-        setError("Please showScan vehicle QR Code to start trip");
-        onErrorToggle();
+        dispatch(setMsg("Please scan vehicle QR Code to start trip"));
+        dispatch(setVisible(true));
+        dispatch(setColor("danger"));
       } else {
-        setError("QR not valid");
-        onErrorToggle();
+        dispatch(setMsg("QR not valid"));
+        dispatch(setVisible(true));
+        dispatch(setColor("danger"));
       }
       onLoadingClose();
     } catch (error) {
-      setError("Sorry, can't read the QR code.");
+      dispatch(setMsg("Sorry, can't read the QR code"));
+      dispatch(setVisible(true));
+      dispatch(setColor("danger"));
       console.log(error);
     }
   };
@@ -141,25 +141,6 @@ const ScanScreen = ({ theme }) => {
         )}
       </View>
 
-      {/* ERROR HANDLING */}
-      <Snackbar
-        style={{
-          backgroundColor: colors.danger,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-        visible={showError}
-        onDismiss={onErrorClose}
-        action={{
-          label: "close",
-          onPress: () => {
-            onErrorClose();
-          },
-        }}
-      >
-        <Text style={styles.snackbarText}>{error}</Text>
-      </Snackbar>
-
       {/* TOAST */}
 
       <ScanToast
@@ -184,4 +165,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withTheme(ScanScreen);
+export default ScanScreen;
