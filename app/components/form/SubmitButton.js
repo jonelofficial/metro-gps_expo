@@ -10,7 +10,6 @@ const SubmitButton = ({ onPress, title, isLoading }) => {
       labelStyle={{
         fontSize: 18,
         lineHeight: 35,
-        fontFamily: "Khyay",
       }}
       loading={isLoading}
     >

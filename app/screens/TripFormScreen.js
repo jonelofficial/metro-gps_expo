@@ -54,7 +54,7 @@ const TripFormScreen = ({ theme, route, navigation }) => {
     onToggleLoadingBtn();
     Keyboard.dismiss();
     // await insertToTable(
-    //   "INSERT INTO offline_trip (vehicle_id, odometer, image, companion, others, locations, gas, date, odometer_done) values (?,?,?,?,?,?,?,?,?)",
+    //   "INSERT INTO offline_trip (vehicle_id, odometer, image, companion, others, locations, gas, date) values (?,?,?,?,?,?,?,?)",
     //   [
     //     vehicle_id._id,
     //     data.odometer,
@@ -68,7 +68,6 @@ const TripFormScreen = ({ theme, route, navigation }) => {
     //     JSON.stringify([]),
     //     JSON.stringify([]),
     //     JSON.stringify(moment(Date.now()).tz("Asia/Manila")),
-    //     "null",
     //   ]
     // );
     resetForm();

@@ -7,8 +7,8 @@ const runSQLite = () => {
       // await dropTable("user");
       // await dropTable("locations");
 
-      //   const res = await showTable();
-      //   console.log("T A B L E: ", res);
+      // const res = await showTable();
+      // console.log("T A B L E: ", res);
 
       await createTable(
         "offline_trip",

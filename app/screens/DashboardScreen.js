@@ -28,10 +28,13 @@ import dayjs from "dayjs";
 import ListItem from "../components/dashboard/ListItem";
 import DashboardCamera from "../components/DashboardCamera";
 import useAuth from "../auth/useAuth";
+import { selectTable } from "../utility/sqlite";
 
 const DashboardScreen = ({ theme, navigation }) => {
   const { colors } = theme;
   const { logout } = useAuth();
+  // FOR INTERNET STATUS
+  const net = useSelector((state) => state.net.value);
   // STATE
   const [noData, setNoData] = useState(false);
   // SCROLL
@@ -40,6 +43,8 @@ const DashboardScreen = ({ theme, navigation }) => {
   const user = useSelector((state) => state.token.userDetails);
   // FOR TRIP
   const [trip, setTrip] = useState([]);
+  const [rtkTrip, setRtkTrip] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
 
   // FOR SEARCH BAR
   const { isOpen, onClose, onToggle } = useDisclosure();
@@ -66,21 +71,67 @@ const DashboardScreen = ({ theme, navigation }) => {
   );
 
   useEffect(() => {
-    if (!isLoading && !isFetching) {
-      if (data?.data.length === 0) {
-        setNoData(true);
-      }
-      data?.data.map((item) => {
-        setTrip((prevState) => [...prevState, item]);
-      });
-    }
+    handleOfflineTrip();
 
+    if (net) {
+    }
+    return () => {
+      null;
+    };
+  }, []);
+
+  useEffect(() => {
+    fetchTrip();
     return () => {
       null;
     };
   }, [data]);
 
   // Function
+
+  const fetchTrip = async () => {
+    if (!isLoading && !isFetching) {
+      if (data?.data.length === 0) {
+        setNoData(true);
+      }
+
+      data?.data.map((item) => {
+        setTrip((prevState) => [...prevState, item]);
+      });
+
+      setTotalCount((prevState) => prevState + data?.data.length);
+    }
+  };
+
+  const handleOfflineTrip = async () => {
+    const res = await selectTable("offline_trip");
+    if (res.length > 0) {
+      await res.map((item) => {
+        setTrip((prevState) => [
+          {
+            _id: item.id,
+            vehicle_id: item.vehicle_id,
+            companion: JSON.parse(item.companion),
+            diesels: JSON.parse(item.gas),
+            locations: JSON.parse(item.locations),
+            odometer: JSON.parse(item.odometer),
+            odometer_done: parseInt(JSON.parse(item.odometer_done)),
+            points: JSON.parse(item.points),
+            image: JSON.parse(item.image),
+            user_id: {
+              _id: user.userId,
+              trip_template: user.trip_template,
+            },
+            trip_date: JSON.parse(item.date),
+            others: item.others,
+            offline: true,
+          },
+          ...prevState,
+        ]);
+      });
+    }
+    setTotalCount((prevState) => prevState + res.length);
+  };
 
   const onDateSelected = async (event, value) => {
     if (event.type === "dismissed") return onClose();
@@ -102,10 +153,15 @@ const DashboardScreen = ({ theme, navigation }) => {
       dispatch(setVisible(true));
       dispatch(setColor("warning"));
     } else if (trip.length > 25) {
+      setTotalCount(0);
       setTrip([]);
       setNoData(false);
       setSearch(null);
       reset();
+
+      // refetch offline and online trip
+      handleOfflineTrip();
+      fetchTrip();
     }
   };
 
@@ -157,7 +213,7 @@ const DashboardScreen = ({ theme, navigation }) => {
     return setPrevScrollPos(currentScrollPos);
   };
 
-  if (isLoading) {
+  if (isLoading && net) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>isLoading</Text>
@@ -165,7 +221,7 @@ const DashboardScreen = ({ theme, navigation }) => {
     );
   }
 
-  if (isError) {
+  if (isError && net) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>{error?.data?.error}</Text>
@@ -249,10 +305,18 @@ const DashboardScreen = ({ theme, navigation }) => {
         {/* TOTAL ITEMS */}
         <View style={{ alignItems: "center", marginBottom: 8 }}>
           <Text style={{ fontSize: 17, color: colors.light }}>
-            {trip.length === 1 && !isFetching
+            {/* {trip.length === 1 && !isFetching
               ? `${trip.length} item`
               : trip.length > 1 && !isFetching
               ? `${trip.length} items`
+              : !isFetching
+              ? "No item found"
+              : "Loading"} */}
+
+            {totalCount === 1 && !isFetching
+              ? `${totalCount} item`
+              : totalCount > 1 && !isFetching
+              ? `${totalCount} items`
               : !isFetching
               ? "No item found"
               : "Loading"}

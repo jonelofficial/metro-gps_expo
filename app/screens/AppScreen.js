@@ -34,6 +34,7 @@ const AppScreen = ({ theme }) => {
     if (netInfo.type !== "unknown" && netInfo.isInternetReachable === false) {
       return dispatch(netStatus(false));
     }
+
     dispatch(netStatus(true));
     return () => {
       null;

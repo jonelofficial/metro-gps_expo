@@ -7,6 +7,13 @@ import { Text, withTheme } from "react-native-paper";
 
 const ListItem = ({ item, theme, onPress }) => {
   const { colors } = theme;
+  if (item?.offline == true) {
+    return (
+      <TouchableOpacity onPress={onPress}>
+        <Text>{`${item._id} THIS IS OFFLINE TRIP`}</Text>
+      </TouchableOpacity>
+    );
+  }
 
   const newLocations = item.locations.filter(
     (location) => location.status == "left" || location.status == "arrived"

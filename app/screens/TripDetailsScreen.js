@@ -1,10 +1,10 @@
 import dayjs from "dayjs";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Divider, Text, withTheme } from "react-native-paper";
+import { Button, Divider, Text, withTheme } from "react-native-paper";
 import Screen from "../components/Screen";
 
-const TripDetailsScreen = ({ route, theme }) => {
+const TripDetailsScreen = ({ route, theme, navigation }) => {
   const { item } = route.params;
   const { colors } = theme;
   return (
@@ -85,6 +85,26 @@ const TripDetailsScreen = ({ route, theme }) => {
           </View>
         </ScrollView>
       </View>
+
+      {item?.offline && (
+        <View style={{ paddingBottom: 15, paddingHorizontal: 10 }}>
+          <Button
+            mode="contained"
+            style={{ borderRadius: 35, backgroundColor: colors.success }}
+            labelStyle={{
+              fontSize: 18,
+              lineHeight: 35,
+            }}
+            onPress={() => {
+              navigation.navigate("Office", {
+                screen: "OfficeMap",
+              });
+            }}
+          >
+            Resume
+          </Button>
+        </View>
+      )}
     </Screen>
   );
 };
