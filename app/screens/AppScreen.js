@@ -14,6 +14,7 @@ import { netStatus } from "../redux-toolkit/counter/netSlice";
 import { Snackbar, Text, withTheme } from "react-native-paper";
 import { setVisible } from "../redux-toolkit/counter/snackbarSlice";
 import OfflineNotice from "../components/OfflineNotice";
+import { deleteFromTable } from "../utility/sqlite";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -45,6 +46,7 @@ const AppScreen = ({ theme }) => {
   useEffect(() => {
     (async () => {
       try {
+        // await deleteFromTable("offline_trip");
         // await removeToken();
         // await removeUser();
         const user = await JSON.parse(await getUser());
