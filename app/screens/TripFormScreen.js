@@ -22,7 +22,7 @@ import { removeImage } from "../redux-toolkit/counter/imageSlice";
 import Scanner from "../components/Scanner";
 import { officeFormSchema } from "../utility/schema/validation";
 import { spliceCompanion } from "../redux-toolkit/counter/companionSlice";
-import { insertToTable } from "../utility/sqlite";
+import { deleteFromTable, insertToTable } from "../utility/sqlite";
 import moment from "moment-timezone";
 
 const TripFormScreen = ({ theme, route, navigation }) => {
@@ -53,23 +53,23 @@ const TripFormScreen = ({ theme, route, navigation }) => {
   const onSubmit = async (data, { resetForm }) => {
     onToggleLoadingBtn();
     Keyboard.dismiss();
-    // await insertToTable(
-    //   "INSERT INTO offline_trip (vehicle_id, odometer, image, companion, others, locations, gas, date) values (?,?,?,?,?,?,?,?)",
-    //   [
-    //     vehicle_id._id,
-    //     data.odometer,
-    //     JSON.stringify({
-    //       name: new Date() + "_odometer",
-    //       uri: data.odometer_image_path?.uri || null,
-    //       type: "image/jpg",
-    //     }),
-    //     JSON.stringify(companion),
-    //     data.others,
-    //     JSON.stringify([]),
-    //     JSON.stringify([]),
-    //     JSON.stringify(moment(Date.now()).tz("Asia/Manila")),
-    //   ]
-    // );
+    await insertToTable(
+      "INSERT INTO offline_trip (vehicle_id, odometer, image, companion, others, locations, gas, date) values (?,?,?,?,?,?,?,?)",
+      [
+        vehicle_id._id,
+        data.odometer,
+        JSON.stringify({
+          name: new Date() + "_odometer",
+          uri: data.odometer_image_path?.uri || null,
+          type: "image/jpg",
+        }),
+        JSON.stringify(companion),
+        data.others,
+        JSON.stringify([]),
+        JSON.stringify([]),
+        JSON.stringify(moment(Date.now()).tz("Asia/Manila")),
+      ]
+    );
     resetForm();
     dispatch(removeImage());
     onCloseLoadingBtn();

@@ -7,20 +7,21 @@ import { Text, withTheme } from "react-native-paper";
 
 const ListItem = ({ item, theme, onPress }) => {
   const { colors } = theme;
-  if (item?.offline == true) {
-    return (
-      <TouchableOpacity onPress={onPress}>
-        <Text>{`${item._id} THIS IS OFFLINE TRIP`}</Text>
-      </TouchableOpacity>
-    );
-  }
+  // if (item?.offline == true) {
+  //   console.log(item);
+  //   return (
+  //     <TouchableOpacity onPress={onPress}>
+  //       <Text>{`${item._id} THIS IS OFFLINE TRIP`}</Text>
+  //     </TouchableOpacity>
+  //   );
+  // }
 
   const newLocations = item.locations.filter(
     (location) => location.status == "left" || location.status == "arrived"
   );
 
   // Getting KM
-  const km = getPathLength(item.points) / 1000;
+  const km = item.points?.length > 0 && getPathLength(item.points) / 1000;
 
   // Getting TIME
   const startDate = dayjs(item.locations[0].date);
@@ -42,7 +43,7 @@ const ListItem = ({ item, theme, onPress }) => {
           justifyContent: "space-between",
           padding: 15,
           alignItems: "center",
-          backgroundColor: colors.white,
+          backgroundColor: item?.offline ? colors.danger : colors.white,
         }}
       >
         <View>
@@ -52,25 +53,31 @@ const ListItem = ({ item, theme, onPress }) => {
               marginRight: 10,
               borderWidth: 1,
               borderRadius: 5,
-              borderColor: colors.success,
+              borderColor: item?.offline ? colors.white : colors.success,
             }}
           >
-            <Text style={{ color: colors.success }}>{`#${item._id.slice(
-              20
-            )}`}</Text>
+            <Text
+              style={{ color: item?.offline ? colors.white : colors.success }}
+            >
+              {item._id.length > 20
+                ? `#${item._id.slice(20)}`
+                : `#000${item._id}`}
+            </Text>
           </View>
         </View>
 
         <View style={{ flex: 1 }}>
           <View>
-            <Text>{`${km.toFixed(1)} km`}</Text>
+            <Text style={{ color: item?.offline && colors.white }}>
+              {km && `${km.toFixed(1)} km`}
+            </Text>
           </View>
 
           <View style={{ flexDirection: "row" }}>
             <Text style={{ color: colors.primary }}>
               {hours == 0 ? `${minutes} ` : `${hour} `}
             </Text>
-            <Text>
+            <Text style={{ color: item?.offline && colors.white }}>
               {hours >= 2 ? "hours." : hours == 0 ? "" : "hour."}
               {minutes > 1 ? "minutes" : "minute"}
             </Text>
@@ -79,10 +86,10 @@ const ListItem = ({ item, theme, onPress }) => {
 
         <View style={{ alignItems: "flex-end" }}>
           <View>
-            <Text>{time}</Text>
+            <Text style={{ color: item?.offline && colors.white }}>{time}</Text>
           </View>
           <View>
-            <Text>{date}</Text>
+            <Text style={{ color: item?.offline && colors.white }}>{date}</Text>
           </View>
         </View>
       </View>

@@ -30,6 +30,7 @@ export default function App() {
       light: "#6e6969",
       white: "#fdfdfd",
       dark: "#0c0c0c",
+      notActive: "#f2f2f2",
     },
     fonts: configureFonts({ config: { fontFamily: "Khyay", fontSize: 16 } }),
   };

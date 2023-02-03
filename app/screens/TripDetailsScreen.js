@@ -9,7 +9,12 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
   const { colors } = theme;
   return (
     <Screen>
-      <View style={[styles.container, { backgroundColor: colors.white }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: item?.offline ? colors.danger : colors.white },
+        ]}
+      >
         <ScrollView>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>ID:</Text>
@@ -39,7 +44,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                 }
                 return (
                   <View key={i} style={{ marginBottom: 5 }}>
-                    <View style={{ paddingBottom: 5, width: "90%" }}>
+                    <View style={{ paddingBottom: 5, width: "80%" }}>
                       <Text
                         style={[
                           styles.text,

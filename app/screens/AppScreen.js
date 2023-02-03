@@ -15,12 +15,14 @@ import { Snackbar, Text, withTheme } from "react-native-paper";
 import { setVisible } from "../redux-toolkit/counter/snackbarSlice";
 import OfflineNotice from "../components/OfflineNotice";
 import { deleteFromTable } from "../utility/sqlite";
+import { useKeepAwake } from "expo-keep-awake";
 
 SplashScreen.preventAutoHideAsync();
 
 const AppScreen = ({ theme }) => {
   const netInfo = useNetInfo();
   const { colors } = theme;
+  useKeepAwake();
   runSQLite();
 
   const dispatch = useDispatch();

@@ -27,7 +27,7 @@ const useLocations = () => {
     }
   };
 
-  const offlineHandleArrived = async () => {
+  const handleArrived = async () => {
     try {
       const result = await Location.getCurrentPositionAsync({
         enableHighAccuracy: true,
@@ -52,7 +52,7 @@ const useLocations = () => {
     }
   };
 
-  const offlineHandleLeft = async () => {
+  const handleLeft = async () => {
     try {
       const result = await Location.getCurrentPositionAsync({
         enableHighAccuracy: true,
@@ -76,7 +76,7 @@ const useLocations = () => {
       console.log("OFFLINE HANDLE LEFT ERROR: ", error);
     }
   };
-  return { handleInterval, offlineHandleArrived, offlineHandleLeft };
+  return { handleInterval, handleArrived, handleLeft };
 };
 
 export default useLocations;
