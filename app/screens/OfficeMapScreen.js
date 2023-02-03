@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Button, IconButton, Text, withTheme } from "react-native-paper";
+import {
+  Button,
+  IconButton,
+  Modal,
+  Portal,
+  Text,
+  withTheme,
+} from "react-native-paper";
 import Screen from "../components/Screen";
+import { Ionicons } from "@expo/vector-icons";
 
-import { StyleSheet, View } from "react-native";
+import { Keyboard, StyleSheet, TouchableOpacity, View } from "react-native";
 import taskManager from "../config/taskManager";
 import { getPathLength } from "geolib";
 import {
@@ -15,8 +23,12 @@ import useLocations from "../hooks/useLocations";
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment-timezone";
 import useDisclosure from "../hooks/useDisclosure";
+import { Formik } from "formik";
+import TextField from "../components/form/TextField";
+import SubmitButton from "../components/form/SubmitButton";
+import { doneModalSchema } from "../utility/schema/validation";
 
-const OfficeMapScreen = ({ route, theme }) => {
+const OfficeMapScreen = ({ route, theme, navigation }) => {
   const { colors } = theme;
   // HOOKS AND CONFIG
   const { location, showMap } = taskManager();
@@ -29,7 +41,6 @@ const OfficeMapScreen = ({ route, theme }) => {
   const [points, setPoints] = useState([]);
 
   useEffect(() => {
-    console.log("haveINTERNET: ", net);
     console.log("TRIP FROM STATE", trip);
     (async () => {
       console.log("TRIP FROM SQLITE", await selectTable("offline_trip"));
@@ -38,7 +49,7 @@ const OfficeMapScreen = ({ route, theme }) => {
     return () => {
       null;
     };
-  }, [trip]);
+  }, [trip, points, totalKm]);
 
   const {
     isOpen: leftLoading,
@@ -62,6 +73,12 @@ const OfficeMapScreen = ({ route, theme }) => {
     isOpen: doneLoading,
     onClose: stopDoneLoading,
     onToggle: startDoneLoading,
+  } = useDisclosure();
+
+  const {
+    isOpen: showDoneModal,
+    onClose: onCloseDoneModal,
+    onToggle: onToggleDoneModal,
   } = useDisclosure();
 
   // REDUX
@@ -154,7 +171,6 @@ const OfficeMapScreen = ({ route, theme }) => {
   // SQLITE FUNCTION
 
   const sqliteLeft = async () => {
-    console.log("sqlite");
     try {
       startLeftLoading();
       // start(new Date());
@@ -162,7 +178,6 @@ const OfficeMapScreen = ({ route, theme }) => {
       const leftRes = await handleLeft();
       const newObj = {
         ...leftRes,
-        trip_id: trip._id,
         date: moment(Date.now()).tz("Asia/Manila"),
       };
 
@@ -184,7 +199,6 @@ const OfficeMapScreen = ({ route, theme }) => {
       const arrivedRes = await handleArrived();
       const newObj = {
         ...arrivedRes,
-        trip_id: trip._id,
         date: moment(Date.now()).tz("Asia/Manila"),
       };
 
@@ -201,12 +215,7 @@ const OfficeMapScreen = ({ route, theme }) => {
   const sqliteDone = async (vehicle_data) => {
     try {
       Keyboard.dismiss();
-      // setDoneLoading(true);
-      // let mapPoints = [];
-
-      // await routeRes.map((item) => {
-      //   mapPoints.push(JSON.parse(item.points));
-      // });
+      startDoneLoading();
 
       const routeRes = await selectTable("route");
       const mapPoints = [...routeRes.map((item) => JSON.parse(item.points))];
@@ -231,6 +240,8 @@ const OfficeMapScreen = ({ route, theme }) => {
         form.append("points", JSON.stringify(mapPoints));
         form.append("others", offlineTrip[0].others);
         form.append("trip_date", JSON.parse(offlineTrip[0].date));
+        form.append("locations", offlineTrip[0].locations);
+        form.append("gas", offlineTrip[0].gas);
 
         console.log(form);
 
@@ -263,13 +274,17 @@ const OfficeMapScreen = ({ route, theme }) => {
         // }
       }
 
-      // doneReset();
-      // setDoneLoading(false);
-      // setUnfinishTrip(false);
+      stopDoneLoading();
 
-      // navigation.reset({
-      //   routes: [{ index: 0, name: routes.DASHBOARD }],
-      // });
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "Dashboard",
+            params: { screen: "DashboardStack" },
+          },
+        ],
+      });
     } catch (error) {
       alert("ERROR DONE PROCESS");
       console.log("ERROR DONE PROCESS: ", error);
@@ -292,136 +307,208 @@ const OfficeMapScreen = ({ route, theme }) => {
     );
   }
   return (
-    <Screen>
-      <View
-        style={[
-          styles.firstContainer,
-          {
-            borderColor: colors.primary,
-          },
-        ]}
-      >
-        <Text style={[styles.title, { color: colors.accent }]}>
-          M E T R O{"   "}G P S
-        </Text>
-        <View>
-          {location && <Text>Latitude: {location.coords.latitude}</Text>}
-          {location && <Text>Longitude: {location.coords.longitude}</Text>}
-        </View>
-      </View>
-
-      <View style={styles.secondContainer}>
-        {/* TIMER */}
+    <>
+      <Screen>
         <View
           style={[
-            styles.timer,
+            styles.firstContainer,
             {
               borderColor: colors.primary,
             },
           ]}
         >
-          <Text>Timer Here</Text>
-        </View>
-
-        {/* LEFT AND ARRIVED BUTTON */}
-        <View style={styles.buttonWrapper}>
-          <View style={styles.buttonContainer}>
-            <Button
-              mode="contained"
-              style={{
-                backgroundColor: leftLoading
-                  ? colors.notActive
-                  : trip?.locations?.length % 2 !== 0 &&
-                    trip?.locations?.length > 0
-                  ? colors.notActive
-                  : colors.danger,
-              }}
-              labelStyle={styles.buttonLabelStyle}
-              disabled={
-                leftLoading ||
-                arrivedLoading ||
-                (trip?.locations.length % 2 !== 0 && trip?.locations.length > 0)
-              }
-              loading={leftLoading}
-              onPress={sqliteLeft}
-            >
-              Left
-            </Button>
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
-              mode="contained"
-              style={{
-                backgroundColor: leftLoading
-                  ? colors.notActive
-                  : trip?.locations?.length % 2 === 0 &&
-                    trip?.locations?.length > 0
-                  ? colors.notActive
-                  : colors.success,
-              }}
-              labelStyle={styles.buttonLabelStyle}
-              disabled={
-                arrivedLoading ||
-                leftLoading ||
-                (trip?.locations.length % 2 === 0 && trip?.locations.length > 0)
-              }
-              loading={arrivedLoading}
-              onPress={sqliteArrived}
-            >
-              Arrived
-            </Button>
+          <Text style={[styles.title, { color: colors.accent }]}>
+            M E T R O{"   "}G P S
+          </Text>
+          <View>
+            {location && <Text>Latitude: {location.coords.latitude}</Text>}
+            {location && <Text>Longitude: {location.coords.longitude}</Text>}
           </View>
         </View>
 
-        {/* GAS BUTTON */}
-        <View>
-          <IconButton
-            mode="contained"
-            icon="gas-station"
-            size={45}
-            iconColor={colors.white}
-            containerColor={
-              arrivedLoading || leftLoading ? colors.notActive : colors.primary
-            }
-            style={{ borderRadius: 10 }}
-            disabled={arrivedLoading || leftLoading}
-            loading={true}
-            onPress={() => console.log("gas")}
-          />
-        </View>
-
-        {/* DONE BUTTON */}
-        <View style={styles.doneButton}>
-          <Button
-            mode="contained"
-            style={{
-              backgroundColor:
-                trip?.locations.length % 2 !== 0 && trip?.locations.length > 0
-                  ? colors.notActive
-                  : trip?.locations.length === 0 && trip?.locations.length > 0
-                  ? colors.notActive
-                  : leftLoading
-                  ? colors.notActive
-                  : arrivedLoading
-                  ? colors.notActive
-                  : colors.dark,
-            }}
-            labelStyle={styles.buttonLabelStyle}
-            loading={doneLoading}
-            disabled={
-              (trip?.locations.length % 2 !== 0 &&
-                trip?.locations.length > 0) ||
-              (trip?.locations.length === 0 && trip?.locations.length > 0) ||
-              arrivedLoading ||
-              leftLoading
-            }
-            onPress={() => console.log("DONE")}
+        <View style={styles.secondContainer}>
+          {/* TIMER */}
+          <View
+            style={[
+              styles.timer,
+              {
+                borderColor: colors.primary,
+              },
+            ]}
           >
-            Done
-          </Button>
+            <Text>Timer Here</Text>
+          </View>
+
+          {/* LEFT AND ARRIVED BUTTON */}
+          <View style={styles.buttonWrapper}>
+            <View style={styles.buttonContainer}>
+              <Button
+                mode="contained"
+                style={{
+                  backgroundColor: leftLoading
+                    ? colors.notActive
+                    : trip?.locations?.length % 2 !== 0 &&
+                      trip?.locations?.length > 0
+                    ? colors.notActive
+                    : colors.danger,
+                }}
+                labelStyle={styles.buttonLabelStyle}
+                disabled={
+                  leftLoading ||
+                  arrivedLoading ||
+                  (trip?.locations.length % 2 !== 0 &&
+                    trip?.locations.length > 0)
+                }
+                loading={leftLoading}
+                onPress={sqliteLeft}
+              >
+                Left
+              </Button>
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button
+                mode="contained"
+                style={{
+                  backgroundColor: leftLoading
+                    ? colors.notActive
+                    : trip?.locations?.length % 2 === 0 &&
+                      trip?.locations?.length > 0
+                    ? colors.notActive
+                    : colors.success,
+                }}
+                labelStyle={styles.buttonLabelStyle}
+                disabled={
+                  arrivedLoading ||
+                  leftLoading ||
+                  (trip?.locations.length % 2 === 0 &&
+                    trip?.locations.length > 0)
+                }
+                loading={arrivedLoading}
+                onPress={sqliteArrived}
+              >
+                Arrived
+              </Button>
+            </View>
+          </View>
+
+          {/* GAS BUTTON */}
+          <View>
+            <IconButton
+              mode="contained"
+              icon="gas-station"
+              size={45}
+              iconColor={colors.white}
+              containerColor={
+                arrivedLoading || leftLoading
+                  ? colors.notActive
+                  : colors.primary
+              }
+              style={{ borderRadius: 10 }}
+              disabled={arrivedLoading || leftLoading}
+              loading={true}
+              onPress={() => console.log("gas")}
+            />
+          </View>
+
+          {/* DONE BUTTON */}
+          <View style={styles.doneButton}>
+            <Button
+              mode="contained"
+              style={{
+                backgroundColor:
+                  trip?.locations.length % 2 !== 0 && trip?.locations.length > 0
+                    ? colors.notActive
+                    : trip?.locations.length === 0 && trip?.locations.length > 0
+                    ? colors.notActive
+                    : leftLoading
+                    ? colors.notActive
+                    : arrivedLoading
+                    ? colors.notActive
+                    : colors.dark,
+              }}
+              labelStyle={styles.buttonLabelStyle}
+              loading={doneLoading}
+              disabled={
+                (trip?.locations.length % 2 !== 0 &&
+                  trip?.locations.length > 0) ||
+                (trip?.locations.length === 0 && trip?.locations.length > 0) ||
+                arrivedLoading ||
+                leftLoading
+              }
+              onPress={onToggleDoneModal}
+            >
+              Done
+            </Button>
+          </View>
         </View>
-      </View>
-    </Screen>
+      </Screen>
+
+      {/* DONE MODAL */}
+      <Portal>
+        <Modal
+          visible={showDoneModal}
+          onDismiss={onCloseDoneModal}
+          contentContainerStyle={{
+            backgroundColor: "white",
+            padding: 20,
+            margin: 20,
+            borderRadius: 20,
+          }}
+        >
+          <View
+            style={{
+              alignItems: "flex-end",
+            }}
+          >
+            <TouchableOpacity onPress={onCloseDoneModal}>
+              <Ionicons name="ios-close-outline" size={30} />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={{ textAlign: "center" }}>
+            Please input current vehicle odometer.
+          </Text>
+
+          <Formik
+            initialValues={{
+              odometer_done: totalKm.toString(),
+            }}
+            validationSchema={doneModalSchema}
+            onSubmit={sqliteDone}
+          >
+            {({
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              values,
+              errors,
+              touched,
+            }) => {
+              return (
+                <>
+                  <TextField
+                    touched={touched}
+                    errors={errors}
+                    handleChange={handleChange}
+                    handleBlur={handleBlur}
+                    values={values}
+                    name="odometer_done"
+                    label="Odometer Done"
+                    keyboardType="numeric"
+                    defaultValue={values["odometer_done"]}
+                  />
+                  <SubmitButton
+                    onPress={handleSubmit}
+                    title="Done"
+                    isLoading={gasLoading}
+                  />
+                </>
+              );
+            }}
+          </Formik>
+        </Modal>
+      </Portal>
+    </>
   );
 };
 

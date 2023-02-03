@@ -291,7 +291,7 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                       <SubmitButton
                         onPress={handleSubmit}
                         title="Drive"
-                        isLoading={null}
+                        isLoading={showLoadingBtn}
                       />
                     </View>
                   </>

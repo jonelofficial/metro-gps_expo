@@ -20,6 +20,7 @@ export default function App() {
     ...DefaultTheme,
     colors: {
       ...DefaultTheme.colors,
+      primarySync: "#fbc383",
       main: "#f8d738",
       accent: "#eb4934",
       primary: "#f6a03d",

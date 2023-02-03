@@ -3,7 +3,7 @@ import { getPathLength } from "geolib";
 import moment from "moment-timezone";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
-import { Text, withTheme } from "react-native-paper";
+import { Button, Text, withTheme } from "react-native-paper";
 
 const ListItem = ({ item, theme, onPress }) => {
   const { colors } = theme;
@@ -43,33 +43,61 @@ const ListItem = ({ item, theme, onPress }) => {
           justifyContent: "space-between",
           padding: 15,
           alignItems: "center",
-          backgroundColor: item?.offline ? colors.danger : colors.white,
+          backgroundColor:
+            newLocations.length % 2 !== 0
+              ? colors.danger
+              : item?.offline
+              ? colors.primarySync
+              : colors.white,
         }}
       >
         <View>
-          <View
-            style={{
-              padding: 7,
-              marginRight: 10,
-              borderWidth: 1,
-              borderRadius: 5,
-              borderColor: item?.offline ? colors.white : colors.success,
-            }}
-          >
-            <Text
-              style={{ color: item?.offline ? colors.white : colors.success }}
+          {item?.offline ? (
+            <Button
+              style={{
+                borderRadius: 10,
+                marginRight: 13,
+                backgroundColor:
+                  newLocations.length % 2 !== 0
+                    ? colors.notActive
+                    : colors.primary,
+                display: newLocations.length % 2 !== 0 ? "none" : "flex",
+              }}
+              labelStyle={{
+                fontSize: 14,
+                color:
+                  newLocations.length % 2 !== 0 ? colors.danger : colors.white,
+              }}
+              disabled={newLocations.length % 2 !== 0}
+              onPress={() => console.log(item)}
             >
-              {item._id.length > 20
-                ? `#${item._id.slice(20)}`
-                : `#000${item._id}`}
-            </Text>
-          </View>
+              sync
+            </Button>
+          ) : (
+            <View
+              style={{
+                padding: 7,
+                marginRight: 10,
+                borderWidth: 1,
+                borderRadius: 5,
+                borderColor: item?.offline ? colors.white : colors.success,
+              }}
+            >
+              <Text
+                style={{ color: item?.offline ? colors.white : colors.success }}
+              >
+                {`#${item._id.slice(20)}`}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={{ flex: 1 }}>
           <View>
             <Text style={{ color: item?.offline && colors.white }}>
-              {km && `${km.toFixed(1)} km`}
+              {newLocations.length % 2 !== 0
+                ? "CLICK TO RESUME TRIP"
+                : km && `${km.toFixed(1)} km`}
             </Text>
           </View>
 

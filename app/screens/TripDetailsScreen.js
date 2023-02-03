@@ -7,12 +7,38 @@ import Screen from "../components/Screen";
 const TripDetailsScreen = ({ route, theme, navigation }) => {
   const { item } = route.params;
   const { colors } = theme;
+  const newLocations = item.locations.filter(
+    (location) => location.status == "left" || location.status == "arrived"
+  );
+
+  const styles = StyleSheet.create({
+    container: {
+      margin: 15,
+      padding: 10,
+      borderRadius: 10,
+      flex: 1,
+    },
+    textWrapper: { flexDirection: "row", marginBottom: 2 },
+    label: { minWidth: 100, color: item?.offline ? colors.white : colors.dark },
+    text: {
+      textTransform: "capitalize",
+      color: item?.offline ? colors.white : colors.dark,
+    },
+  });
+
   return (
     <Screen>
       <View
         style={[
           styles.container,
-          { backgroundColor: item?.offline ? colors.danger : colors.white },
+          {
+            backgroundColor:
+              newLocations.length % 2 !== 0
+                ? colors.danger
+                : item?.offline
+                ? colors.primarySync
+                : colors.white,
+          },
         ]}
       >
         <ScrollView>
@@ -32,7 +58,9 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Vehicle: </Text>
-            <Text>{`${item?.vehicle_id.plate_no} - ${item?.vehicle_id.name}`}</Text>
+            <Text
+              style={styles.text}
+            >{`${item?.vehicle_id.plate_no} - ${item?.vehicle_id.name}`}</Text>
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Location: </Text>
@@ -58,7 +86,10 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                       >
                         {`${loc?.status}:`}
                       </Text>
-                      <Text style={{ flexWrap: "wrap" }} numberOfLines={3}>
+                      <Text
+                        style={[styles.text, { flexWrap: "wrap" }]}
+                        numberOfLines={3}
+                      >
                         {`${loc?.address[0].name} ${loc?.address[0].city} ${loc?.address[0].subregion}`}
                       </Text>
                     </View>
@@ -72,26 +103,32 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Odo: </Text>
-            <Text>{item?.odometer}</Text>
+            <Text style={styles.text}>{item?.odometer}</Text>
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Odo Done: </Text>
-            <Text>{item?.odometer_done}</Text>
+            <Text style={styles.text}>{item?.odometer_done}</Text>
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Companion: </Text>
             {item?.companion.map((comp, i) => {
-              return <Text key={i}>{comp?.first_name}</Text>;
+              return (
+                <Text key={i} style={styles.text}>
+                  {comp?.first_name}
+                </Text>
+              );
             })}
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Others: </Text>
-            {item?.others !== "null" && <Text>{item?.others}</Text>}
+            {item?.others !== "null" && (
+              <Text style={styles.text}>{item?.others}</Text>
+            )}
           </View>
         </ScrollView>
       </View>
 
-      {item?.offline && (
+      {newLocations.length % 2 !== 0 && (
         <View style={{ paddingBottom: 15, paddingHorizontal: 10 }}>
           <Button
             mode="contained"
@@ -113,17 +150,5 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    margin: 15,
-    padding: 10,
-    borderRadius: 10,
-    flex: 1,
-  },
-  textWrapper: { flexDirection: "row", marginBottom: 2 },
-  label: { minWidth: 100 },
-  text: { textTransform: "capitalize" },
-});
 
 export default withTheme(TripDetailsScreen);
