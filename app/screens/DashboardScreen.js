@@ -43,7 +43,6 @@ const DashboardScreen = ({ theme, navigation }) => {
   const user = useSelector((state) => state.token.userDetails);
   // FOR TRIP
   const [trip, setTrip] = useState([]);
-  const [rtkTrip, setRtkTrip] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
 
   // FOR SEARCH BAR
@@ -135,8 +134,8 @@ const DashboardScreen = ({ theme, navigation }) => {
 
   const onDateSelected = async (event, value) => {
     if (event.type === "dismissed") return onClose();
+    setTotalCount(0);
     setTrip([]);
-    onClose();
     setDate(value);
     setSearch(dayjs(value).format("MM-DD-YY"));
     setState((prevState) => ({
@@ -145,6 +144,7 @@ const DashboardScreen = ({ theme, navigation }) => {
       searchBy: "trip_date",
       page: 1,
     }));
+    onClose();
   };
 
   const onRefresh = () => {
@@ -274,11 +274,13 @@ const DashboardScreen = ({ theme, navigation }) => {
             value={search}
             onIconPress={false}
             onChangeText={() => {
+              setTotalCount(0);
               setNoData(false);
               setSearch(null);
               setTrip([]);
               reset();
               setDate(new Date());
+              handleOfflineTrip();
             }}
           />
           <View

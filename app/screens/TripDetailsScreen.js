@@ -54,13 +54,13 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Type:</Text>
-            <Text style={styles.text}>{item?.user_id.trip_template}</Text>
+            <Text style={styles.text}>{item?.user_id?.trip_template}</Text>
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Vehicle: </Text>
             <Text
               style={styles.text}
-            >{`${item?.vehicle_id.plate_no} - ${item?.vehicle_id.name}`}</Text>
+            >{`${item?.vehicle_id?.plate_no} - ${item?.vehicle_id?.name}`}</Text>
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Location: </Text>
@@ -90,7 +90,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                         style={[styles.text, { flexWrap: "wrap" }]}
                         numberOfLines={3}
                       >
-                        {`${loc?.address[0].name} ${loc?.address[0].city} ${loc?.address[0].subregion}`}
+                        {`${loc?.address[0]?.name} ${loc?.address[0]?.city} ${loc?.address[0]?.subregion}`}
                       </Text>
                     </View>
                     {item?.locations.length - 1 !== i && (

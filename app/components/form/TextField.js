@@ -21,6 +21,7 @@ const TextField = ({
         onBlur={handleBlur(name)}
         value={values[name]}
         autoCorrect={false}
+        autoCapitalize={false}
         outlineStyle={{
           borderRadius: 15,
         }}

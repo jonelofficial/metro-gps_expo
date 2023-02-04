@@ -66,6 +66,7 @@ const LoginScreen = ({ navigation, theme }) => {
                   onBlur={handleBlur("password")}
                   value={values.password}
                   autoCorrect={false}
+                  autoCapitalize={false}
                   outlineStyle={{
                     borderRadius: 15,
                   }}
