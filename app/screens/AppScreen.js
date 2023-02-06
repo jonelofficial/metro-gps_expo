@@ -14,7 +14,7 @@ import { netStatus } from "../redux-toolkit/counter/netSlice";
 import { Snackbar, Text, withTheme } from "react-native-paper";
 import { setVisible } from "../redux-toolkit/counter/snackbarSlice";
 import OfflineNotice from "../components/OfflineNotice";
-import { deleteFromTable } from "../utility/sqlite";
+import { deleteFromTable, selectTable } from "../utility/sqlite";
 import { useKeepAwake } from "expo-keep-awake";
 
 SplashScreen.preventAutoHideAsync();

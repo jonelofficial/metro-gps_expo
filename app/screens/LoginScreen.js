@@ -97,6 +97,7 @@ const LoginScreen = ({ navigation, theme }) => {
                 onPress={handleSubmit}
                 title="Sign In"
                 isLoading={isLoading}
+                disabled={isLoading}
               />
             </View>
           )}

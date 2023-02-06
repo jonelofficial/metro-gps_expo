@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Formik } from "formik";
 import {
-  Alert,
   BackHandler,
   Image,
   Keyboard,
   StyleSheet,
-  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -22,8 +20,8 @@ import { removeImage } from "../redux-toolkit/counter/imageSlice";
 import Scanner from "../components/Scanner";
 import { officeFormSchema } from "../utility/schema/validation";
 import { spliceCompanion } from "../redux-toolkit/counter/companionSlice";
-import { deleteFromTable, insertToTable } from "../utility/sqlite";
 import moment from "moment-timezone";
+import { insertToTable } from "../utility/sqlite";
 
 const TripFormScreen = ({ theme, route, navigation }) => {
   const { colors } = theme;
@@ -79,27 +77,10 @@ const TripFormScreen = ({ theme, route, navigation }) => {
 
   const backAction = () => {
     if (navigation.isFocused() && navigation.canGoBack()) {
-      ToastAndroid.show("Back button is pressed", ToastAndroid.SHORT);
       navigation.navigate("DashboardStack");
       return true;
     }
     return false;
-    Alert.alert(
-      "Hold on!",
-      "This action will be back on the dashboard, continue?",
-      [
-        {
-          text: "Cancel",
-          onPress: () => null,
-          style: "cancel",
-        },
-        {
-          text: "YES",
-          onPress: () => navigation.navigate("DashboardStack"),
-        },
-      ]
-    );
-    return true;
   };
 
   useEffect(() => {

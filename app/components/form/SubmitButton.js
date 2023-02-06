@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "react-native-paper";
 
-const SubmitButton = ({ onPress, title, isLoading }) => {
+const SubmitButton = ({ onPress, title, isLoading, ...etc }) => {
   return (
     <Button
       mode="contained"
@@ -12,6 +12,7 @@ const SubmitButton = ({ onPress, title, isLoading }) => {
         lineHeight: 35,
       }}
       loading={isLoading}
+      {...etc}
     >
       {title}
     </Button>

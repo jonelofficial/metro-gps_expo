@@ -8,6 +8,18 @@ const taskManager = () => {
   const [location, setLocation] = useState();
   const [showMap, setShowMap] = useState(false);
 
+  TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+    if (error) {
+      // Error occurred - check `error.message` for more details.
+      console.log(error);
+      return;
+    }
+    if (data) {
+      const result = data.locations[0];
+      setLocation(result);
+    }
+  });
+
   useEffect(() => {
     (async () => {
       // EXPO LOCATION
@@ -31,18 +43,6 @@ const taskManager = () => {
       Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
     };
   }, []);
-
-  TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
-    if (error) {
-      // Error occurred - check `error.message` for more details.
-      console.log(error);
-      return;
-    }
-    if (data) {
-      const result = data.locations[0];
-      setLocation(result);
-    }
-  });
 
   return { showMap, location };
 };

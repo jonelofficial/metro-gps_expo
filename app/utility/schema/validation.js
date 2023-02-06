@@ -21,3 +21,20 @@ export const doneModalSchema = Yup.object().shape({
     .required()
     .label("Odometer"),
 });
+
+export const gasModalSchema = Yup.object().shape({
+  gas_station_id: Yup.string().required().label("Gas Station"),
+  gas_station_name: Yup.string().required().label("Gas Station Name"),
+  odometer: Yup.string()
+    .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+    .required()
+    .label("Odometer"),
+  liter: Yup.string()
+    .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+    .required()
+    .label("Liter"),
+  amount: Yup.string()
+    .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+    .required()
+    .label("Amount"),
+});

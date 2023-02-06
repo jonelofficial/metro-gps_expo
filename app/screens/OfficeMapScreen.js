@@ -9,7 +9,6 @@ import {
 } from "react-native-paper";
 import Screen from "../components/Screen";
 import { Ionicons } from "@expo/vector-icons";
-
 import { Keyboard, StyleSheet, TouchableOpacity, View } from "react-native";
 import taskManager from "../config/taskManager";
 import { getPathLength } from "geolib";
@@ -26,10 +25,14 @@ import useDisclosure from "../hooks/useDisclosure";
 import { Formik } from "formik";
 import TextField from "../components/form/TextField";
 import SubmitButton from "../components/form/SubmitButton";
-import { doneModalSchema } from "../utility/schema/validation";
+import { doneModalSchema, gasModalSchema } from "../utility/schema/validation";
+import DropDownPicker from "react-native-dropdown-picker";
 
 const OfficeMapScreen = ({ route, theme, navigation }) => {
   const { colors } = theme;
+
+  const [value, setValue] = useState("");
+  const [items, setItems] = useState();
   // HOOKS AND CONFIG
   const { location, showMap } = taskManager();
   const { handleInterval, handleLeft, handleArrived } = useLocations();
@@ -37,6 +40,7 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
 
   // STATE
   const [totalKm, setTotalKm] = useState(0);
+  const [estimatedOdo, setEstimatedOdo] = useState(0);
   const [trip, setTrip] = useState({ locations: [] });
   const [points, setPoints] = useState([]);
 
@@ -44,12 +48,15 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
     console.log("TRIP FROM STATE", trip);
     (async () => {
       console.log("TRIP FROM SQLITE", await selectTable("offline_trip"));
+      console.log("Gas Station Id: ", value);
     })();
 
     return () => {
       null;
     };
-  }, [trip, points, totalKm]);
+  }, [trip, points, totalKm, value]);
+
+  // BUTTON LOADER
 
   const {
     isOpen: leftLoading,
@@ -63,11 +70,27 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
     onToggle: startArrivedLoading,
   } = useDisclosure();
 
+  // GAS DISCLOSURE
+
   const {
     isOpen: gasLoading,
     onClose: stopGasLoading,
     onToggle: startGasLoading,
   } = useDisclosure();
+
+  const {
+    isOpen: showGasModal,
+    onClose: onCloseGasModal,
+    onToggle: onToggleGasModal,
+  } = useDisclosure();
+
+  const {
+    isOpen: showDropdown,
+    onClose: onCloseDropdown,
+    onToggle: onToggleDropdown,
+  } = useDisclosure();
+
+  // DONE DISCLOSURE
 
   const {
     isOpen: doneLoading,
@@ -90,10 +113,31 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
       if (trip?.locations?.length <= 0 || trip == undefined) {
         await reloadMapState();
       }
+
+      const gasRes = await selectTable("gas_station");
+      setItems([...gasRes.map((item) => ({ ...item, value: item._id }))]);
     })();
 
     return () => {
       deleteFromTable("route");
+    };
+  }, []);
+
+  // 900000 = 15 minutes
+  useEffect(() => {
+    const loc = setInterval(() => {
+      (async () => {
+        const intervalRes = await handleInterval();
+        const newObj = {
+          ...intervalRes,
+          date: moment(Date.now()).tz("Asia/Manila"),
+        };
+
+        reloadRoute(newObj);
+      })();
+    }, 900000);
+    return () => {
+      clearInterval(loc);
     };
   }, []);
 
@@ -145,7 +189,7 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
   };
 
   const reloadRoute = async (newObj) => {
-    let mapPoints;
+    let mapPoints = [];
     const routeRes = await selectTable("route");
     if (routeRes.length > 0) {
       setPoints((prevState) => [
@@ -159,6 +203,7 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
     }
 
     const tripRes = await selectTable("offline_trip");
+
     let locPoint = JSON.parse(tripRes[tripRes.length - 1].locations);
     locPoint.push(newObj);
 
@@ -166,6 +211,14 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
       "UPDATE offline_trip SET points = (?) , locations = (?)  WHERE id = (SELECT MAX(id) FROM offline_trip)",
       [JSON.stringify(mapPoints), JSON.stringify(locPoint)]
     );
+
+    const meter = mapPoints.length > 0 ? getPathLength(mapPoints) : 0;
+    const km = meter / 1000;
+    const odo = JSON.parse(tripRes[tripRes.length - 1].odometer);
+    console.log("ESIMATED ODO: ", parseFloat(km.toFixed(1)) + parseFloat(odo));
+
+    setEstimatedOdo(parseFloat(km.toFixed(1)) + parseFloat(odo));
+    console.log(estimatedOdo);
   };
 
   // SQLITE FUNCTION
@@ -222,13 +275,14 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
 
       await updateToTable(
         "UPDATE offline_trip SET odometer_done = (?), points = (?)  WHERE id = (SELECT MAX(id) FROM offline_trip)",
-        [JSON.stringify(vehicle_data.odometer_done), JSON.stringify(mapPoints)]
+        [vehicle_data.odometer_done, JSON.stringify(mapPoints)]
       );
 
       if (net) {
         const offlineTrip = await selectTable(
           "offline_trip WHERE id = (SELECT MAX(id) FROM offline_trip)"
         );
+        console.log(offlineTrip);
 
         const img = JSON.parse(offlineTrip[0].image);
         const form = new FormData();
@@ -288,6 +342,41 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
     } catch (error) {
       alert("ERROR DONE PROCESS");
       console.log("ERROR DONE PROCESS: ", error);
+    }
+  };
+
+  const sqliteGas = async (data, { resetForm }) => {
+    try {
+      Keyboard.dismiss();
+      startGasLoading();
+
+      const gasObj = {
+        gas_station_id: data.gas_station_id,
+        gas_station_name: data.gas_station_name,
+        odometer: data.odometer,
+        liter: data.liter,
+        amount: data.amount,
+        lat: location?.coords?.latitude,
+        long: location?.coords?.longitude,
+      };
+
+      const tripRes = await selectTable("offline_trip");
+      let gas = JSON.parse(tripRes[tripRes.length - 1].gas);
+      gas.push(gasObj);
+
+      await updateToTable(
+        "UPDATE offline_trip SET gas = (?)WHERE id = (SELECT MAX(id) FROM offline_trip)",
+        [JSON.stringify(gas)]
+      );
+
+      resetForm();
+      setValue("");
+      stopGasLoading();
+      onCloseGasModal();
+      onCloseDropdown();
+    } catch (error) {
+      alert("ERROR SQLTIE GAS PROCESS");
+      console.log("ERROR SQLTIE GAS PROCESS: ", error);
     }
   };
 
@@ -406,7 +495,7 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
               style={{ borderRadius: 10 }}
               disabled={arrivedLoading || leftLoading}
               loading={true}
-              onPress={() => console.log("gas")}
+              onPress={onToggleGasModal}
             />
           </View>
 
@@ -424,16 +513,18 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
                     ? colors.notActive
                     : arrivedLoading
                     ? colors.notActive
+                    : doneLoading
+                    ? colors.notActive
                     : colors.dark,
               }}
               labelStyle={styles.buttonLabelStyle}
-              loading={doneLoading}
               disabled={
                 (trip?.locations.length % 2 !== 0 &&
                   trip?.locations.length > 0) ||
                 (trip?.locations.length === 0 && trip?.locations.length > 0) ||
                 arrivedLoading ||
-                leftLoading
+                leftLoading ||
+                doneLoading
               }
               onPress={onToggleDoneModal}
             >
@@ -471,7 +562,7 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
 
           <Formik
             initialValues={{
-              odometer_done: totalKm.toString(),
+              odometer_done: estimatedOdo.toString(),
             }}
             validationSchema={doneModalSchema}
             onSubmit={sqliteDone}
@@ -500,7 +591,178 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
                   <SubmitButton
                     onPress={handleSubmit}
                     title="Done"
-                    isLoading={gasLoading}
+                    isLoading={doneLoading}
+                    disabled={doneLoading}
+                  />
+                </>
+              );
+            }}
+          </Formik>
+        </Modal>
+      </Portal>
+
+      {/* GAS MODAL */}
+      <Portal>
+        <Modal
+          visible={showGasModal}
+          onDismiss={() => {
+            onCloseGasModal();
+            onCloseDropdown();
+            setValue("");
+          }}
+          contentContainerStyle={{
+            backgroundColor: "white",
+            padding: 20,
+            margin: 20,
+            borderRadius: 20,
+          }}
+        >
+          <View
+            style={{
+              alignItems: "flex-end",
+              marginBottom: 8,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                onCloseGasModal();
+                onCloseDropdown();
+                setValue("");
+              }}
+            >
+              <Ionicons name="ios-close-outline" size={30} />
+            </TouchableOpacity>
+          </View>
+          <Formik
+            initialValues={{
+              gas_station_id: value,
+              odometer: "",
+              liter: "",
+              amount: "",
+              gas_station_name: "",
+            }}
+            validationSchema={gasModalSchema}
+            onSubmit={sqliteGas}
+          >
+            {({
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              values,
+              errors,
+              touched,
+              setErrors,
+              setFieldValue,
+            }) => {
+              useEffect(() => {
+                if (value) {
+                  setFieldValue("gas_station_id", value);
+                  setErrors("gas_station_id", null);
+                }
+
+                if (value !== "507f191e810c19729de860ea") {
+                  setFieldValue("gas_station_name", value);
+                  setErrors("gas_station_name", null);
+                } else {
+                  setFieldValue("gas_station_name", "");
+                  setErrors("gas_station_name", null);
+                }
+
+                return () => {
+                  null;
+                };
+              }, [value]);
+              return (
+                <>
+                  <DropDownPicker
+                    open={showDropdown}
+                    value={value}
+                    items={items}
+                    onChangeValue={handleChange}
+                    setOpen={onToggleDropdown}
+                    setValue={setValue}
+                    setItems={setItems}
+                    placeholder="Select gas station"
+                    textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
+                    // labelStyle={{ color: "red", fontSize: 28 }}
+                    style={{
+                      borderRadius: 15,
+                      borderColor: errors["gas_station"]
+                        ? colors.danger
+                        : colors.light,
+                      marginBottom:
+                        touched.gas_station_id && errors.gas_station_id
+                          ? 0
+                          : 12,
+                    }}
+                    dropDownContainerStyle={{
+                      borderColor: errors["gas_station"]
+                        ? colors.danger
+                        : colors.light,
+                      maxHeight: 150,
+                    }}
+                  />
+                  {touched.gas_station_id && errors.gas_station_id && (
+                    <Text
+                      style={{
+                        color: "red",
+                        fontSize: 14,
+                        padding: 5,
+                      }}
+                    >
+                      {errors.gas_station_id}
+                    </Text>
+                  )}
+                  {value === "507f191e810c19729de860ea" && (
+                    <TextField
+                      touched={touched}
+                      errors={errors}
+                      handleChange={handleChange}
+                      handleBlur={handleBlur}
+                      values={values}
+                      name="gas_station_name"
+                      label="Gas Station Name"
+                      keyboardType="numeric"
+                    />
+                  )}
+                  <TextField
+                    touched={touched}
+                    errors={errors}
+                    handleChange={handleChange}
+                    handleBlur={handleBlur}
+                    values={values}
+                    name="odometer"
+                    label="Odometer"
+                    keyboardType="numeric"
+                  />
+
+                  <TextField
+                    touched={touched}
+                    errors={errors}
+                    handleChange={handleChange}
+                    handleBlur={handleBlur}
+                    values={values}
+                    name="liter"
+                    label="Liter"
+                    keyboardType="numeric"
+                    defaultValue={values["odometer_done"]}
+                  />
+                  <TextField
+                    touched={touched}
+                    errors={errors}
+                    handleChange={handleChange}
+                    handleBlur={handleBlur}
+                    values={values}
+                    name="amount"
+                    label="Amount"
+                    keyboardType="numeric"
+                    defaultValue={values["odometer_done"]}
+                  />
+                  <SubmitButton
+                    onPress={handleSubmit}
+                    title="Done"
+                    isLoading={doneLoading}
+                    disabled={doneLoading}
                   />
                 </>
               );
@@ -548,6 +810,19 @@ const styles = StyleSheet.create({
     lineHeight: 35,
   },
   doneButton: { position: "absolute", bottom: 0, left: 0, right: 0 },
+  container: {
+    padding: 16,
+  },
+  label: {
+    color: "#333",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  picker: {
+    padding: 0,
+    margin: 0,
+  },
 });
 
 export default withTheme(OfficeMapScreen);

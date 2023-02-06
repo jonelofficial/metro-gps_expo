@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import jwtDecode from "jwt-decode";
 import { Keyboard } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,6 +19,7 @@ import {
 
 const useAuth = () => {
   const netStatus = useSelector((state) => state.net.value);
+  let userData;
 
   const { isOpen: isLoading, onToggle, onClose } = useDisclosure();
   const {
@@ -133,6 +134,8 @@ const useAuth = () => {
     })
       .then((res) => res.json())
       .then(async (data) => {
+        userData = data;
+
         if (data?.message) {
           onClose();
           dispatch(setMsg(data.message));
@@ -140,43 +143,74 @@ const useAuth = () => {
           dispatch(setColor("danger"));
           return;
         }
-        if (netStatus) {
-          await getVehicles(data.token);
-          await getGasStation(data.token);
+        // if (netStatus) {
+        //   await getVehicles(data.token);
+        //   await getGasStation(data.token);
 
-          storeToken(data.token);
-          storeUser(jwtDecode(data.token));
-          dispatch(addToken(data));
-          dispatch(addUser(jwtDecode(data.token)));
-        } else {
-          const offlineData = await selectTable("user");
-          offlineData.map((item) => {
-            if (
-              (item.password === values.password) &
-              (item.username === values.username)
-            ) {
-              storeToken(item.token);
-              storeUser(jwtDecode(item.token));
-              dispatch(addToken({ token: item.token }));
-              dispatch(addUser(jwtDecode(item.token)));
-            } else {
-              dispatch(
-                setMsg(
-                  `Could not find user. Login with internet connection instead`
-                )
-              );
-              dispatch(setVisible(true));
-              dispatch(setColor("danger"));
-            }
-          });
-        }
-
-        onClose();
+        //   storeToken(data.token);
+        //   storeUser(jwtDecode(data.token));
+        //   dispatch(addToken(data));
+        //   dispatch(addUser(jwtDecode(data.token)));
+        // } else {
+        //   const offlineData = await selectTable("user");
+        //   offlineData.map((item) => {
+        //     if (
+        //       (item.password === values.password) &
+        //       (item.username === values.username)
+        //     ) {
+        //       storeToken(item.token);
+        //       storeUser(jwtDecode(item.token));
+        //       dispatch(addToken({ token: item.token }));
+        //       dispatch(addUser(jwtDecode(item.token)));
+        //     } else {
+        //       dispatch(
+        //         setMsg(
+        //           `Could not find user. Login with internet connection instead`
+        //         )
+        //       );
+        //       dispatch(setVisible(true));
+        //       dispatch(setColor("danger"));
+        //     }
+        //   });
+        // }
       })
       .catch((error) => {
         onClose();
         console.error("Error:", error);
       });
+
+    if (netStatus && !userData?.message) {
+      await getVehicles(userData.token);
+      await getGasStation(userData.token);
+
+      storeToken(userData.token);
+      storeUser(jwtDecode(userData.token));
+      dispatch(addToken(userData));
+      dispatch(addUser(jwtDecode(userData.token)));
+    } else {
+      const offlineData = await selectTable("user");
+      offlineData.map((item) => {
+        if (
+          (item.password === values.password) &
+          (item.username === values.username)
+        ) {
+          storeToken(item.token);
+          storeUser(jwtDecode(item.token));
+          dispatch(addToken({ token: item.token }));
+          dispatch(addUser(jwtDecode(item.token)));
+        } else {
+          dispatch(
+            setMsg(
+              `Could not find user. Login with internet connection instead`
+            )
+          );
+          dispatch(setVisible(true));
+          dispatch(setColor("danger"));
+        }
+      });
+    }
+
+    onClose();
   };
 
   const logout = async () => {

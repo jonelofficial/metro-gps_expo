@@ -1,15 +1,28 @@
 import dayjs from "dayjs";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button, Divider, Text, withTheme } from "react-native-paper";
 import Screen from "../components/Screen";
+import { selectTable } from "../utility/sqlite";
 
 const TripDetailsScreen = ({ route, theme, navigation }) => {
+  const [staion, setStaion] = useState([]);
   const { item } = route.params;
   const { colors } = theme;
   const newLocations = item.locations.filter(
     (location) => location.status == "left" || location.status == "arrived"
   );
+  console.log(item);
+  useEffect(() => {
+    (async () => {
+      const gasRes = await selectTable("gas_station");
+      setStaion([...gasRes.map((item) => ({ ...item, value: item._id }))]);
+    })();
+
+    return () => {
+      null;
+    };
+  }, []);
 
   const styles = StyleSheet.create({
     container: {
@@ -96,6 +109,40 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                     {item?.locations.length - 1 !== i && (
                       <Divider style={{ height: 1, width: 30 }} />
                     )}
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+          <View style={styles.textWrapper}>
+            <Text style={styles.label}>Diesel: </Text>
+
+            <View style={{ flexDirection: "column" }}>
+              {item?.diesels.map((gas, i) => {
+                const name = staion.find((el) => el._id === gas.gas_station_id);
+                return (
+                  <View key={i} style={{ marginBottom: 5 }}>
+                    <View style={{ paddingBottom: 5 }}>
+                      <Text style={styles.text}>
+                        Gas Station: {name?.label}
+                      </Text>
+                    </View>
+                    {gas?.gas_station_name.length > 0 && (
+                      <View style={{ paddingBottom: 5 }}>
+                        <Text style={styles.text}>
+                          Gas Station Name: {gas?.gas_station_name}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={{ paddingBottom: 5 }}>
+                      <Text style={styles.text}>Odomter: {gas?.odometer}</Text>
+                    </View>
+                    <View style={{ paddingBottom: 5 }}>
+                      <Text style={styles.text}>Liter: {gas?.liter}</Text>
+                    </View>
+                    <View style={{ paddingBottom: 5 }}>
+                      <Text style={styles.text}>Amount: {gas?.amount}</Text>
+                    </View>
                   </View>
                 );
               })}
