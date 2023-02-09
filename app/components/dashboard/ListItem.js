@@ -143,7 +143,7 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
             <Text style={{ color: item?.offline && colors.white }}>
               {newLocations.length % 2 !== 0
                 ? "CLICK TO RESUME TRIP"
-                : km && `${km.toFixed(1)} km`}
+                : (km && `${km.toFixed(1)} km`) || "0 m"}
             </Text>
           </View>
 

@@ -108,7 +108,10 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   // FOR UNMOUNTING
   useEffect(() => {
     (async () => {
-      if (trip?.locations?.length <= 0 || trip == undefined) {
+      if (
+        (trip?.locations?.length <= 0 && location) ||
+        (trip == undefined && location)
+      ) {
         await reloadMapState();
       }
     })();
@@ -271,13 +274,15 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
     const tripRes = await selectTable("offline_trip");
 
-    let locPoint = JSON.parse(tripRes[tripRes.length - 1].locations);
-    newObj && locPoint.push(newObj);
+    if (newObj) {
+      let locPoint = JSON.parse(tripRes[tripRes.length - 1].locations);
+      locPoint.push(newObj);
 
-    await updateToTable(
-      "UPDATE offline_trip SET points = (?) , locations = (?)  WHERE id = (SELECT MAX(id) FROM offline_trip)",
-      [JSON.stringify(mapPoints), JSON.stringify(locPoint)]
-    );
+      await updateToTable(
+        "UPDATE offline_trip SET points = (?) , locations = (?)  WHERE id = (SELECT MAX(id) FROM offline_trip)",
+        [JSON.stringify(mapPoints), JSON.stringify(locPoint)]
+      );
+    }
 
     const meter = mapPoints.length > 0 ? getPathLength(mapPoints) : 0;
     const km = meter / 1000;
