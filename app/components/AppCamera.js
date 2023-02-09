@@ -238,6 +238,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   cameraPermission: {
+    flex: 1,
     position: "absolute",
     width: "100%",
     height: "100%",

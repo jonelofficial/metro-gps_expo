@@ -147,10 +147,12 @@ const styles = StyleSheet.create({
     right: 0,
   },
   cameraPermission: {
+    flex: 1,
     position: "absolute",
     width: "100%",
     height: "100%",
     justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#fdfdfd",
   },
 });

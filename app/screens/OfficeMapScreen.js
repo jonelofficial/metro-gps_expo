@@ -30,6 +30,8 @@ import {
 import GasModal from "../components/map/GasModal";
 import DoneModal from "../components/map/DoneModal";
 import { useStopwatch } from "react-timer-hook";
+import LoaderAnimation from "../components/loading/LoaderAnimation";
+import SuccessAnimation from "../components/loading/SuccessAnimation";
 
 const OfficeMapScreen = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -49,6 +51,14 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   const [estimatedOdo, setEstimatedOdo] = useState(0);
   const [trip, setTrip] = useState({ locations: [] });
   const [points, setPoints] = useState([]);
+
+  // SUCCESS LOADER
+
+  const {
+    isOpen: showLoader,
+    onClose: stopLoader,
+    onToggle: startLoader,
+  } = useDisclosure();
 
   // BUTTON LOADER
 
@@ -220,6 +230,14 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
   // FUNCTION
 
+  const handleSuccess = () => {
+    startLoader();
+
+    setTimeout(() => {
+      stopLoader();
+    }, 2000);
+  };
+
   const reloadMapState = async () => {
     const tripRes = await selectTable("offline_trip");
     const locPoint = JSON.parse(tripRes[tripRes.length - 1].locations);
@@ -285,6 +303,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       await reloadMapState();
 
       stopLefLoading();
+      handleSuccess();
     } catch (error) {
       alert("ERROR SQLITE LEFT");
       console.log("ERROR SQLITE LEFT PROCESS: ", error);
@@ -306,6 +325,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       await reloadMapState();
 
       stopArrivedLoading();
+      handleSuccess();
     } catch (error) {
       alert("ERROR SQLITE ARRIVED");
       console.log("ERROR SQLITE ARRIVED PROCESS: ", error);
@@ -389,6 +409,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
       stopGasLoading();
       onCloseGasModal();
+      handleSuccess();
     } catch (error) {
       alert("ERROR SQLTIE GAS PROCESS");
       console.log("ERROR SQLTIE GAS PROCESS: ", error);
@@ -404,14 +425,11 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   }
 
   if (!location || trip?.locations?.length < 0) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading locations.....</Text>
-      </View>
-    );
+    return <LoaderAnimation />;
   }
   return (
     <>
+      {showLoader && <SuccessAnimation />}
       <Screen>
         <View
           style={[
