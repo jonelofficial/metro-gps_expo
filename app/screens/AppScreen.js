@@ -2,6 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import * as SplashScreen from "expo-splash-screen";
+import * as TaskManager from "expo-task-manager";
 
 import { useDispatch, useSelector } from "react-redux";
 import AuthNavigator from "../utility/navigation/AuthNavigator";
@@ -16,6 +17,12 @@ import { setVisible } from "../redux-toolkit/counter/snackbarSlice";
 import OfflineNotice from "../components/OfflineNotice";
 import { deleteFromTable, selectTable } from "../utility/sqlite";
 import { useKeepAwake } from "expo-keep-awake";
+import { Alert, Linking, ToastAndroid } from "react-native";
+
+import * as MediaLibrary from "expo-media-library";
+import * as Location from "expo-location";
+import * as Notifications from "expo-notifications";
+import { Camera } from "expo-camera";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,6 +39,28 @@ const AppScreen = ({ theme }) => {
   const { getToken, getUser, removeToken, removeUser } = useStorage();
   const [isOpen, setIsOpen] = useState(false);
 
+  // CHECK CREDENTIALS
+
+  const handleUser = async () => {
+    try {
+      // await deleteFromTable("offline_trip");
+      // await removeToken();
+      // await removeUser();
+      const user = await JSON.parse(await getUser());
+      const token = await JSON.parse(await getToken());
+
+      if (!token) return null;
+
+      dispatch(addUser(user));
+      dispatch(addToken({ token: token }));
+    } catch (error) {
+      console.log(error);
+    } finally {
+      SplashScreen.hideAsync();
+      setIsOpen(true);
+    }
+  };
+
   // CHECKING OF INTERNET
   useEffect(() => {
     if (netInfo.type !== "unknown" && netInfo.isInternetReachable === false) {
@@ -44,25 +73,48 @@ const AppScreen = ({ theme }) => {
     };
   }, [netInfo]);
 
-  // CHECKING IF ALREADY LOGIN
+  // PERMISSION
+
   useEffect(() => {
     (async () => {
+      if (await TaskManager.isTaskRegisteredAsync("background-location-task")) {
+        Location.stopLocationUpdatesAsync("background-location-task");
+      }
+      ToastAndroid.show(`Welcome to Metro GPS`, ToastAndroid.SHORT);
       try {
-        // await deleteFromTable("offline_trip");
-        // await removeToken();
-        // await removeUser();
-        const user = await JSON.parse(await getUser());
-        const token = await JSON.parse(await getToken());
+        const camera = await Camera.requestCameraPermissionsAsync();
+        const media = await MediaLibrary.requestPermissionsAsync();
+        const location = await Location.requestForegroundPermissionsAsync();
+        const notifications = await Notifications.requestPermissionsAsync();
 
-        if (!token) return null;
-
-        dispatch(addUser(user));
-        dispatch(addToken({ token: token }));
+        if (
+          camera.status === "granted" &&
+          media.status === "granted" &&
+          location.status === "granted" &&
+          notifications.status === "granted"
+        ) {
+          await handleUser();
+        } else {
+          Alert.alert(
+            "Request Permission",
+            `Please accept permission for ${
+              camera.status === "denied" ? "CAMERA " : ""
+            }${media.status === "denied" ? "MEDIA LIBRARY " : ""}${
+              location.status === "denied" ? "LOCATION" : ""
+            }${
+              notifications.status === "denied" ? "NOTIFICATION" : ""
+            } to run the app.\n \nGo to phone setting > Application > Metro GPS > Permission or click OPEN PERMISSION then restart app. Thank you`,
+            [
+              { text: "OK", onPress: () => null, style: "cancel" },
+              {
+                text: "OPEN PERMISSION",
+                onPress: () => Linking.openSettings(),
+              },
+            ]
+          );
+        }
       } catch (error) {
-        console.log(error);
-      } finally {
-        SplashScreen.hideAsync();
-        setIsOpen(true);
+        console.log("APP-SCREEN ERROR: ", error);
       }
     })();
 

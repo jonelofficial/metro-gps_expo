@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  IconButton,
-  Modal,
-  Portal,
-  Text,
-  withTheme,
-} from "react-native-paper";
+import { Button, IconButton, Text, withTheme } from "react-native-paper";
 import Screen from "../components/Screen";
-import { Ionicons } from "@expo/vector-icons";
-import { Keyboard, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  AppState,
+  BackHandler,
+  Keyboard,
+  StyleSheet,
+  View,
+} from "react-native";
 import taskManager from "../config/taskManager";
 import { getPathLength } from "geolib";
 import {
@@ -22,17 +21,24 @@ import useLocations from "../hooks/useLocations";
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment-timezone";
 import useDisclosure from "../hooks/useDisclosure";
-import { Formik } from "formik";
-import TextField from "../components/form/TextField";
-import SubmitButton from "../components/form/SubmitButton";
-import { doneModalSchema, gasModalSchema } from "../utility/schema/validation";
-import DropDownPicker from "react-native-dropdown-picker";
+import * as Notifications from "expo-notifications";
+import {
+  setColor,
+  setMsg,
+  setVisible,
+} from "../redux-toolkit/counter/snackbarSlice";
+import GasModal from "../components/map/GasModal";
+import DoneModal from "../components/map/DoneModal";
+import { useStopwatch } from "react-timer-hook";
 
-const OfficeMapScreen = ({ route, theme, navigation }) => {
+const OfficeMapScreen = ({ theme, navigation }) => {
   const { colors } = theme;
+  const user = useSelector((state) => state.token.userDetails);
+  // TIMER
+  const { seconds, minutes, hours, start, pause } = useStopwatch({
+    autoStart: true,
+  });
 
-  const [value, setValue] = useState("");
-  const [items, setItems] = useState();
   // HOOKS AND CONFIG
   const { location, showMap } = taskManager();
   const { handleInterval, handleLeft, handleArrived } = useLocations();
@@ -43,18 +49,6 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
   const [estimatedOdo, setEstimatedOdo] = useState(0);
   const [trip, setTrip] = useState({ locations: [] });
   const [points, setPoints] = useState([]);
-
-  useEffect(() => {
-    console.log("TRIP FROM STATE", trip);
-    (async () => {
-      console.log("TRIP FROM SQLITE", await selectTable("offline_trip"));
-      console.log("Gas Station Id: ", value);
-    })();
-
-    return () => {
-      null;
-    };
-  }, [trip, points, totalKm, value]);
 
   // BUTTON LOADER
 
@@ -84,12 +78,6 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
     onToggle: onToggleGasModal,
   } = useDisclosure();
 
-  const {
-    isOpen: showDropdown,
-    onClose: onCloseDropdown,
-    onToggle: onToggleDropdown,
-  } = useDisclosure();
-
   // DONE DISCLOSURE
 
   const {
@@ -113,18 +101,15 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
       if (trip?.locations?.length <= 0 || trip == undefined) {
         await reloadMapState();
       }
-
-      const gasRes = await selectTable("gas_station");
-      setItems([...gasRes.map((item) => ({ ...item, value: item._id }))]);
     })();
 
-    return () => {
-      deleteFromTable("route");
-    };
-  }, []);
+    // HANDLE APP STATE
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
 
-  // 900000 = 15 minutes
-  useEffect(() => {
+    // HANDLE TRIP INTERVAL. 900000 = 15 minutes
     const loc = setInterval(() => {
       (async () => {
         const intervalRes = await handleInterval();
@@ -136,8 +121,12 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
         reloadRoute(newObj);
       })();
     }, 900000);
-    return () => {
+
+    return async () => {
+      await reloadRoute();
+      deleteFromTable("route");
       clearInterval(loc);
+      subscription.remove();
     };
   }, []);
 
@@ -147,6 +136,13 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
       (async () => {
         // INSERT POINTS OR PATH TO SQLITE
         if (location && location?.coords?.speed >= 1.4) {
+          setPoints((currentValue) => [
+            ...currentValue,
+            {
+              latitude: location?.coords?.latitude,
+              longitude: location?.coords?.longitude,
+            },
+          ]);
           insertToTable("INSERT INTO route (points) values (?)", [
             JSON.stringify({
               latitude: location?.coords?.latitude,
@@ -155,7 +151,7 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
           ]);
         }
 
-        // COMPUTE AUTO FILL TOTAL KM
+        // COMPUTE TOTAL KM
         const meter = getPathLength(points);
         const km = meter / 1000;
         setTotalKm(km.toFixed(1));
@@ -165,6 +161,62 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
       null;
     };
   }, [location]);
+
+  // HANDLE BACK
+  useEffect(() => {
+    BackHandler.addEventListener("hardwareBackPress", backAction);
+    return () => {
+      BackHandler.removeEventListener("hardwareBackPress", backAction);
+    };
+  }, [trip]);
+
+  // HANDLE BACK
+  const backAction = () => {
+    Alert.alert("Hold on!", "Are you sure you want to go back?", [
+      {
+        text: "Cancel",
+        onPress: () => null,
+        style: "cancel",
+      },
+      {
+        text: "YES",
+        onPress: async () => {
+          if (trip?.locations.length % 2 !== 0 && !location) {
+            await sqliteArrived();
+            onToggleDoneModal();
+          } else if (trip?.locations.length % 2 === 0 && !location) {
+            onToggleDoneModal();
+          } else {
+            dispatch(setMsg(`Please finish the map loading`));
+            dispatch(setVisible(true));
+            dispatch(setColor("warning"));
+          }
+        },
+      },
+    ]);
+    return true;
+  };
+
+  // APPSTATE HANDLE WHEN APP IS ON BACKGROUND
+  const handleAppStateChange = async (nextAppState) => {
+    let notif;
+    if (nextAppState === "background") {
+      const content = {
+        title: `Fresh Morning ${
+          user.first_name[0].toUpperCase() +
+          user.first_name.substring(1).toLowerCase()
+        } `,
+        body: "You have an existing transaction. Please go back to the Metro app and finish it.",
+      };
+
+      notif = Notifications.scheduleNotificationAsync({
+        content,
+        trigger: { seconds: 1 },
+      });
+    } else {
+      await Notifications.cancelAllScheduledNotificationsAsync(notif);
+    }
+  };
 
   // FUNCTION
 
@@ -192,20 +244,17 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
     let mapPoints = [];
     const routeRes = await selectTable("route");
     if (routeRes.length > 0) {
-      setPoints((prevState) => [
-        ...prevState,
-        ...routeRes.map((item) => {
-          return JSON.parse(item.points);
-        }),
-      ]);
-
       mapPoints = [...routeRes.map((item) => JSON.parse(item.points))];
+      setPoints(mapPoints);
+      const meter = getPathLength(mapPoints);
+      const km = meter / 1000;
+      setTotalKm(km.toFixed(1));
     }
 
     const tripRes = await selectTable("offline_trip");
 
     let locPoint = JSON.parse(tripRes[tripRes.length - 1].locations);
-    locPoint.push(newObj);
+    newObj && locPoint.push(newObj);
 
     await updateToTable(
       "UPDATE offline_trip SET points = (?) , locations = (?)  WHERE id = (SELECT MAX(id) FROM offline_trip)",
@@ -215,10 +264,8 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
     const meter = mapPoints.length > 0 ? getPathLength(mapPoints) : 0;
     const km = meter / 1000;
     const odo = JSON.parse(tripRes[tripRes.length - 1].odometer);
-    console.log("ESIMATED ODO: ", parseFloat(km.toFixed(1)) + parseFloat(odo));
 
     setEstimatedOdo(parseFloat(km.toFixed(1)) + parseFloat(odo));
-    console.log(estimatedOdo);
   };
 
   // SQLITE FUNCTION
@@ -226,7 +273,7 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
   const sqliteLeft = async () => {
     try {
       startLeftLoading();
-      // start(new Date());
+      start(new Date());
 
       const leftRes = await handleLeft();
       const newObj = {
@@ -247,7 +294,7 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
   const sqliteArrived = async () => {
     try {
       startArrivedLoading();
-      // pause();
+      pause();
 
       const arrivedRes = await handleArrived();
       const newObj = {
@@ -282,7 +329,6 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
         const offlineTrip = await selectTable(
           "offline_trip WHERE id = (SELECT MAX(id) FROM offline_trip)"
         );
-        console.log(offlineTrip);
 
         const img = JSON.parse(offlineTrip[0].image);
         const form = new FormData();
@@ -295,37 +341,9 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
         form.append("others", offlineTrip[0].others);
         form.append("trip_date", JSON.parse(offlineTrip[0].date));
         form.append("locations", offlineTrip[0].locations);
-        form.append("gas", offlineTrip[0].gas);
+        form.append("diesels", offlineTrip[0].gas);
 
         console.log(form);
-
-        // const tripRes = await createTrip(form, token);
-        // if (tripRes?.data._id) {
-        //   // const locations = await createBulkLocation(
-        //   //   JSON.parse(offlineTrip[0].locations),
-        //   //   tripRes.data._id,
-        //   //   token
-        //   // );
-        //   // // console.log(locations);
-        //   // const diesels = await gasCarBulk(
-        //   //   JSON.parse(offlineTrip[0].gas),
-        //   //   tripRes.data._id,
-        //   //   token
-        //   // );
-        //   // // console.log(diesels);
-        //   // if ((locations.tally === true) & (diesels.tally === true)) {
-        //   //   await deleteFromTable(
-        //   //     `offline_trip WHERE id = (SELECT MAX(id) FROM offline_trip)`
-        //   //   );
-        //   // } else {
-        //   //   await deleteTrip(tripRes.data._id, token);
-        //   //   alert(
-        //   //     `Syncing ${
-        //   //       !locations.tally ? "locations" : "diesels"
-        //   //     } not match. Please try again`
-        //   //   );
-        //   // }
-        // }
       }
 
       stopDoneLoading();
@@ -345,7 +363,7 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
     }
   };
 
-  const sqliteGas = async (data, { resetForm }) => {
+  const sqliteGas = async (data) => {
     try {
       Keyboard.dismiss();
       startGasLoading();
@@ -369,11 +387,8 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
         [JSON.stringify(gas)]
       );
 
-      resetForm();
-      setValue("");
       stopGasLoading();
       onCloseGasModal();
-      onCloseDropdown();
     } catch (error) {
       alert("ERROR SQLTIE GAS PROCESS");
       console.log("ERROR SQLTIE GAS PROCESS: ", error);
@@ -425,7 +440,12 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
               },
             ]}
           >
-            <Text>Timer Here</Text>
+            <Text>{`Trip Time: ${hours > 0 ? `${hours}:` : ""}${
+              minutes < 10 ? `0${minutes}` : minutes >= 10 ? minutes : "00"
+            }:${
+              seconds < 10 ? `0${seconds}` : seconds >= 10 && seconds
+            }`}</Text>
+            <Text>{`  Total KM: ${totalKm || "0"}`}</Text>
           </View>
 
           {/* LEFT AND ARRIVED BUTTON */}
@@ -535,241 +555,21 @@ const OfficeMapScreen = ({ route, theme, navigation }) => {
       </Screen>
 
       {/* DONE MODAL */}
-      <Portal>
-        <Modal
-          visible={showDoneModal}
-          onDismiss={onCloseDoneModal}
-          contentContainerStyle={{
-            backgroundColor: "white",
-            padding: 20,
-            margin: 20,
-            borderRadius: 20,
-          }}
-        >
-          <View
-            style={{
-              alignItems: "flex-end",
-            }}
-          >
-            <TouchableOpacity onPress={onCloseDoneModal}>
-              <Ionicons name="ios-close-outline" size={30} />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={{ textAlign: "center" }}>
-            Please input current vehicle odometer.
-          </Text>
-
-          <Formik
-            initialValues={{
-              odometer_done: estimatedOdo.toString(),
-            }}
-            validationSchema={doneModalSchema}
-            onSubmit={sqliteDone}
-          >
-            {({
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              values,
-              errors,
-              touched,
-            }) => {
-              return (
-                <>
-                  <TextField
-                    touched={touched}
-                    errors={errors}
-                    handleChange={handleChange}
-                    handleBlur={handleBlur}
-                    values={values}
-                    name="odometer_done"
-                    label="Odometer Done"
-                    keyboardType="numeric"
-                    defaultValue={values["odometer_done"]}
-                  />
-                  <SubmitButton
-                    onPress={handleSubmit}
-                    title="Done"
-                    isLoading={doneLoading}
-                    disabled={doneLoading}
-                  />
-                </>
-              );
-            }}
-          </Formik>
-        </Modal>
-      </Portal>
+      <DoneModal
+        showDoneModal={showDoneModal}
+        estimatedOdo={estimatedOdo}
+        doneLoading={doneLoading}
+        onCloseDoneModal={onCloseDoneModal}
+        onSubmit={sqliteDone}
+      />
 
       {/* GAS MODAL */}
-      <Portal>
-        <Modal
-          visible={showGasModal}
-          onDismiss={() => {
-            onCloseGasModal();
-            onCloseDropdown();
-            setValue("");
-          }}
-          contentContainerStyle={{
-            backgroundColor: "white",
-            padding: 20,
-            margin: 20,
-            borderRadius: 20,
-          }}
-        >
-          <View
-            style={{
-              alignItems: "flex-end",
-              marginBottom: 8,
-            }}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                onCloseGasModal();
-                onCloseDropdown();
-                setValue("");
-              }}
-            >
-              <Ionicons name="ios-close-outline" size={30} />
-            </TouchableOpacity>
-          </View>
-          <Formik
-            initialValues={{
-              gas_station_id: value,
-              odometer: "",
-              liter: "",
-              amount: "",
-              gas_station_name: "",
-            }}
-            validationSchema={gasModalSchema}
-            onSubmit={sqliteGas}
-          >
-            {({
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              values,
-              errors,
-              touched,
-              setErrors,
-              setFieldValue,
-            }) => {
-              useEffect(() => {
-                if (value) {
-                  setFieldValue("gas_station_id", value);
-                  setErrors("gas_station_id", null);
-                }
-
-                if (value !== "507f191e810c19729de860ea") {
-                  setFieldValue("gas_station_name", value);
-                  setErrors("gas_station_name", null);
-                } else {
-                  setFieldValue("gas_station_name", "");
-                  setErrors("gas_station_name", null);
-                }
-
-                return () => {
-                  null;
-                };
-              }, [value]);
-              return (
-                <>
-                  <DropDownPicker
-                    open={showDropdown}
-                    value={value}
-                    items={items}
-                    onChangeValue={handleChange}
-                    setOpen={onToggleDropdown}
-                    setValue={setValue}
-                    setItems={setItems}
-                    placeholder="Select gas station"
-                    textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
-                    // labelStyle={{ color: "red", fontSize: 28 }}
-                    style={{
-                      borderRadius: 15,
-                      borderColor: errors["gas_station"]
-                        ? colors.danger
-                        : colors.light,
-                      marginBottom:
-                        touched.gas_station_id && errors.gas_station_id
-                          ? 0
-                          : 12,
-                    }}
-                    dropDownContainerStyle={{
-                      borderColor: errors["gas_station"]
-                        ? colors.danger
-                        : colors.light,
-                      maxHeight: 150,
-                    }}
-                  />
-                  {touched.gas_station_id && errors.gas_station_id && (
-                    <Text
-                      style={{
-                        color: "red",
-                        fontSize: 14,
-                        padding: 5,
-                      }}
-                    >
-                      {errors.gas_station_id}
-                    </Text>
-                  )}
-                  {value === "507f191e810c19729de860ea" && (
-                    <TextField
-                      touched={touched}
-                      errors={errors}
-                      handleChange={handleChange}
-                      handleBlur={handleBlur}
-                      values={values}
-                      name="gas_station_name"
-                      label="Gas Station Name"
-                      keyboardType="numeric"
-                    />
-                  )}
-                  <TextField
-                    touched={touched}
-                    errors={errors}
-                    handleChange={handleChange}
-                    handleBlur={handleBlur}
-                    values={values}
-                    name="odometer"
-                    label="Odometer"
-                    keyboardType="numeric"
-                  />
-
-                  <TextField
-                    touched={touched}
-                    errors={errors}
-                    handleChange={handleChange}
-                    handleBlur={handleBlur}
-                    values={values}
-                    name="liter"
-                    label="Liter"
-                    keyboardType="numeric"
-                    defaultValue={values["odometer_done"]}
-                  />
-                  <TextField
-                    touched={touched}
-                    errors={errors}
-                    handleChange={handleChange}
-                    handleBlur={handleBlur}
-                    values={values}
-                    name="amount"
-                    label="Amount"
-                    keyboardType="numeric"
-                    defaultValue={values["odometer_done"]}
-                  />
-                  <SubmitButton
-                    onPress={handleSubmit}
-                    title="Done"
-                    isLoading={doneLoading}
-                    disabled={doneLoading}
-                  />
-                </>
-              );
-            }}
-          </Formik>
-        </Modal>
-      </Portal>
+      <GasModal
+        showGasModal={showGasModal}
+        gasLoading={gasLoading}
+        onCloseGasModal={onCloseGasModal}
+        onSubmit={sqliteGas}
+      />
     </>
   );
 };
@@ -797,6 +597,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 15,
     alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
   },
   buttonWrapper: {
     marginTop: 15,

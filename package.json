@@ -24,6 +24,7 @@
     "expo-linear-gradient": "^12.0.1",
     "expo-location": "^15.0.1",
     "expo-media-library": "^15.0.0",
+    "expo-notifications": "^0.17.0",
     "expo-secure-store": "^12.0.0",
     "expo-splash-screen": "^0.17.5",
     "expo-sqlite": "^11.0.0",
@@ -43,6 +44,7 @@
     "react-native-screens": "~3.18.0",
     "react-native-view-finder": "^1.2.0",
     "react-redux": "^8.0.5",
+    "react-timer-hook": "^3.0.5",
     "redux-logger": "^3.0.6",
     "yup": "^0.32.11"
   },

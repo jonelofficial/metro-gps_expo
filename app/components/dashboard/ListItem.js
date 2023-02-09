@@ -1,31 +1,38 @@
 import dayjs from "dayjs";
 import { getPathLength } from "geolib";
 import moment from "moment-timezone";
-import React from "react";
+import React, { useEffect } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { Button, Text, withTheme } from "react-native-paper";
+import { useDispatch } from "react-redux";
+import { useCreateTripMutation } from "../../api/metroApi";
+import { validatorStatus } from "../../redux-toolkit/counter/vaidatorSlice";
 
 const ListItem = ({ item, theme, onPress }) => {
   const { colors } = theme;
-  // if (item?.offline == true) {
-  //   console.log(item);
-  //   return (
-  //     <TouchableOpacity onPress={onPress}>
-  //       <Text>{`${item._id} THIS IS OFFLINE TRIP`}</Text>
-  //     </TouchableOpacity>
-  //   );
-  // }
+  const dispatch = useDispatch();
+
+  const [createTrip, { isLoading }] = useCreateTripMutation();
 
   const newLocations = item.locations.filter(
     (location) => location.status == "left" || location.status == "arrived"
   );
 
+  useEffect(() => {
+    if (newLocations.length % 2 !== 0) {
+      dispatch(validatorStatus(false));
+    }
+    return () => {
+      null;
+    };
+  }, []);
+
   // Getting KM
   const km = item.points?.length > 0 && getPathLength(item.points) / 1000;
 
   // Getting TIME
-  const startDate = dayjs(item.locations[0].date);
-  const endDate = dayjs(item.locations[item.locations.length - 1].date);
+  const startDate = dayjs(item.locations[0]?.date);
+  const endDate = dayjs(item.locations[item.locations.length - 1]?.date);
   const duration = endDate.diff(startDate);
   const totalMinutes = Math.floor(duration / (1000 * 60));
   const hours = Math.floor(totalMinutes / 60);
@@ -34,6 +41,24 @@ const ListItem = ({ item, theme, onPress }) => {
   const hour = `${hours.toFixed(0)}.${minutes == 0 ? "00" : minutes}`;
   const time = moment(item.trip_date).tz("Asia/Manila").format("h:mm a");
   const date = dayjs(item.trip_date).format("MM-DD-YY");
+
+  const handleSync = async () => {
+    // start sync loading
+    const form = new FormData();
+    form.append("vehicle_id", item.vehicle_id);
+    form.append("odometer", item.odometer);
+    form.append("odometer_done", item.odometer_done);
+    item?.image.uri !== null && form.append("image", item.image);
+    form.append("companion", JSON.stringify(item.companion));
+    form.append("points", JSON.stringify(item.points));
+    form.append("others", item.others);
+    form.append("trip_date", item.trip_date);
+    form.append("locations", JSON.stringify(item.locations));
+    form.append("diesels", JSON.stringify(item.diesels));
+
+    const res = await createTrip(form);
+    console.log(res);
+  };
 
   return (
     <TouchableOpacity onPress={onPress}>
@@ -68,8 +93,9 @@ const ListItem = ({ item, theme, onPress }) => {
                 color:
                   newLocations.length % 2 !== 0 ? colors.danger : colors.white,
               }}
-              disabled={newLocations.length % 2 !== 0}
-              onPress={() => console.log(item)}
+              disabled={newLocations.length % 2 !== 0 || isLoading}
+              loading={isLoading}
+              onPress={handleSync}
             >
               sync
             </Button>

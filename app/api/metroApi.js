@@ -27,7 +27,15 @@ export const metroApi = createApi({
         `/office/trips?page=${params?.page}&limit=${params?.limit}&search=${params?.search}&searchBy=${params?.searchBy}&date=${params?.date}`,
       providesTags: ["Trip"],
     }),
+    createTrip: builder.mutation({
+      query: (payload) => ({
+        url: "office/apk-trip",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Trip"],
+    }),
   }),
 });
 
-export const { useGetAllTripsQuery } = metroApi;
+export const { useGetAllTripsQuery, useCreateTripMutation } = metroApi;

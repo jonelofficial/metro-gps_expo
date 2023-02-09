@@ -5,6 +5,7 @@ import netReducer from "../redux-toolkit/counter/netSlice";
 import imageReducer from "../redux-toolkit/counter/imageSlice";
 import companionReducer from "../redux-toolkit/counter/companionSlice";
 import snackbarReducer from "./counter/snackbarSlice";
+import validatorReducer from "./counter/vaidatorSlice";
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     image: imageReducer,
     companion: companionReducer,
     snackbar: snackbarReducer,
+    validator: validatorReducer,
     [metroApi.reducerPath]: metroApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

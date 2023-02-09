@@ -17,7 +17,7 @@ import {
   Text,
   withTheme,
 } from "react-native-paper";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useGetAllTripsQuery } from "../api/metroApi";
 import Screen from "../components/Screen";
 import useParams from "../hooks/useParams";
@@ -29,10 +29,18 @@ import ListItem from "../components/dashboard/ListItem";
 import DashboardCamera from "../components/DashboardCamera";
 import useAuth from "../auth/useAuth";
 import { selectTable } from "../utility/sqlite";
+import {
+  setColor,
+  setMsg,
+  setVisible,
+} from "../redux-toolkit/counter/snackbarSlice";
 
 const DashboardScreen = ({ theme, navigation }) => {
   const { colors } = theme;
   const { logout } = useAuth();
+  const dispatch = useDispatch();
+  //
+
   // FOR INTERNET STATUS
   const net = useSelector((state) => state.net.value);
   // STATE
@@ -114,7 +122,7 @@ const DashboardScreen = ({ theme, navigation }) => {
             diesels: JSON.parse(item.gas),
             locations: JSON.parse(item.locations),
             odometer: JSON.parse(item.odometer),
-            odometer_done: JSON.parse(item.odometer_done),
+            odometer_done: parseFloat(JSON.parse(item.odometer_done)),
             points: JSON.parse(item.points),
             image: JSON.parse(item.image),
             user_id: {
@@ -307,14 +315,6 @@ const DashboardScreen = ({ theme, navigation }) => {
         {/* TOTAL ITEMS */}
         <View style={{ alignItems: "center", marginBottom: 8 }}>
           <Text style={{ fontSize: 17, color: colors.light }}>
-            {/* {trip.length === 1 && !isFetching
-              ? `${trip.length} item`
-              : trip.length > 1 && !isFetching
-              ? `${trip.length} items`
-              : !isFetching
-              ? "No item found"
-              : "Loading"} */}
-
             {totalCount === 1 && !isFetching
               ? `${totalCount} item`
               : totalCount > 1 && !isFetching
@@ -353,7 +353,7 @@ const DashboardScreen = ({ theme, navigation }) => {
         )}
 
         {/* CAMERA */}
-        {trip && !isFetching && (
+        {!isFetching && !isLoading && (
           <Animated.View
             style={{
               transform: [{ translateY: fadeAnim }],

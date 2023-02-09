@@ -134,6 +134,7 @@ const useAuth = () => {
     })
       .then((res) => res.json())
       .then(async (data) => {
+        console.log(data);
         userData = data;
 
         if (data?.message) {
@@ -143,43 +144,13 @@ const useAuth = () => {
           dispatch(setColor("danger"));
           return;
         }
-        // if (netStatus) {
-        //   await getVehicles(data.token);
-        //   await getGasStation(data.token);
-
-        //   storeToken(data.token);
-        //   storeUser(jwtDecode(data.token));
-        //   dispatch(addToken(data));
-        //   dispatch(addUser(jwtDecode(data.token)));
-        // } else {
-        //   const offlineData = await selectTable("user");
-        //   offlineData.map((item) => {
-        //     if (
-        //       (item.password === values.password) &
-        //       (item.username === values.username)
-        //     ) {
-        //       storeToken(item.token);
-        //       storeUser(jwtDecode(item.token));
-        //       dispatch(addToken({ token: item.token }));
-        //       dispatch(addUser(jwtDecode(item.token)));
-        //     } else {
-        //       dispatch(
-        //         setMsg(
-        //           `Could not find user. Login with internet connection instead`
-        //         )
-        //       );
-        //       dispatch(setVisible(true));
-        //       dispatch(setColor("danger"));
-        //     }
-        //   });
-        // }
       })
       .catch((error) => {
         onClose();
         console.error("Error:", error);
       });
 
-    if (netStatus && !userData?.message) {
+    if (netStatus && userData.token) {
       await getVehicles(userData.token);
       await getGasStation(userData.token);
 

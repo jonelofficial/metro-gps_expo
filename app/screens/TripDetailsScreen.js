@@ -2,7 +2,9 @@ import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button, Divider, Text, withTheme } from "react-native-paper";
+import { useDispatch } from "react-redux";
 import Screen from "../components/Screen";
+import { validatorStatus } from "../redux-toolkit/counter/vaidatorSlice";
 import { selectTable } from "../utility/sqlite";
 
 const TripDetailsScreen = ({ route, theme, navigation }) => {
@@ -12,7 +14,9 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
   const newLocations = item.locations.filter(
     (location) => location.status == "left" || location.status == "arrived"
   );
-  console.log(item);
+
+  const dispatch = useDispatch();
+
   useEffect(() => {
     (async () => {
       const gasRes = await selectTable("gas_station");
@@ -185,6 +189,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
               lineHeight: 35,
             }}
             onPress={() => {
+              dispatch(validatorStatus(true));
               navigation.navigate("Office", {
                 screen: "OfficeMap",
               });
