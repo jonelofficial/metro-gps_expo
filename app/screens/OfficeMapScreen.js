@@ -419,7 +419,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   if (!showMap) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Please allow locations to map and reload</Text>
+        <Text>Allow permission for locations then reload app</Text>
       </View>
     );
   }
