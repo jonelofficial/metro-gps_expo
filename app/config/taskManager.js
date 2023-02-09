@@ -23,7 +23,6 @@ const taskManager = () => {
   useEffect(() => {
     (async () => {
       // EXPO LOCATION
-
       const { status: foregroundStatus } =
         await Location.requestForegroundPermissionsAsync();
       if (foregroundStatus === "granted") {
@@ -44,7 +43,23 @@ const taskManager = () => {
     };
   }, []);
 
-  return { showMap, location };
+  const requestPremissions = async () => {
+    const { status: foregroundStatus } =
+      await Location.requestForegroundPermissionsAsync();
+    if (foregroundStatus === "granted") {
+      const { status: backgroundStatus } =
+        await Location.requestBackgroundPermissionsAsync();
+      if (backgroundStatus === "granted") {
+        await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+          enableHighAccuracy: true,
+          accuracy: Location.LocationAccuracy.BestForNavigation,
+        });
+        setShowMap(true);
+      }
+    }
+  };
+
+  return { showMap, location, requestPremissions };
 };
 
 export default taskManager;

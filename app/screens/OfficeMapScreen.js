@@ -42,7 +42,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   });
 
   // HOOKS AND CONFIG
-  const { location, showMap } = taskManager();
+  const { location, showMap, requestPremissions } = taskManager();
   const { handleInterval, handleLeft, handleArrived } = useLocations();
   const net = useSelector((state) => state.net.value);
 
@@ -419,7 +419,8 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   if (!showMap) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Allow permission for locations then reload app</Text>
+        <Text>Allow permission for locations.</Text>
+        <Button onPress={requestPremissions}>Request Permission</Button>
       </View>
     );
   }
