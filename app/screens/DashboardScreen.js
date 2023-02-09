@@ -34,12 +34,12 @@ import {
   setMsg,
   setVisible,
 } from "../redux-toolkit/counter/snackbarSlice";
+import SyncingAnimation from "../components/loading/SyncingAnimation";
 
 const DashboardScreen = ({ theme, navigation }) => {
   const { colors } = theme;
   const { logout } = useAuth();
   const dispatch = useDispatch();
-  //
 
   // FOR INTERNET STATUS
   const net = useSelector((state) => state.net.value);
@@ -101,7 +101,6 @@ const DashboardScreen = ({ theme, navigation }) => {
       if (data?.data.length === 0) {
         setNoData(true);
       }
-
       data?.data.map((item) => {
         setTrip((prevState) => [...prevState, item]);
       });
@@ -142,6 +141,7 @@ const DashboardScreen = ({ theme, navigation }) => {
 
   const onDateSelected = async (event, value) => {
     if (event.type === "dismissed") return onClose();
+    onClose();
     setTotalCount(0);
     setTrip([]);
     setDate(value);
@@ -152,7 +152,6 @@ const DashboardScreen = ({ theme, navigation }) => {
       searchBy: "trip_date",
       page: 1,
     }));
-    onClose();
   };
 
   const onRefresh = () => {
@@ -185,6 +184,7 @@ const DashboardScreen = ({ theme, navigation }) => {
         key={index}
         item={item}
         onPress={() => navigation.navigate("TripDetails", { item })}
+        setTrip={setTrip}
       />
     );
   };
@@ -221,15 +221,11 @@ const DashboardScreen = ({ theme, navigation }) => {
     return setPrevScrollPos(currentScrollPos);
   };
 
-  if (isLoading && net) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>isLoading</Text>
-      </View>
-    );
+  if (isLoading) {
+    return <SyncingAnimation />;
   }
 
-  if (isError && net) {
+  if (isError) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>{error?.data?.error}</Text>
@@ -342,7 +338,8 @@ const DashboardScreen = ({ theme, navigation }) => {
                 <ActivityIndicator animating={true} color={colors.primary} />
               ) : (
                 !isFetching &&
-                noData && (
+                noData &&
+                trip.length > 25 && (
                   <Text style={{ textAlign: "center" }}>No data to show</Text>
                 )
               )

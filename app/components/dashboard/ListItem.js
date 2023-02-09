@@ -6,9 +6,15 @@ import { TouchableOpacity, View } from "react-native";
 import { Button, Text, withTheme } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { useCreateTripMutation } from "../../api/metroApi";
+import {
+  setColor,
+  setMsg,
+  setVisible,
+} from "../../redux-toolkit/counter/snackbarSlice";
 import { validatorStatus } from "../../redux-toolkit/counter/vaidatorSlice";
+import { deleteFromTable } from "../../utility/sqlite";
 
-const ListItem = ({ item, theme, onPress }) => {
+const ListItem = ({ item, theme, onPress, setTrip }) => {
   const { colors } = theme;
   const dispatch = useDispatch();
 
@@ -57,7 +63,21 @@ const ListItem = ({ item, theme, onPress }) => {
     form.append("diesels", JSON.stringify(item.diesels));
 
     const res = await createTrip(form);
-    console.log(res);
+
+    if (res?.data) {
+      // Remove offline trip to sqlite database and state
+      await deleteFromTable(`offline_trip WHERE id=${item._id}`);
+      setTrip((prevState) => [
+        ...prevState.filter((obj) => obj._id !== item._id),
+      ]);
+
+      // Add new created trip to state to display in dashboard
+      setTrip((prevState) => [res.data.data, ...prevState]);
+    } else {
+      dispatch(setMsg(res?.error?.error));
+      dispatch(setVisible(true));
+      dispatch(setColor("warning"));
+    }
   };
 
   return (

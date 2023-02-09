@@ -134,7 +134,6 @@ const useAuth = () => {
     })
       .then((res) => res.json())
       .then(async (data) => {
-        console.log(data);
         userData = data;
 
         if (data?.message) {

@@ -19,7 +19,7 @@ export const metroApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Trip", "User", "Vehicles", "GasStation"],
+  tagTypes: ["Trip"],
   endpoints: (builder) => ({
     // T R I P S
     getAllTrips: builder.query({
@@ -33,7 +33,6 @@ export const metroApi = createApi({
         method: "POST",
         body: payload,
       }),
-      invalidatesTags: ["Trip"],
     }),
   }),
 });
