@@ -23,11 +23,7 @@
         "foregroundImage": "./app/assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyDbCxrt0H-TQpGGDLlloTLfNKK5AAgtVVc"
-        }
-      },
+      "config": {},
       "package": "com.jonelofficial.metroGPS",
       "permissions": ["ACCESS_BACKGROUND_LOCATION"]
     },
@@ -37,13 +33,6 @@
     "extra": {
       "eas": {
         "projectId": "f68e3908-3451-44d9-aa95-65d29ae7cdfb"
-      }
-    }
-  },
-  "android": {
-    "config": {
-      "googleMaps": {
-        "apiKey": "AIzaSyDbCxrt0H-TQpGGDLlloTLfNKK5AAgtVVc"
       }
     }
   }

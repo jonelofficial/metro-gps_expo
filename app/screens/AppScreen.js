@@ -63,11 +63,12 @@ const AppScreen = ({ theme }) => {
 
   // CHECKING OF INTERNET
   useEffect(() => {
-    if (netInfo.type !== "unknown" && netInfo.isInternetReachable === false) {
-      return dispatch(netStatus(false));
+    if (netInfo.type === "unknown" || netInfo.isInternetReachable === null) {
+      dispatch(netStatus(false));
+    } else {
+      dispatch(netStatus(true));
     }
 
-    dispatch(netStatus(true));
     return () => {
       null;
     };
