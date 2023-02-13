@@ -69,8 +69,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   const { reset, setState, state } = useParams();
 
   // STATE FOR RTK
-  // let data, isLoading, isError, isFetching, error;
-  const { data, isLoading, isError, isFetching, error } = useGetAllTripsQuery(
+  const { data, isLoading, isFetching, error, isError } = useGetAllTripsQuery(
     {
       page: state.page,
       limit: state.limit,
@@ -80,25 +79,6 @@ const DashboardScreen = ({ theme, navigation }) => {
     },
     { refetchOnMountOrArgChange: true }
   );
-
-  // useEffect(() => {
-  //   if (net) {
-  //     ({ data, isLoading, isError, isFetching, error } = useGetAllTripsQuery(
-  //       {
-  //         page: state.page,
-  //         limit: state.limit,
-  //         search: state.search,
-  //         searchBy: state.searchBy,
-  //         date: state.date,
-  //       },
-  //       { refetchOnMountOrArgChange: true }
-  //     ));
-  //   }
-
-  //   return () => {
-  //     null;
-  //   };
-  // }, [net, state]);
 
   useEffect(() => {
     handleOfflineTrip();
@@ -113,7 +93,7 @@ const DashboardScreen = ({ theme, navigation }) => {
     return () => {
       null;
     };
-  }, [data]);
+  }, [data, net]);
 
   // Function
 
@@ -191,7 +171,7 @@ const DashboardScreen = ({ theme, navigation }) => {
       dispatch(setMsg("Please wait fecthing to finish"));
       dispatch(setVisible(true));
       dispatch(setColor("warning"));
-    } else if (trip?.length > 25) {
+    } else if (trip?.length > 25 || trip?.length <= 0) {
       setTotalCount(0);
       setTrip([]);
       setNoData(false);
@@ -200,7 +180,7 @@ const DashboardScreen = ({ theme, navigation }) => {
 
       // refetch offline and online trip
       handleOfflineTrip();
-      net && fetchTrip();
+      fetchTrip();
     }
   };
 
@@ -257,13 +237,13 @@ const DashboardScreen = ({ theme, navigation }) => {
     return <SyncingAnimation />;
   }
 
-  if (isError) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>{error?.data?.error}</Text>
-      </View>
-    );
-  }
+  // if (isError) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <Text>{error?.data?.error || "ERROR"}</Text>
+  //     </View>
+  //   );
+  // }
 
   return (
     <>
