@@ -64,6 +64,7 @@ const DashboardScreen = ({ theme, navigation }) => {
     onToggle: onLogoutToggle,
     onClose: onLogoutClose,
   } = useDisclosure();
+
   // FOR RTK
   const { reset, setState, state } = useParams();
   const { data, isLoading, isError, isFetching, error } = useGetAllTripsQuery(
@@ -80,15 +81,15 @@ const DashboardScreen = ({ theme, navigation }) => {
   useEffect(() => {
     handleOfflineTrip();
 
-    if (net) {
-    }
     return () => {
       null;
     };
   }, []);
 
   useEffect(() => {
-    fetchTrip();
+    if (net) {
+      fetchTrip();
+    }
     return () => {
       null;
     };
@@ -168,7 +169,7 @@ const DashboardScreen = ({ theme, navigation }) => {
 
       // refetch offline and online trip
       handleOfflineTrip();
-      fetchTrip();
+      net && fetchTrip();
     }
   };
 

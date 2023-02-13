@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import jwtDecode from "jwt-decode";
 import { Keyboard } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,7 +19,6 @@ import {
 
 const useAuth = () => {
   const netStatus = useSelector((state) => state.net.value);
-  let userData;
 
   const { isOpen: isLoading, onToggle, onClose } = useDisclosure();
   const {
@@ -127,14 +126,13 @@ const useAuth = () => {
   const login = async (values) => {
     Keyboard.dismiss();
     onToggle();
-    await fetch(`${process.env.BASEURL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    })
-      .then((res) => res.json())
-      .then(async (data) => {
-        userData = data;
+    if (netStatus) {
+      try {
+        const data = await fetch(`${process.env.BASEURL}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        }).then((res) => res.json());
 
         if (data?.message) {
           onClose();
@@ -143,20 +141,20 @@ const useAuth = () => {
           dispatch(setColor("danger"));
           return;
         }
-      })
-      .catch((error) => {
+
+        await getVehicles(data.token);
+        await getGasStation(data.token);
+
+        storeToken(data.token);
+        storeUser(jwtDecode(data.token));
+        dispatch(addToken(data));
+        dispatch(addUser(jwtDecode(data.token)));
+      } catch (error) {
         onClose();
-        console.error("Error:", error);
-      });
-
-    if (netStatus && userData.token) {
-      await getVehicles(userData.token);
-      await getGasStation(userData.token);
-
-      storeToken(userData.token);
-      storeUser(jwtDecode(userData.token));
-      dispatch(addToken(userData));
-      dispatch(addUser(jwtDecode(userData.token)));
+        dispatch(setMsg(error));
+        dispatch(setVisible(true));
+        dispatch(setColor("danger"));
+      }
     } else {
       const offlineData = await selectTable("user");
       offlineData.map((item) => {
