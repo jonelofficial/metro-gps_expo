@@ -22,6 +22,7 @@ import { Alert, Linking, ToastAndroid } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
+import * as Network from "expo-network";
 import { Camera } from "expo-camera";
 
 SplashScreen.preventAutoHideAsync();
@@ -62,12 +63,12 @@ const AppScreen = ({ theme }) => {
   };
 
   // CHECKING OF INTERNET
+
   useEffect(() => {
-    if (netInfo.type === "unknown" || netInfo.isInternetReachable === null) {
-      dispatch(netStatus(false));
-    } else {
-      dispatch(netStatus(true));
-    }
+    (async () => {
+      const net = await Network.getNetworkStateAsync();
+      dispatch(netStatus(net?.isConnected));
+    })();
 
     return () => {
       null;

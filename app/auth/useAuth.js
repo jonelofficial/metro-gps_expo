@@ -142,6 +142,13 @@ const useAuth = () => {
           return;
         }
 
+        // UPDATE USER FROM SQLITE
+        await deleteFromTable("user");
+        await insertToTable(
+          "INSERT INTO user (username, password, token) values (?,?,?)",
+          [values.username, values.password, data.token]
+        );
+
         await getVehicles(data.token);
         await getGasStation(data.token);
 
@@ -157,10 +164,17 @@ const useAuth = () => {
       }
     } else {
       const offlineData = await selectTable("user");
+      if (offlineData?.length <= 0) {
+        dispatch(
+          setMsg(`Could not find user. Login with internet connection instead`)
+        );
+        dispatch(setVisible(true));
+        dispatch(setColor("danger"));
+      }
       offlineData.map((item) => {
         if (
-          (item.password === values.password) &
-          (item.username === values.username)
+          item.password === values.password &&
+          item.username === values.username
         ) {
           storeToken(item.token);
           storeUser(jwtDecode(item.token));

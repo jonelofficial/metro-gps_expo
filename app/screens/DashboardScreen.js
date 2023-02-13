@@ -67,6 +67,9 @@ const DashboardScreen = ({ theme, navigation }) => {
 
   // FOR RTK
   const { reset, setState, state } = useParams();
+
+  // STATE FOR RTK
+  // let data, isLoading, isError, isFetching, error;
   const { data, isLoading, isError, isFetching, error } = useGetAllTripsQuery(
     {
       page: state.page,
@@ -78,6 +81,25 @@ const DashboardScreen = ({ theme, navigation }) => {
     { refetchOnMountOrArgChange: true }
   );
 
+  // useEffect(() => {
+  //   if (net) {
+  //     ({ data, isLoading, isError, isFetching, error } = useGetAllTripsQuery(
+  //       {
+  //         page: state.page,
+  //         limit: state.limit,
+  //         search: state.search,
+  //         searchBy: state.searchBy,
+  //         date: state.date,
+  //       },
+  //       { refetchOnMountOrArgChange: true }
+  //     ));
+  //   }
+
+  //   return () => {
+  //     null;
+  //   };
+  // }, [net, state]);
+
   useEffect(() => {
     handleOfflineTrip();
 
@@ -87,9 +109,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (net) {
-      fetchTrip();
-    }
+    fetchTrip();
     return () => {
       null;
     };
@@ -98,21 +118,21 @@ const DashboardScreen = ({ theme, navigation }) => {
   // Function
 
   const fetchTrip = async () => {
-    if (!isLoading && !isFetching) {
-      if (data?.data.length === 0) {
+    if (!isLoading && !isFetching && net) {
+      if (data?.data?.length === 0) {
         setNoData(true);
       }
       data?.data.map((item) => {
         setTrip((prevState) => [...prevState, item]);
       });
 
-      setTotalCount((prevState) => prevState + data?.data.length);
+      setTotalCount((prevState) => prevState + data?.data?.length);
     }
   };
 
   const handleOfflineTrip = async () => {
     const res = await selectTable("offline_trip");
-    if (res.length > 0) {
+    if (res?.length > 0) {
       await res.map((item) => {
         setTrip((prevState) => [
           {
@@ -137,22 +157,33 @@ const DashboardScreen = ({ theme, navigation }) => {
         ]);
       });
     }
-    setTotalCount((prevState) => prevState + res.length);
+    setTotalCount((prevState) => prevState + res?.length);
   };
 
   const onDateSelected = async (event, value) => {
     if (event.type === "dismissed") return onClose();
     onClose();
-    setTotalCount(0);
-    setTrip([]);
-    setDate(value);
-    setSearch(dayjs(value).format("MM-DD-YY"));
-    setState((prevState) => ({
-      ...prevState,
-      date: dayjs(value).format("YYYY-MM-DD"),
-      searchBy: "trip_date",
-      page: 1,
-    }));
+
+    if (net) {
+      setTotalCount(0);
+      setTrip([]);
+      setDate(value);
+      setSearch(dayjs(value).format("MM-DD-YY"));
+      setState((prevState) => ({
+        ...prevState,
+        date: dayjs(value).format("YYYY-MM-DD"),
+        searchBy: "trip_date",
+        page: 1,
+      }));
+    } else {
+      dispatch(
+        setMsg(
+          "No internet detected. Please connect to internet and try again."
+        )
+      );
+      dispatch(setVisible(true));
+      dispatch(setColor("warning"));
+    }
   };
 
   const onRefresh = () => {
@@ -160,7 +191,7 @@ const DashboardScreen = ({ theme, navigation }) => {
       dispatch(setMsg("Please wait fecthing to finish"));
       dispatch(setVisible(true));
       dispatch(setColor("warning"));
-    } else if (trip.length > 25) {
+    } else if (trip?.length > 25) {
       setTotalCount(0);
       setTrip([]);
       setNoData(false);
@@ -174,7 +205,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   };
 
   const onEndReached = async () => {
-    if (trip.length >= 25 && !isFetching && !noData) {
+    if (trip?.length >= 25 && !isFetching && !noData) {
       setState((prevState) => ({ ...prevState, page: prevState.page + 1 }));
     }
   };
@@ -340,7 +371,7 @@ const DashboardScreen = ({ theme, navigation }) => {
               ) : (
                 !isFetching &&
                 noData &&
-                trip.length > 25 && (
+                trip?.length > 25 && (
                   <Text style={{ textAlign: "center" }}>No data to show</Text>
                 )
               )
