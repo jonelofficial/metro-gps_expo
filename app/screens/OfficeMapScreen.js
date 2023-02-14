@@ -42,6 +42,11 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   });
 
   // HOOKS AND CONFIG
+  // let location, showMap, requestPremissions;
+
+  // (async () =>
+  //   ({ location, showMap, requestPremissions } = await taskManager()))();
+
   const { location, showMap, requestPremissions } = taskManager();
   const { handleInterval, handleLeft, handleArrived } = useLocations();
   const net = useSelector((state) => state.net.value);
@@ -108,14 +113,10 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   // FOR UNMOUNTING
   useEffect(() => {
     (async () => {
-      if (
-        (trip?.locations?.length <= 0 && location) ||
-        (trip == undefined && location)
-      ) {
+      if (trip?.locations?.length <= 0 && location) {
         await reloadMapState();
       }
     })();
-
     // HANDLE APP STATE
     const subscription = AppState.addEventListener(
       "change",
@@ -170,6 +171,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         setTotalKm(km.toFixed(1));
       })();
     }
+
     return () => {
       null;
     };
@@ -367,8 +369,6 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         form.append("trip_date", JSON.parse(offlineTrip[0].date));
         form.append("locations", offlineTrip[0].locations);
         form.append("diesels", offlineTrip[0].gas);
-
-        console.log(form);
       }
 
       stopDoneLoading();

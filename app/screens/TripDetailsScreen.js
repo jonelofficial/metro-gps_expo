@@ -36,7 +36,10 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
       flex: 1,
     },
     textWrapper: { flexDirection: "row", marginBottom: 2 },
-    label: { minWidth: 100, color: item?.offline ? colors.white : colors.dark },
+    label: {
+      minWidth: 100,
+      color: item?.offline ? colors.white : colors.dark,
+    },
     text: {
       textTransform: "capitalize",
       color: item?.offline ? colors.white : colors.dark,
@@ -50,7 +53,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
           styles.container,
           {
             backgroundColor:
-              newLocations.length % 2 !== 0
+              newLocations.length % 2 !== 0 || newLocations.length === 0
                 ? colors.danger
                 : item?.offline
                 ? colors.primarySync
@@ -179,7 +182,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
         </ScrollView>
       </View>
 
-      {newLocations.length % 2 !== 0 && (
+      {(newLocations.length % 2 !== 0 || newLocations.length === 0) && (
         <View style={{ paddingBottom: 15, paddingHorizontal: 10 }}>
           <Button
             mode="contained"

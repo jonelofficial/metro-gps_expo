@@ -237,13 +237,20 @@ const DashboardScreen = ({ theme, navigation }) => {
     return <SyncingAnimation />;
   }
 
-  // if (isError) {
-  //   return (
-  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-  //       <Text>{error?.data?.error || "ERROR"}</Text>
-  //     </View>
-  //   );
-  // }
+  if (isError) {
+    alert(
+      `${
+        error?.data?.error ||
+        "Please make sure you have internet connection to fetch trip."
+      }`
+    );
+
+    // return (
+    //   <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    //     <Text>{error?.data?.error || "ERROR"}</Text>
+    //   </View>
+    // );
+  }
 
   return (
     <>

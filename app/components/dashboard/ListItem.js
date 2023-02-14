@@ -4,7 +4,7 @@ import moment from "moment-timezone";
 import React, { useEffect } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { Button, Text, withTheme } from "react-native-paper";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useCreateTripMutation } from "../../api/metroApi";
 import {
   setColor,
@@ -17,6 +17,7 @@ import { deleteFromTable } from "../../utility/sqlite";
 const ListItem = ({ item, theme, onPress, setTrip }) => {
   const { colors } = theme;
   const dispatch = useDispatch();
+  const net = useSelector((state) => state.net.value);
 
   const [createTrip, { isLoading }] = useCreateTripMutation();
 
@@ -25,7 +26,7 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
   );
 
   useEffect(() => {
-    if (newLocations.length % 2 !== 0) {
+    if (newLocations.length % 2 !== 0 || newLocations.length === 0) {
       dispatch(validatorStatus(false));
     }
     return () => {
@@ -89,7 +90,7 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
           padding: 15,
           alignItems: "center",
           backgroundColor:
-            newLocations.length % 2 !== 0
+            newLocations.length % 2 !== 0 || newLocations.length === 0
               ? colors.danger
               : item?.offline
               ? colors.primarySync
@@ -103,17 +104,22 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
                 borderRadius: 10,
                 marginRight: 13,
                 backgroundColor:
-                  newLocations.length % 2 !== 0
+                  newLocations.length % 2 !== 0 || !net
                     ? colors.notActive
                     : colors.primary,
-                display: newLocations.length % 2 !== 0 ? "none" : "flex",
+                display:
+                  newLocations.length % 2 !== 0 || newLocations.length === 0
+                    ? "none"
+                    : "flex",
               }}
               labelStyle={{
                 fontSize: 14,
                 color:
-                  newLocations.length % 2 !== 0 ? colors.danger : colors.white,
+                  newLocations.length % 2 !== 0 || newLocations.length === 0
+                    ? colors.danger
+                    : colors.white,
               }}
-              disabled={newLocations.length % 2 !== 0 || isLoading}
+              disabled={newLocations.length % 2 !== 0 || isLoading || !net}
               loading={isLoading}
               onPress={handleSync}
             >
@@ -141,7 +147,7 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
         <View style={{ flex: 1 }}>
           <View>
             <Text style={{ color: item?.offline && colors.white }}>
-              {newLocations.length % 2 !== 0
+              {newLocations.length % 2 !== 0 || newLocations.length === 0
                 ? "CLICK TO RESUME TRIP"
                 : (km && `${km.toFixed(1)} km`) || "0 m"}
             </Text>
