@@ -24,6 +24,7 @@ const useLocations = () => {
       return obj;
     } catch (error) {
       console.log("HANDLE ARRIVED ERROR: ", error);
+      return false;
     }
   };
 
@@ -49,6 +50,7 @@ const useLocations = () => {
       return obj;
     } catch (error) {
       console.log("HANDLE ARRIVED ERROR: ", error);
+      return false;
     }
   };
 
@@ -74,6 +76,7 @@ const useLocations = () => {
       return obj;
     } catch (error) {
       console.log("HANDLE LEFT ERROR: ", error);
+      return false;
     }
   };
   return { handleInterval, handleArrived, handleLeft };

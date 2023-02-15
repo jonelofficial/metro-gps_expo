@@ -44,6 +44,7 @@ const AppScreen = ({ theme }) => {
 
   const handleUser = async () => {
     try {
+      // console.log(await selectTable("offline_trip"));
       // await deleteFromTable("offline_trip");
       // await deleteFromTable("vehicles");
       // await removeToken();
@@ -88,12 +89,15 @@ const AppScreen = ({ theme }) => {
         const camera = await Camera.requestCameraPermissionsAsync();
         const media = await MediaLibrary.requestPermissionsAsync();
         const location = await Location.requestForegroundPermissionsAsync();
+        const backgroundLoc =
+          await Location.requestBackgroundPermissionsAsync();
         const notifications = await Notifications.requestPermissionsAsync();
 
         if (
           camera.status === "granted" &&
           media.status === "granted" &&
           location.status === "granted" &&
+          backgroundLoc.status === "granted" &&
           notifications.status === "granted"
         ) {
           await handleUser();
@@ -104,7 +108,7 @@ const AppScreen = ({ theme }) => {
               camera.status === "denied" ? "CAMERA " : ""
             }${media.status === "denied" ? "MEDIA LIBRARY " : ""}${
               location.status === "denied" ? "LOCATION" : ""
-            }${
+            }${backgroundLoc.status === "denied" ? "BACKGROUND LOCATION" : ""}${
               notifications.status === "denied" ? "NOTIFICATION" : ""
             } to run the app.\n \nGo to phone setting > Application > Metro GPS > Permission or click OPEN PERMISSION then restart app. Thank you`,
             [

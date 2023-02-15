@@ -172,7 +172,7 @@ const DashboardScreen = ({ theme, navigation }) => {
       dispatch(setMsg("Please wait fecthing to finish"));
       dispatch(setVisible(true));
       dispatch(setColor("warning"));
-    } else if (trip?.length > 25 || trip?.length <= 0) {
+    } else if (trip?.length > 25) {
       setTotalCount(0);
       setTrip([]);
       setNoData(false);

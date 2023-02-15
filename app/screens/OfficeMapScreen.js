@@ -129,12 +129,14 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     const loc = setInterval(() => {
       (async () => {
         const intervalRes = await handleInterval();
-        const newObj = {
-          ...intervalRes,
-          date: moment(Date.now()).tz("Asia/Manila"),
-        };
+        if (intervalRes) {
+          const newObj = {
+            ...intervalRes,
+            date: moment(Date.now()).tz("Asia/Manila"),
+          };
 
-        reloadRoute(newObj);
+          reloadRoute(newObj);
+        }
       })();
     }, 900000);
 
@@ -303,13 +305,15 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       start(new Date());
 
       const leftRes = await handleLeft();
-      const newObj = {
-        ...leftRes,
-        date: moment(Date.now()).tz("Asia/Manila"),
-      };
+      if (leftRes) {
+        const newObj = {
+          ...leftRes,
+          date: moment(Date.now()).tz("Asia/Manila"),
+        };
 
-      await reloadRoute(newObj);
-      await reloadMapState();
+        await reloadRoute(newObj);
+        await reloadMapState();
+      }
 
       stopLefLoading();
       handleSuccess();
@@ -325,13 +329,15 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       pause();
 
       const arrivedRes = await handleArrived();
-      const newObj = {
-        ...arrivedRes,
-        date: moment(Date.now()).tz("Asia/Manila"),
-      };
+      if (arrivedRes) {
+        const newObj = {
+          ...arrivedRes,
+          date: moment(Date.now()).tz("Asia/Manila"),
+        };
 
-      await reloadRoute(newObj);
-      await reloadMapState();
+        await reloadRoute(newObj);
+        await reloadMapState();
+      }
 
       stopArrivedLoading();
       handleSuccess();
@@ -354,7 +360,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         [vehicle_data.odometer_done, JSON.stringify(mapPoints)]
       );
 
-      if (net) {
+      if (!net) {
         const offlineTrip = await selectTable(
           "offline_trip WHERE id = (SELECT MAX(id) FROM offline_trip)"
         );
