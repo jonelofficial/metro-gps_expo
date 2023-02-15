@@ -35,6 +35,7 @@ import {
   setVisible,
 } from "../redux-toolkit/counter/snackbarSlice";
 import SyncingAnimation from "../components/loading/SyncingAnimation";
+import * as Notifications from "expo-notifications";
 
 const DashboardScreen = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -49,6 +50,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   const [prevScrollPos, setPrevScrollPos] = useState(0);
   // FOR USER DETAILS
   const user = useSelector((state) => state.token.userDetails);
+  const validator = useSelector((state) => state.validator.value);
   // FOR TRIP
   const [trip, setTrip] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -81,13 +83,29 @@ const DashboardScreen = ({ theme, navigation }) => {
   );
 
   useEffect(() => {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => {
+        return {
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+        };
+      },
+    });
     setTotalCount(0);
     handleOfflineTrip();
+    return () => {
+      Notifications.cancelAllScheduledNotificationsAsync();
+    };
+  }, []);
+
+  useEffect(() => {
+    !validator && handleUnfinishedTrip();
 
     return () => {
       null;
     };
-  }, []);
+  }, [validator]);
 
   useEffect(() => {
     fetchTrip();
@@ -97,6 +115,51 @@ const DashboardScreen = ({ theme, navigation }) => {
   }, [data, net]);
 
   // Function
+
+  const handleUnfinishedTrip = () => {
+    const content = {
+      title: `Fresh Morning ${
+        user.first_name[0].toUpperCase() +
+        user.first_name.substring(1).toLowerCase()
+      } `,
+      body: "You have an unfinished trip. Please resume it or report to your immediate supervisor",
+    };
+
+    Notifications.scheduleNotificationAsync({
+      content,
+      trigger: null,
+    });
+  };
+
+  const handleNotSyncNotif = () => {
+    if (!net) {
+      const content = {
+        title: `Fresh Morning ${
+          user.first_name[0].toUpperCase() +
+          user.first_name.substring(1).toLowerCase()
+        } `,
+        body: "You have an unsynced trip. Please sync it as soon as you have access to the Internet.",
+      };
+
+      Notifications.scheduleNotificationAsync({
+        content,
+        trigger: null,
+      });
+    } else {
+      const content = {
+        title: `Fresh Morning ${
+          user.first_name[0].toUpperCase() +
+          user.first_name.substring(1).toLowerCase()
+        } `,
+        body: "You already have access to the internet. Please sync the unsynced trip.",
+      };
+
+      Notifications.scheduleNotificationAsync({
+        content,
+        trigger: null,
+      });
+    }
+  };
 
   const fetchTrip = async () => {
     if (!isLoading && !isFetching && net) {
@@ -114,6 +177,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   const handleOfflineTrip = async () => {
     const res = await selectTable("offline_trip");
     if (res?.length > 0) {
+      validator && handleNotSyncNotif();
       await res.map((item) => {
         setTrip((prevState) => [
           {
