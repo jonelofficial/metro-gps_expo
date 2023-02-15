@@ -45,6 +45,7 @@ const AppScreen = ({ theme }) => {
   const handleUser = async () => {
     try {
       // await deleteFromTable("offline_trip");
+      // await deleteFromTable("vehicles");
       // await removeToken();
       // await removeUser();
       const user = await JSON.parse(await getUser());

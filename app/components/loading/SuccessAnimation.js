@@ -15,6 +15,7 @@ const SuccessAnimation = ({ theme }) => {
   return (
     <SafeAreaView
       style={{
+        backgroundColor: "rgba(0, 0, 0, 0.2)",
         justifyContent: "center",
         alignItems: "center",
         flex: 1,

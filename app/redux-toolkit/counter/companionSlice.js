@@ -7,7 +7,10 @@ export const companionSlice = createSlice({
   },
   reducers: {
     setCompanion: (state, action) => {
-      state.value = [...state.value, action.payload];
+      state.value = [
+        ...state.value,
+        { first_name: action.payload?.first_name },
+      ];
     },
     removeCompanion: (state) => {
       state.value = [];

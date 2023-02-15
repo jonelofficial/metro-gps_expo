@@ -81,6 +81,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   );
 
   useEffect(() => {
+    setTotalCount(0);
     handleOfflineTrip();
 
     return () => {

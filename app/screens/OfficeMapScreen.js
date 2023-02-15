@@ -32,6 +32,7 @@ import DoneModal from "../components/map/DoneModal";
 import { useStopwatch } from "react-timer-hook";
 import LoaderAnimation from "../components/loading/LoaderAnimation";
 import SuccessAnimation from "../components/loading/SuccessAnimation";
+import { useCreateTripMutation } from "../api/metroApi";
 
 const OfficeMapScreen = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -109,13 +110,15 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
   // REDUX
   const dispatch = useDispatch();
+  const [createTrip, { isLoading }] = useCreateTripMutation();
 
   // FOR UNMOUNTING
   useEffect(() => {
     (async () => {
-      if (trip?.locations?.length <= 0 && location) {
-        await reloadMapState();
-      }
+      // if (trip?.locations?.length <= 0 && location) {
+      //   await reloadMapState();
+      // }
+      await reloadMapState();
     })();
     // HANDLE APP STATE
     const subscription = AppState.addEventListener(
@@ -288,7 +291,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
     const meter = mapPoints.length > 0 ? getPathLength(mapPoints) : 0;
     const km = meter / 1000;
-    const odo = JSON.parse(tripRes[tripRes.length - 1].odometer);
+    const odo = JSON.parse(tripRes[tripRes?.length - 1]?.odometer);
 
     setEstimatedOdo(parseFloat(km.toFixed(1)) + parseFloat(odo));
   };
@@ -369,6 +372,21 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         form.append("trip_date", JSON.parse(offlineTrip[0].date));
         form.append("locations", offlineTrip[0].locations);
         form.append("diesels", offlineTrip[0].gas);
+
+        const res = await createTrip(form);
+
+        console.log(res);
+
+        if (res?.data) {
+          // Remove offline trip to sqlite database and state
+          await deleteFromTable(
+            `offline_trip WHERE id = (SELECT MAX(id) FROM offline_trip)`
+          );
+        } else {
+          dispatch(setMsg(res?.error?.error));
+          dispatch(setVisible(true));
+          dispatch(setColor("warning"));
+        }
       }
 
       stopDoneLoading();
@@ -448,10 +466,10 @@ const OfficeMapScreen = ({ theme, navigation }) => {
           <Text style={[styles.title, { color: colors.accent }]}>
             M E T R O{"   "}G P S
           </Text>
-          <View>
+          {/* <View>
             {location && <Text>Latitude: {location.coords.latitude}</Text>}
             {location && <Text>Longitude: {location.coords.longitude}</Text>}
-          </View>
+          </View> */}
         </View>
 
         <View style={styles.secondContainer}>
@@ -502,19 +520,19 @@ const OfficeMapScreen = ({ theme, navigation }) => {
               <Button
                 mode="contained"
                 style={{
-                  backgroundColor: leftLoading
-                    ? colors.notActive
-                    : trip?.locations?.length % 2 === 0 &&
-                      trip?.locations?.length > 0
-                    ? colors.notActive
-                    : colors.success,
+                  backgroundColor:
+                    leftLoading ||
+                    trip?.locations?.length % 2 === 0 ||
+                    trip?.locations?.length === 0
+                      ? colors.notActive
+                      : colors.success,
                 }}
                 labelStyle={styles.buttonLabelStyle}
                 disabled={
                   arrivedLoading ||
                   leftLoading ||
-                  (trip?.locations.length % 2 === 0 &&
-                    trip?.locations.length > 0)
+                  trip?.locations.length % 2 === 0 ||
+                  trip?.locations.length === 0
                 }
                 loading={arrivedLoading}
                 onPress={sqliteArrived}
