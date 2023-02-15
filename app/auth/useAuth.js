@@ -133,25 +133,21 @@ const useAuth = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
         }).then((res) => res.json());
-
         if (data?.message) {
           onClose();
-          dispatch(setMsg(data.message));
+          dispatch(setMsg(data?.message));
           dispatch(setVisible(true));
           dispatch(setColor("danger"));
           return;
         }
-
         // UPDATE USER FROM SQLITE
         await deleteFromTable("user");
         await insertToTable(
           "INSERT INTO user (username, password, token) values (?,?,?)",
           [values.username, values.password, data.token]
         );
-
         await getVehicles(data.token);
         await getGasStation(data.token);
-
         storeToken(data.token);
         storeUser(jwtDecode(data.token));
         dispatch(addToken(data));

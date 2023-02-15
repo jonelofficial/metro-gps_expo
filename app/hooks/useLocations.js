@@ -48,7 +48,7 @@ const useLocations = () => {
 
       return obj;
     } catch (error) {
-      console.log("OFFLINE HANDLE LEFT ERROR: ", error);
+      console.log("HANDLE ARRIVED ERROR: ", error);
     }
   };
 
@@ -73,7 +73,7 @@ const useLocations = () => {
 
       return obj;
     } catch (error) {
-      console.log("OFFLINE HANDLE LEFT ERROR: ", error);
+      console.log("HANDLE LEFT ERROR: ", error);
     }
   };
   return { handleInterval, handleArrived, handleLeft };

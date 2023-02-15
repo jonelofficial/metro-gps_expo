@@ -26,7 +26,11 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
   );
 
   useEffect(() => {
-    if (newLocations.length % 2 !== 0 || newLocations.length === 0) {
+    if (
+      newLocations.length % 2 !== 0 ||
+      newLocations.length === 0 ||
+      isNaN(item?.odometer_done)
+    ) {
       dispatch(validatorStatus(false));
     }
     return () => {
@@ -64,7 +68,7 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
     form.append("diesels", JSON.stringify(item.diesels));
 
     const res = await createTrip(form);
-
+    console.log(res);
     if (res?.data) {
       // Remove offline trip to sqlite database and state
       await deleteFromTable(`offline_trip WHERE id=${item._id}`);
@@ -75,7 +79,13 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
       // Add new created trip to state to display in dashboard
       setTrip((prevState) => [res.data.data, ...prevState]);
     } else {
-      dispatch(setMsg(res?.error?.error));
+      if (res?.error?.data?.error) {
+        await deleteFromTable(`offline_trip WHERE id=${item._id}`);
+        setTrip((prevState) => [
+          ...prevState.filter((obj) => obj._id !== item._id),
+        ]);
+      }
+      dispatch(setMsg(res?.error?.error || res?.error?.data?.error));
       dispatch(setVisible(true));
       dispatch(setColor("warning"));
     }
@@ -90,7 +100,9 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
           padding: 15,
           alignItems: "center",
           backgroundColor:
-            newLocations.length % 2 !== 0 || newLocations.length === 0
+            newLocations.length % 2 !== 0 ||
+            newLocations.length === 0 ||
+            isNaN(item?.odometer_done)
               ? colors.danger
               : item?.offline
               ? colors.primarySync
@@ -108,7 +120,9 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
                     ? colors.notActive
                     : colors.primary,
                 display:
-                  newLocations.length % 2 !== 0 || newLocations.length === 0
+                  newLocations.length % 2 !== 0 ||
+                  newLocations.length === 0 ||
+                  isNaN(item?.odometer_done)
                     ? "none"
                     : "flex",
               }}
@@ -147,7 +161,9 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
         <View style={{ flex: 1 }}>
           <View>
             <Text style={{ color: item?.offline && colors.white }}>
-              {newLocations.length % 2 !== 0 || newLocations.length === 0
+              {newLocations.length % 2 !== 0 ||
+              newLocations.length === 0 ||
+              isNaN(item?.odometer_done)
                 ? "CLICK TO RESUME TRIP"
                 : (km && `${km.toFixed(1)} km`) || "0 m"}
             </Text>

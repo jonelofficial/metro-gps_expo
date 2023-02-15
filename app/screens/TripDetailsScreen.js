@@ -53,7 +53,9 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
           styles.container,
           {
             backgroundColor:
-              newLocations.length % 2 !== 0 || newLocations.length === 0
+              newLocations.length % 2 !== 0 ||
+              newLocations.length === 0 ||
+              isNaN(item?.odometer_done)
                 ? colors.danger
                 : item?.offline
                 ? colors.primarySync
@@ -78,9 +80,9 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Vehicle: </Text>
-            <Text
-              style={styles.text}
-            >{`${item?.vehicle_id?.plate_no} - ${item?.vehicle_id?.name}`}</Text>
+            <Text style={styles.text}>{`${
+              item?.vehicle_id?.plate_no || "Details will show when sync"
+            } - ${item?.vehicle_id?.name || ""}`}</Text>
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Location: </Text>
@@ -182,7 +184,9 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
         </ScrollView>
       </View>
 
-      {(newLocations.length % 2 !== 0 || newLocations.length === 0) && (
+      {(newLocations.length % 2 !== 0 ||
+        newLocations.length === 0 ||
+        isNaN(item?.odometer_done)) && (
         <View style={{ paddingBottom: 15, paddingHorizontal: 10 }}>
           <Button
             mode="contained"

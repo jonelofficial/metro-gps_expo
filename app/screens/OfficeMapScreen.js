@@ -46,7 +46,6 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   // let location, showMap, requestPremissions;
 
   // (async () =>
-  //   ({ location, showMap, requestPremissions } = await taskManager()))();
 
   const { location, showMap, requestPremissions } = taskManager();
   const { handleInterval, handleLeft, handleArrived } = useLocations();
@@ -140,7 +139,6 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     }, 900000);
 
     return async () => {
-      await reloadRoute();
       deleteFromTable("route");
       clearInterval(loc);
       subscription.remove();
@@ -231,6 +229,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         content,
         trigger: { seconds: 1 },
       });
+      reloadRoute();
     } else {
       await Notifications.cancelAllScheduledNotificationsAsync(notif);
     }
@@ -248,7 +247,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
   const reloadMapState = async () => {
     const tripRes = await selectTable("offline_trip");
-    const locPoint = JSON.parse(tripRes[tripRes.length - 1].locations);
+    const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
     if (locPoint?.length > 0) {
       setTrip({
         locations: [
@@ -270,7 +269,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     let mapPoints = [];
     const routeRes = await selectTable("route");
     if (routeRes.length > 0) {
-      mapPoints = [...routeRes.map((item) => JSON.parse(item.points))];
+      mapPoints = [...routeRes.map((item) => JSON.parse(item?.points))];
       setPoints(mapPoints);
       const meter = getPathLength(mapPoints);
       const km = meter / 1000;
@@ -280,7 +279,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     const tripRes = await selectTable("offline_trip");
 
     if (newObj) {
-      let locPoint = JSON.parse(tripRes[tripRes.length - 1].locations);
+      let locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
       locPoint.push(newObj);
 
       await updateToTable(
@@ -348,7 +347,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       startDoneLoading();
 
       const routeRes = await selectTable("route");
-      const mapPoints = [...routeRes.map((item) => JSON.parse(item.points))];
+      const mapPoints = [...routeRes.map((item) => JSON.parse(item?.points))];
 
       await updateToTable(
         "UPDATE offline_trip SET odometer_done = (?), points = (?)  WHERE id = (SELECT MAX(id) FROM offline_trip)",
@@ -360,22 +359,20 @@ const OfficeMapScreen = ({ theme, navigation }) => {
           "offline_trip WHERE id = (SELECT MAX(id) FROM offline_trip)"
         );
 
-        const img = JSON.parse(offlineTrip[0].image);
+        const img = JSON.parse(offlineTrip[0]?.image);
         const form = new FormData();
         form.append("vehicle_id", offlineTrip[0].vehicle_id);
-        form.append("odometer", JSON.parse(offlineTrip[0].odometer));
-        form.append("odometer_done", JSON.parse(vehicle_data.odometer_done));
+        form.append("odometer", JSON.parse(offlineTrip[0]?.odometer));
+        form.append("odometer_done", JSON.parse(vehicle_data?.odometer_done));
         img?.uri !== null && form.append("image", img);
         form.append("companion", offlineTrip[0].companion);
         form.append("points", JSON.stringify(mapPoints));
         form.append("others", offlineTrip[0].others);
-        form.append("trip_date", JSON.parse(offlineTrip[0].date));
+        form.append("trip_date", JSON.parse(offlineTrip[0]?.date));
         form.append("locations", offlineTrip[0].locations);
         form.append("diesels", offlineTrip[0].gas);
 
         const res = await createTrip(form);
-
-        console.log(res);
 
         if (res?.data) {
           // Remove offline trip to sqlite database and state
@@ -422,7 +419,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       };
 
       const tripRes = await selectTable("offline_trip");
-      let gas = JSON.parse(tripRes[tripRes.length - 1].gas);
+      let gas = JSON.parse(tripRes[tripRes.length - 1]?.gas);
       gas.push(gasObj);
 
       await updateToTable(

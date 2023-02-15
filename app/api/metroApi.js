@@ -29,10 +29,11 @@ export const metroApi = createApi({
     }),
     createTrip: builder.mutation({
       query: (payload) => ({
-        url: "office/apk-trip",
+        url: "/office/apk-trip",
         method: "POST",
         body: payload,
       }),
+      invalidatesTags: ["Trip"],
     }),
   }),
 });
