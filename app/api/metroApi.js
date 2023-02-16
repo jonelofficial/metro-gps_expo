@@ -24,7 +24,7 @@ export const metroApi = createApi({
     // T R I P S
     getAllTrips: builder.query({
       query: (params) =>
-        `/office/trips?page=${params?.page}&limit=${params?.limit}&search=${params?.search}&searchBy=${params?.searchBy}&date=${params?.date}`,
+        `/office/apk-trips?page=${params?.page}&limit=${params?.limit}&search=${params?.search}&searchBy=${params?.searchBy}&date=${params?.date}`,
       providesTags: ["Trip"],
     }),
     createTrip: builder.mutation({

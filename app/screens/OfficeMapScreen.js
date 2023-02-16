@@ -360,7 +360,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         [vehicle_data.odometer_done, JSON.stringify(mapPoints)]
       );
 
-      if (!net) {
+      if (net) {
         const offlineTrip = await selectTable(
           "offline_trip WHERE id = (SELECT MAX(id) FROM offline_trip)"
         );
@@ -393,16 +393,20 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       }
 
       stopDoneLoading();
-
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: "Dashboard",
-            params: { screen: "DashboardStack" },
-          },
-        ],
+      navigation.navigate("Dashboard", {
+        screen: "DashboardStack",
+        params: { reload: true },
       });
+
+      // navigation.reset({
+      //   index: 0,
+      //   routes: [
+      //     {
+      //       name: "Dashboard",
+      //       params: { screen: "DashboardStack" },
+      //     },
+      //   ],
+      // });
     } catch (error) {
       alert("ERROR DONE PROCESS");
       console.log("ERROR DONE PROCESS: ", error);

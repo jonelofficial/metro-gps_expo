@@ -51,6 +51,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   // FOR USER DETAILS
   const user = useSelector((state) => state.token.userDetails);
   const validator = useSelector((state) => state.validator.value);
+
   // FOR TRIP
   const [trip, setTrip] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -75,7 +76,7 @@ const DashboardScreen = ({ theme, navigation }) => {
     {
       page: state.page,
       limit: state.limit,
-      search: state.search,
+      search: user?.userId,
       searchBy: state.searchBy,
       date: state.date,
     },
@@ -92,20 +93,11 @@ const DashboardScreen = ({ theme, navigation }) => {
         };
       },
     });
-    setTotalCount(0);
     handleOfflineTrip();
     return () => {
       Notifications.cancelAllScheduledNotificationsAsync();
     };
   }, []);
-
-  useEffect(() => {
-    !validator && handleUnfinishedTrip();
-
-    return () => {
-      null;
-    };
-  }, [validator]);
 
   useEffect(() => {
     fetchTrip();
@@ -151,7 +143,7 @@ const DashboardScreen = ({ theme, navigation }) => {
           user.first_name[0].toUpperCase() +
           user.first_name.substring(1).toLowerCase()
         } `,
-        body: "You already have access to the internet. Please sync the unsynced trip.",
+        body: "You already have access to the internet. Please sync the trip.",
       };
 
       Notifications.scheduleNotificationAsync({
@@ -166,6 +158,7 @@ const DashboardScreen = ({ theme, navigation }) => {
       if (data?.data?.length === 0) {
         setNoData(true);
       }
+
       data?.data.map((item) => {
         setTrip((prevState) => [...prevState, item]);
       });
@@ -177,7 +170,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   const handleOfflineTrip = async () => {
     const res = await selectTable("offline_trip");
     if (res?.length > 0) {
-      validator && handleNotSyncNotif();
+      validator ? handleNotSyncNotif() : handleUnfinishedTrip();
       await res.map((item) => {
         setTrip((prevState) => [
           {
@@ -217,7 +210,6 @@ const DashboardScreen = ({ theme, navigation }) => {
       setState((prevState) => ({
         ...prevState,
         date: dayjs(value).format("YYYY-MM-DD"),
-        searchBy: "trip_date",
         page: 1,
       }));
     } else {
@@ -236,7 +228,7 @@ const DashboardScreen = ({ theme, navigation }) => {
       dispatch(setMsg("Please wait fecthing to finish"));
       dispatch(setVisible(true));
       dispatch(setColor("warning"));
-    } else if (trip?.length > 25) {
+    } else {
       setTotalCount(0);
       setTrip([]);
       setNoData(false);
@@ -247,6 +239,8 @@ const DashboardScreen = ({ theme, navigation }) => {
       handleOfflineTrip();
       fetchTrip();
     }
+
+    // if (trip?.length > 25)
   };
 
   const onEndReached = async () => {

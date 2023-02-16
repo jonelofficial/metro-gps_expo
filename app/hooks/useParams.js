@@ -6,7 +6,7 @@ const useParams = () => {
     page: 1,
     limit: 25,
     search: "",
-    searchBy: "_id",
+    searchBy: "user_id._id",
     date: null,
   });
 
@@ -15,7 +15,7 @@ const useParams = () => {
       page: 1,
       limit: 25,
       search: "",
-      searchBy: "_id",
+      searchBy: "user_id._id",
       date: null,
     });
   };
