@@ -72,17 +72,16 @@ const DashboardScreen = ({ theme, navigation }) => {
   const { reset, setState, state } = useParams();
 
   // STATE FOR RTK
-  const { data, isLoading, isFetching, error, isError, refetch } =
-    useGetAllTripsQuery(
-      {
-        page: state.page,
-        limit: state.limit,
-        search: user?.userId,
-        searchBy: state.searchBy,
-        date: state.date,
-      },
-      { refetchOnMountOrArgChange: true }
-    );
+  const { data, isLoading, isFetching, error, isError } = useGetAllTripsQuery(
+    {
+      page: state.page,
+      limit: state.limit,
+      search: user?.userId,
+      searchBy: state.searchBy,
+      date: state.date,
+    },
+    { refetchOnMountOrArgChange: true }
+  );
 
   useEffect(() => {
     Notifications.setNotificationHandler({
@@ -95,7 +94,7 @@ const DashboardScreen = ({ theme, navigation }) => {
       },
     });
 
-    handleOfflineTrip();
+    !net && handleOfflineTrip();
 
     return () => {
       Notifications.cancelAllScheduledNotificationsAsync();
@@ -104,11 +103,10 @@ const DashboardScreen = ({ theme, navigation }) => {
 
   useEffect(() => {
     fetchTrip();
-
     return () => {
       null;
     };
-  }, [data, net]);
+  }, [data, state, net]);
 
   // Function
 
@@ -152,31 +150,25 @@ const DashboardScreen = ({ theme, navigation }) => {
   };
 
   const fetchTrip = async () => {
-    console.log("fetch working. Length: ", trip.length);
-    console.log("Data: ", data?.data);
-    console.log("Page: ", state.page);
-
     if (!isLoading && !isFetching && net) {
       if (data?.data?.length === 0) {
         setNoData(true);
       }
-      if (trip.length === 0 && state?.page === 1 && data?.data?.length !== 0) {
-        console.log("Condition: ", true);
+
+      if (state?.page === 1 && data?.data?.length !== 0) {
         setTrip(data?.data);
         setTotalCount(data?.data?.length);
+        handleOfflineTrip();
       } else {
-        console.log("Condition: ", false);
         data?.data.map((item) => {
           setTrip((prevState) => [...prevState, item]);
         });
-
         setTotalCount((prevState) => prevState + data?.data?.length);
       }
     }
   };
 
   const handleOfflineTrip = async () => {
-    console.log("offline working");
     const res = await selectTable("offline_trip");
     if (res?.length > 0) {
       validator ? handleNotSyncNotif() : handleUnfinishedTrip();
@@ -238,28 +230,10 @@ const DashboardScreen = ({ theme, navigation }) => {
       dispatch(setVisible(true));
       dispatch(setColor("warning"));
     } else {
-      console.log("refresh working");
-      // setTrip([]);
+      setNoData(false);
+      setSearch(null);
+      setDate(new Date());
       reset();
-      const res = await refetch({ page: 1 });
-      if (res?.isSuccess) {
-        console.log(res);
-        setTrip(res?.data?.data);
-        setTotalCount(res?.data?.data.length);
-        setNoData(false);
-        setSearch(null);
-      }
-      handleOfflineTrip();
-
-      // setTotalCount(0);
-      // setTrip([]);
-      // setNoData(false);
-      // setSearch(null);
-      // reset();
-
-      // // refetch offline and online trip
-      // handleOfflineTrip();
-      // fetchTrip();
     }
   };
 
@@ -318,19 +292,14 @@ const DashboardScreen = ({ theme, navigation }) => {
     return <SyncingAnimation />;
   }
 
-  if (isError) {
+  if (isError && !noData) {
+    setNoData(true);
     alert(
       `${
         error?.data?.error ||
         "Please make sure you have internet connection to fetch trip."
       }`
     );
-
-    // return (
-    //   <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-    //     <Text>{error?.data?.error || "ERROR"}</Text>
-    //   </View>
-    // );
   }
 
   return (
@@ -378,13 +347,9 @@ const DashboardScreen = ({ theme, navigation }) => {
             value={search}
             onIconPress={false}
             onChangeText={() => {
-              setTotalCount(0);
-              setNoData(false);
               setSearch(null);
-              setTrip([]);
-              reset();
               setDate(new Date());
-              handleOfflineTrip();
+              onRefresh();
             }}
           />
           <View

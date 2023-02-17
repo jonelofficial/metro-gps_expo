@@ -33,7 +33,7 @@ export const metroApi = createApi({
         method: "POST",
         body: payload,
       }),
-      // invalidatesTags: ["Trip"],
+      invalidatesTags: ["Trip"],
       // provides: (result) => [{ type: "Trip", id: result.id }],
     }),
   }),
