@@ -161,11 +161,11 @@ const DashboardScreen = ({ theme, navigation }) => {
         setNoData(true);
       }
       if (trip.length === 0 && state?.page === 1 && data?.data?.length !== 0) {
-        // console.log("Condition: ", true);
+        console.log("Condition: ", true);
         setTrip(data?.data);
         setTotalCount(data?.data?.length);
       } else {
-        // console.log("Condition: ", false);
+        console.log("Condition: ", false);
         data?.data.map((item) => {
           setTrip((prevState) => [...prevState, item]);
         });
@@ -176,7 +176,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   };
 
   const handleOfflineTrip = async () => {
-    // console.log("offline working");
+    console.log("offline working");
     const res = await selectTable("offline_trip");
     if (res?.length > 0) {
       validator ? handleNotSyncNotif() : handleUnfinishedTrip();
@@ -238,28 +238,28 @@ const DashboardScreen = ({ theme, navigation }) => {
       dispatch(setVisible(true));
       dispatch(setColor("warning"));
     } else {
-      // console.log("refresh working");
+      console.log("refresh working");
       // setTrip([]);
-      // reset();
-      // const res = await refetch();
-      // if (res?.isSuccess) {
-      //   console.log(res);
-      //   setTrip(res?.data?.data);
-      //   setTotalCount(res?.data?.data.length);
-      //   setNoData(false);
-      //   setSearch(null);
-      // }
-      // handleOfflineTrip();
-
-      setTotalCount(0);
-      setTrip([]);
-      setNoData(false);
-      setSearch(null);
       reset();
-
-      // refetch offline and online trip
+      const res = await refetch({ page: 1 });
+      if (res?.isSuccess) {
+        console.log(res);
+        setTrip(res?.data?.data);
+        setTotalCount(res?.data?.data.length);
+        setNoData(false);
+        setSearch(null);
+      }
       handleOfflineTrip();
-      fetchTrip();
+
+      // setTotalCount(0);
+      // setTrip([]);
+      // setNoData(false);
+      // setSearch(null);
+      // reset();
+
+      // // refetch offline and online trip
+      // handleOfflineTrip();
+      // fetchTrip();
     }
   };
 

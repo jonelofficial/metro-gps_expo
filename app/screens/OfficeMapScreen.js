@@ -38,14 +38,9 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   const { colors } = theme;
   const user = useSelector((state) => state.token.userDetails);
   // TIMER
-  const { seconds, minutes, hours, start, pause } = useStopwatch({
-    autoStart: true,
-  });
+  const { seconds, minutes, hours, start, pause } = useStopwatch({});
 
   // HOOKS AND CONFIG
-  // let location, showMap, requestPremissions;
-
-  // (async () =>
 
   const { location, showMap, requestPremissions } = taskManager();
   const { handleInterval, handleLeft, handleArrived } = useLocations();
@@ -114,9 +109,6 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   // FOR UNMOUNTING
   useEffect(() => {
     (async () => {
-      // if (trip?.locations?.length <= 0 && location) {
-      //   await reloadMapState();
-      // }
       await reloadMapState();
     })();
     // HANDLE APP STATE
@@ -125,7 +117,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       handleAppStateChange
     );
 
-    // HANDLE TRIP INTERVAL. 900000 = 15 minutes
+    // HANDLE TRIP INTERVAL. 300000 = 5 minutes
     const loc = setInterval(() => {
       (async () => {
         const intervalRes = await handleInterval();
@@ -138,7 +130,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
           reloadRoute(newObj);
         }
       })();
-    }, 900000);
+    }, 300000);
 
     return async () => {
       deleteFromTable("route");
@@ -263,10 +255,6 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         ],
       });
     }
-
-    // else {
-    //   await sqliteLeft();
-    // }
   };
 
   const reloadRoute = async (newObj) => {
@@ -362,7 +350,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         [vehicle_data.odometer_done, JSON.stringify(mapPoints)]
       );
 
-      if (!net) {
+      if (net) {
         const offlineTrip = await selectTable(
           "offline_trip WHERE id = (SELECT MAX(id) FROM offline_trip)"
         );
@@ -475,10 +463,10 @@ const OfficeMapScreen = ({ theme, navigation }) => {
           <Text style={[styles.title, { color: colors.accent }]}>
             M E T R O{"   "}G P S
           </Text>
-          {/* <View>
+          <View>
             {location && <Text>Latitude: {location.coords.latitude}</Text>}
             {location && <Text>Longitude: {location.coords.longitude}</Text>}
-          </View> */}
+          </View>
         </View>
 
         <View style={styles.secondContainer}>
@@ -637,6 +625,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
+    marginBottom: 10,
   },
   secondContainer: {
     flex: 0.5,

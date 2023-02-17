@@ -77,10 +77,10 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
       // ]);
 
       // Add new created trip to state to display in dashboard
-      // setTrip((prevState) => [res.data.data, ...prevState]);
-      // setTotalCount((prevState) => prevState + 1);
-      setTotalCount(0);
-      setTrip([]);
+      setTrip((prevState) => [res.data.data, ...prevState]);
+      setTotalCount((prevState) => prevState + 1);
+      // setTotalCount(0);
+      // setTrip([]);
     } else {
       if (res?.error?.data?.error) {
         await deleteFromTable(`offline_trip WHERE id=${item._id}`);
