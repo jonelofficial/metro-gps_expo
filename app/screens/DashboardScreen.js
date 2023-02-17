@@ -72,16 +72,17 @@ const DashboardScreen = ({ theme, navigation }) => {
   const { reset, setState, state } = useParams();
 
   // STATE FOR RTK
-  const { data, isLoading, isFetching, error, isError } = useGetAllTripsQuery(
-    {
-      page: state.page,
-      limit: state.limit,
-      search: user?.userId,
-      searchBy: state.searchBy,
-      date: state.date,
-    },
-    { refetchOnMountOrArgChange: true }
-  );
+  const { data, isLoading, isFetching, error, isError, refetch } =
+    useGetAllTripsQuery(
+      {
+        page: state.page,
+        limit: state.limit,
+        search: user?.userId,
+        searchBy: state.searchBy,
+        date: state.date,
+      },
+      { refetchOnMountOrArgChange: true }
+    );
 
   useEffect(() => {
     Notifications.setNotificationHandler({
@@ -93,7 +94,9 @@ const DashboardScreen = ({ theme, navigation }) => {
         };
       },
     });
+
     handleOfflineTrip();
+
     return () => {
       Notifications.cancelAllScheduledNotificationsAsync();
     };
@@ -101,6 +104,7 @@ const DashboardScreen = ({ theme, navigation }) => {
 
   useEffect(() => {
     fetchTrip();
+
     return () => {
       null;
     };
@@ -126,10 +130,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   const handleNotSyncNotif = () => {
     if (!net) {
       const content = {
-        title: `Fresh Morning ${
-          user.first_name[0].toUpperCase() +
-          user.first_name.substring(1).toLowerCase()
-        } `,
+        title: `Fresh Morning`,
         body: "You have an unsynced trip. Please sync it as soon as you have access to the Internet.",
       };
 
@@ -139,10 +140,7 @@ const DashboardScreen = ({ theme, navigation }) => {
       });
     } else {
       const content = {
-        title: `Fresh Morning ${
-          user.first_name[0].toUpperCase() +
-          user.first_name.substring(1).toLowerCase()
-        } `,
+        title: `Fresh Morning`,
         body: "You already have access to the internet. Please sync the trip.",
       };
 
@@ -154,20 +152,31 @@ const DashboardScreen = ({ theme, navigation }) => {
   };
 
   const fetchTrip = async () => {
+    console.log("fetch working. Length: ", trip.length);
+    console.log("Data: ", data?.data);
+    console.log("Page: ", state.page);
+
     if (!isLoading && !isFetching && net) {
       if (data?.data?.length === 0) {
         setNoData(true);
       }
+      if (trip.length === 0 && state?.page === 1 && data?.data?.length !== 0) {
+        // console.log("Condition: ", true);
+        setTrip(data?.data);
+        setTotalCount(data?.data?.length);
+      } else {
+        // console.log("Condition: ", false);
+        data?.data.map((item) => {
+          setTrip((prevState) => [...prevState, item]);
+        });
 
-      data?.data.map((item) => {
-        setTrip((prevState) => [...prevState, item]);
-      });
-
-      setTotalCount((prevState) => prevState + data?.data?.length);
+        setTotalCount((prevState) => prevState + data?.data?.length);
+      }
     }
   };
 
   const handleOfflineTrip = async () => {
+    // console.log("offline working");
     const res = await selectTable("offline_trip");
     if (res?.length > 0) {
       validator ? handleNotSyncNotif() : handleUnfinishedTrip();
@@ -223,12 +232,25 @@ const DashboardScreen = ({ theme, navigation }) => {
     }
   };
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     if (isFetching) {
       dispatch(setMsg("Please wait fecthing to finish"));
       dispatch(setVisible(true));
       dispatch(setColor("warning"));
     } else {
+      // console.log("refresh working");
+      // setTrip([]);
+      // reset();
+      // const res = await refetch();
+      // if (res?.isSuccess) {
+      //   console.log(res);
+      //   setTrip(res?.data?.data);
+      //   setTotalCount(res?.data?.data.length);
+      //   setNoData(false);
+      //   setSearch(null);
+      // }
+      // handleOfflineTrip();
+
       setTotalCount(0);
       setTrip([]);
       setNoData(false);
@@ -239,8 +261,6 @@ const DashboardScreen = ({ theme, navigation }) => {
       handleOfflineTrip();
       fetchTrip();
     }
-
-    // if (trip?.length > 25)
   };
 
   const onEndReached = async () => {
@@ -256,6 +276,8 @@ const DashboardScreen = ({ theme, navigation }) => {
         item={item}
         onPress={() => navigation.navigate("TripDetails", { item })}
         setTrip={setTrip}
+        setTotalCount={setTotalCount}
+        handleOfflineTrip={handleOfflineTrip}
       />
     );
   };

@@ -262,9 +262,11 @@ const OfficeMapScreen = ({ theme, navigation }) => {
             }),
         ],
       });
-    } else {
-      await sqliteLeft();
     }
+
+    // else {
+    //   await sqliteLeft();
+    // }
   };
 
   const reloadRoute = async (newObj) => {
@@ -360,7 +362,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         [vehicle_data.odometer_done, JSON.stringify(mapPoints)]
       );
 
-      if (net) {
+      if (!net) {
         const offlineTrip = await selectTable(
           "offline_trip WHERE id = (SELECT MAX(id) FROM offline_trip)"
         );
@@ -393,20 +395,20 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       }
 
       stopDoneLoading();
-      navigation.navigate("Dashboard", {
-        screen: "DashboardStack",
-        params: { reload: true },
-      });
-
-      // navigation.reset({
-      //   index: 0,
-      //   routes: [
-      //     {
-      //       name: "Dashboard",
-      //       params: { screen: "DashboardStack" },
-      //     },
-      //   ],
+      // navigation.navigate("Dashboard", {
+      //   screen: "DashboardStack",
+      //   params: { reload: true },
       // });
+
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "Dashboard",
+            params: { screen: "DashboardStack" },
+          },
+        ],
+      });
     } catch (error) {
       alert("ERROR DONE PROCESS");
       console.log("ERROR DONE PROCESS: ", error);
@@ -576,7 +578,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
                 backgroundColor:
                   trip?.locations.length % 2 !== 0 && trip?.locations.length > 0
                     ? colors.notActive
-                    : trip?.locations.length === 0 && trip?.locations.length > 0
+                    : trip?.locations.length === 0
                     ? colors.notActive
                     : leftLoading
                     ? colors.notActive
@@ -590,7 +592,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
               disabled={
                 (trip?.locations.length % 2 !== 0 &&
                   trip?.locations.length > 0) ||
-                (trip?.locations.length === 0 && trip?.locations.length > 0) ||
+                trip?.locations.length === 0 ||
                 arrivedLoading ||
                 leftLoading ||
                 doneLoading
@@ -607,7 +609,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       <DoneModal
         showDoneModal={showDoneModal}
         estimatedOdo={estimatedOdo}
-        doneLoading={doneLoading}
+        doneLoading={doneLoading || isLoading}
         onCloseDoneModal={onCloseDoneModal}
         onSubmit={sqliteDone}
       />

@@ -14,7 +14,7 @@ import {
 import { validatorStatus } from "../../redux-toolkit/counter/vaidatorSlice";
 import { deleteFromTable } from "../../utility/sqlite";
 
-const ListItem = ({ item, theme, onPress, setTrip }) => {
+const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
   const { colors } = theme;
   const dispatch = useDispatch();
   const net = useSelector((state) => state.net.value);
@@ -71,13 +71,16 @@ const ListItem = ({ item, theme, onPress, setTrip }) => {
     console.log(res);
     if (res?.data) {
       // Remove offline trip to sqlite database and state
-      await deleteFromTable(`offline_trip WHERE id=${item._id}`);
-      setTrip((prevState) => [
-        ...prevState.filter((obj) => obj._id !== item._id),
-      ]);
+      // await deleteFromTable(`offline_trip WHERE id=${item._id}`);
+      // setTrip((prevState) => [
+      //   ...prevState.filter((obj) => obj._id !== item._id),
+      // ]);
 
       // Add new created trip to state to display in dashboard
-      setTrip((prevState) => [res.data.data, ...prevState]);
+      // setTrip((prevState) => [res.data.data, ...prevState]);
+      // setTotalCount((prevState) => prevState + 1);
+      setTotalCount(0);
+      setTrip([]);
     } else {
       if (res?.error?.data?.error) {
         await deleteFromTable(`offline_trip WHERE id=${item._id}`);

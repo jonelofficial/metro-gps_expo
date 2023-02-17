@@ -66,7 +66,9 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
         <ScrollView>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>ID:</Text>
-            <Text style={styles.text}>{item?._id}</Text>
+            <Text style={styles.text}>
+              {item?._id?.length > 20 ? `${item?._id?.slice(20)}` : item?._id}
+            </Text>
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Date:</Text>
