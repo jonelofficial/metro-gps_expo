@@ -231,7 +231,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
     setTimeout(() => {
       stopLoader();
-    }, 1000);
+    }, 1900);
   };
 
   const reloadMapState = async () => {

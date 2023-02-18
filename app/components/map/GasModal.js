@@ -162,7 +162,6 @@ const GasModal = ({
                     values={values}
                     name="gas_station_name"
                     label="Gas Station Name"
-                    keyboardType="numeric"
                   />
                 )}
                 <TextField

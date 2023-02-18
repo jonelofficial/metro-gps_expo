@@ -73,9 +73,9 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
         ...prevState.filter((obj) => obj._id !== item._id),
       ]);
 
-      // Add new created trip to state to display in dashboard
-      setTrip((prevState) => [res.data.data, ...prevState]);
-      setTotalCount((prevState) => prevState + 1);
+      // // Add new created trip to state to display in dashboard
+      // setTrip((prevState) => [res.data.data, ...prevState]);
+      // setTotalCount((prevState) => prevState + 1);
     } else {
       if (res?.error?.data?.error) {
         await deleteFromTable(`offline_trip WHERE id=${item._id}`);
@@ -112,7 +112,7 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
                 borderRadius: 10,
                 marginRight: 13,
                 backgroundColor:
-                  newLocations.length % 2 !== 0 || !net
+                  newLocations.length % 2 !== 0 || !net || isLoading
                     ? colors.notActive
                     : colors.primary,
                 display:

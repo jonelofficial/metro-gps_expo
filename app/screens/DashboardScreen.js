@@ -287,11 +287,12 @@ const DashboardScreen = ({ theme, navigation }) => {
 
   if (isError && !noData) {
     setNoData(true);
-    alert(
+    showAlert(
       `${
         error?.data?.error ||
         "Please make sure you have internet connection to fetch trip."
-      }`
+      }`,
+      "danger"
     );
   }
 
