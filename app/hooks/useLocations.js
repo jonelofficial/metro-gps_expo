@@ -2,21 +2,16 @@ import React from "react";
 import * as Location from "expo-location";
 
 const useLocations = () => {
-  const handleInterval = async () => {
+  const handleInterval = async (location) => {
     try {
-      const result = await Location.getCurrentPositionAsync({
-        enableHighAccuracy: true,
-        accuracy: Location.LocationAccuracy.BestForNavigation,
-      });
-
       const res = await Location.reverseGeocodeAsync({
-        latitude: result.coords.latitude,
-        longitude: result.coords.longitude,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
       });
 
       const obj = {
-        lat: result.coords.latitude,
-        long: result.coords.longitude,
+        lat: location.coords.latitude,
+        long: location.coords.longitude,
         address: res,
         status: "interval",
       };
@@ -28,21 +23,16 @@ const useLocations = () => {
     }
   };
 
-  const handleArrived = async () => {
+  const handleArrived = async (location) => {
     try {
-      const result = await Location.getCurrentPositionAsync({
-        enableHighAccuracy: true,
-        accuracy: Location.LocationAccuracy.BestForNavigation,
-      });
-
       const res = await Location.reverseGeocodeAsync({
-        latitude: result.coords.latitude,
-        longitude: result.coords.longitude,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
       });
 
       const obj = {
-        lat: result.coords.latitude,
-        long: result.coords.longitude,
+        lat: location.coords.latitude,
+        long: location.coords.longitude,
         address: res,
         status: "arrived",
       };
@@ -54,21 +44,16 @@ const useLocations = () => {
     }
   };
 
-  const handleLeft = async () => {
+  const handleLeft = async (location) => {
     try {
-      const result = await Location.getCurrentPositionAsync({
-        enableHighAccuracy: true,
-        accuracy: Location.LocationAccuracy.BestForNavigation,
-      });
-
       const res = await Location.reverseGeocodeAsync({
-        latitude: result.coords.latitude,
-        longitude: result.coords.longitude,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
       });
 
       const obj = {
-        lat: result.coords.latitude,
-        long: result.coords.longitude,
+        lat: location.coords.latitude,
+        long: location.coords.longitude,
         address: res,
         status: "left",
       };

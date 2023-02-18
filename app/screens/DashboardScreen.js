@@ -17,7 +17,7 @@ import {
   Text,
   withTheme,
 } from "react-native-paper";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useGetAllTripsQuery } from "../api/metroApi";
 import Screen from "../components/Screen";
 import useParams from "../hooks/useParams";
@@ -29,18 +29,16 @@ import ListItem from "../components/dashboard/ListItem";
 import DashboardCamera from "../components/DashboardCamera";
 import useAuth from "../auth/useAuth";
 import { selectTable } from "../utility/sqlite";
-import {
-  setColor,
-  setMsg,
-  setVisible,
-} from "../redux-toolkit/counter/snackbarSlice";
 import SyncingAnimation from "../components/loading/SyncingAnimation";
 import * as Notifications from "expo-notifications";
+import useToast from "../hooks/useToast";
 
 const DashboardScreen = ({ theme, navigation }) => {
   const { colors } = theme;
   const { logout } = useAuth();
-  const dispatch = useDispatch();
+
+  // HOOKS
+  const { showAlert } = useToast();
 
   // FOR INTERNET STATUS
   const net = useSelector((state) => state.net.value);
@@ -214,21 +212,16 @@ const DashboardScreen = ({ theme, navigation }) => {
         page: 1,
       }));
     } else {
-      dispatch(
-        setMsg(
-          "No internet detected. Please connect to internet and try again."
-        )
+      showAlert(
+        "No internet detected. Please connect to internet and try again.",
+        "danger"
       );
-      dispatch(setVisible(true));
-      dispatch(setColor("warning"));
     }
   };
 
   const onRefresh = async () => {
     if (isFetching) {
-      dispatch(setMsg("Please wait fecthing to finish"));
-      dispatch(setVisible(true));
-      dispatch(setColor("warning"));
+      showAlert("Please wait fecthing to finish", "warning");
     } else {
       setNoData(false);
       setSearch(null);

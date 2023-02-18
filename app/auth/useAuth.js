@@ -11,15 +11,13 @@ import {
 } from "../redux-toolkit/counter/userCounter";
 import { deleteFromTable, insertToTable, selectTable } from "../utility/sqlite";
 import useStorage from "./useStorage";
-import {
-  setColor,
-  setMsg,
-  setVisible,
-} from "../redux-toolkit/counter/snackbarSlice";
+
+import useToast from "../hooks/useToast";
 
 const useAuth = () => {
   const netStatus = useSelector((state) => state.net.value);
 
+  const { showAlert } = useToast();
   const { isOpen: isLoading, onToggle, onClose } = useDisclosure();
   const {
     storeToken,
@@ -135,9 +133,7 @@ const useAuth = () => {
         }).then((res) => res.json());
         if (data?.message) {
           onClose();
-          dispatch(setMsg(data?.message));
-          dispatch(setVisible(true));
-          dispatch(setColor("danger"));
+          showAlert(data?.message, "danger");
           return;
         }
         // UPDATE USER FROM SQLITE
@@ -154,18 +150,15 @@ const useAuth = () => {
         dispatch(addUser(jwtDecode(data.token)));
       } catch (error) {
         onClose();
-        dispatch(setMsg(error));
-        dispatch(setVisible(true));
-        dispatch(setColor("danger"));
+        showAlert(error, "danger");
       }
     } else {
       const offlineData = await selectTable("user");
       if (offlineData?.length <= 0) {
-        dispatch(
-          setMsg(`Could not find user. Login with internet connection instead`)
+        showAlert(
+          "Could not find user. Login with internet connection instead",
+          "danger"
         );
-        dispatch(setVisible(true));
-        dispatch(setColor("danger"));
       }
       offlineData.map((item) => {
         if (
@@ -177,13 +170,10 @@ const useAuth = () => {
           dispatch(addToken({ token: item.token }));
           dispatch(addUser(jwtDecode(item.token)));
         } else {
-          dispatch(
-            setMsg(
-              `Could not find user. Login with internet connection instead`
-            )
+          showAlert(
+            "Could not find user. Login with internet connection instead",
+            "danger"
           );
-          dispatch(setVisible(true));
-          dispatch(setColor("danger"));
         }
       });
     }

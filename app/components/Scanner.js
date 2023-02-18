@@ -6,14 +6,12 @@ import { Button, Text } from "react-native-paper";
 import useDisclosure from "../hooks/useDisclosure";
 import { useDispatch } from "react-redux";
 import { setCompanion } from "../redux-toolkit/counter/companionSlice";
-import {
-  setColor,
-  setMsg,
-  setVisible,
-} from "../redux-toolkit/counter/snackbarSlice";
+import useToast from "../hooks/useToast";
 
 const Scanner = ({ onCloseScanner }) => {
   const dispatch = useDispatch();
+  const { showAlert } = useToast();
+
   const { height, width } = Dimensions.get("screen");
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
@@ -46,9 +44,7 @@ const Scanner = ({ onCloseScanner }) => {
       setScanned(true);
       onCloseScanner();
     } else {
-      dispatch(setMsg("QR code not valid. Use ID QR code"));
-      dispatch(setVisible(true));
-      dispatch(setColor("danger"));
+      showAlert("QR code not valid. Use ID QR code", "danger");
     }
     onCloseLoading();
 

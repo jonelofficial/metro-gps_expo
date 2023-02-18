@@ -82,7 +82,9 @@ const AppScreen = ({ theme }) => {
   useEffect(() => {
     (async () => {
       if (await TaskManager.isTaskRegisteredAsync("background-location-task")) {
+        console.log("Location task working");
         Location.stopLocationUpdatesAsync("background-location-task");
+        // TaskManager.unregisterTaskAsync("background-location-task");
       }
       ToastAndroid.show(`Welcome to Metro GPS`, ToastAndroid.SHORT);
       try {

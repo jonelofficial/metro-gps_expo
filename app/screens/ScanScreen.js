@@ -8,12 +8,15 @@ import useAuth from "../auth/useAuth";
 import ScanToast from "../components/ScanToast";
 import Screen from "../components/Screen";
 import useDisclosure from "../hooks/useDisclosure";
+import useToast from "../hooks/useToast";
 import { selectTable } from "../utility/sqlite";
 
 const ScanScreen = () => {
   const { height, width } = Dimensions.get("screen");
   const [permission, setPermission] = useState(null);
   const [vehicleData, setVehicleData] = useState({});
+
+  const { showAlert } = useToast();
 
   const {
     isOpen: isLoading,
@@ -63,29 +66,19 @@ const ScanScreen = () => {
           onScanToggle();
           onToastToggle();
         } else {
-          dispatch(setMsg("No vehicle found"));
-          dispatch(setVisible(true));
-          dispatch(setColor("danger"));
+          showAlert("No vehicle found", "danger");
           onScanToggle();
         }
       } else if (json.vehicle_id && !token) {
-        dispatch(setMsg("Please use account QR Code"));
-        dispatch(setVisible(true));
-        dispatch(setColor("danger"));
+        showAlert("Please use account QR Code", "danger");
       } else if (json.username && json.password && token) {
-        dispatch(setMsg("Please scan vehicle QR Code to start trip"));
-        dispatch(setVisible(true));
-        dispatch(setColor("danger"));
+        showAlert("Please scan vehicle QR Code to start trip", "danger");
       } else {
-        dispatch(setMsg("QR not valid"));
-        dispatch(setVisible(true));
-        dispatch(setColor("danger"));
+        showAlert("QR not valid", "danger");
       }
       onLoadingClose();
     } catch (error) {
-      dispatch(setMsg("Sorry, can't read the QR code"));
-      dispatch(setVisible(true));
-      dispatch(setColor("danger"));
+      showAlert("Sorry, can't read the QR code", "danger");
       console.log(error);
     }
   };

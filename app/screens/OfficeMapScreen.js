@@ -22,17 +22,13 @@ import { useDispatch, useSelector } from "react-redux";
 import moment from "moment-timezone";
 import useDisclosure from "../hooks/useDisclosure";
 import * as Notifications from "expo-notifications";
-import {
-  setColor,
-  setMsg,
-  setVisible,
-} from "../redux-toolkit/counter/snackbarSlice";
 import GasModal from "../components/map/GasModal";
 import DoneModal from "../components/map/DoneModal";
 import { useStopwatch } from "react-timer-hook";
 import LoaderAnimation from "../components/loading/LoaderAnimation";
 import SuccessAnimation from "../components/loading/SuccessAnimation";
 import { useCreateTripMutation } from "../api/metroApi";
+import useToast from "../hooks/useToast";
 
 const OfficeMapScreen = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -42,6 +38,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
   // HOOKS AND CONFIG
 
+  const { showAlert } = useToast();
   const { location, showMap, requestPremissions } = taskManager();
   const { handleInterval, handleLeft, handleArrived } = useLocations();
   const net = useSelector((state) => state.net.value);
@@ -120,7 +117,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     // HANDLE TRIP INTERVAL. 300000 = 5 minutes
     const loc = setInterval(() => {
       (async () => {
-        const intervalRes = await handleInterval();
+        const intervalRes = await handleInterval(location);
         if (intervalRes) {
           const newObj = {
             ...intervalRes,
@@ -197,9 +194,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
           } else if (trip?.locations.length % 2 === 0 && !location) {
             onToggleDoneModal();
           } else {
-            dispatch(setMsg(`Please finish the map loading`));
-            dispatch(setVisible(true));
-            dispatch(setColor("warning"));
+            showAlert("Please finish the map loading", "warning");
           }
         },
       },
@@ -236,7 +231,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
     setTimeout(() => {
       stopLoader();
-    }, 2000);
+    }, 1000);
   };
 
   const reloadMapState = async () => {
@@ -294,7 +289,13 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       startLeftLoading();
       start(new Date());
 
-      const leftRes = await handleLeft();
+      const leftRes = await Promise.race([
+        handleLeft(location),
+        new Promise((resolve, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 60000)
+        ),
+      ]);
+
       if (leftRes) {
         const newObj = {
           ...leftRes,
@@ -308,7 +309,12 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       stopLefLoading();
       handleSuccess();
     } catch (error) {
-      alert("ERROR SQLITE LEFT");
+      stopLefLoading();
+
+      showAlert(
+        "Left not process. Please try again or reload app if still not processing",
+        "danger"
+      );
       console.log("ERROR SQLITE LEFT PROCESS: ", error);
     }
   };
@@ -318,7 +324,13 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       startArrivedLoading();
       pause();
 
-      const arrivedRes = await handleArrived();
+      const arrivedRes = await Promise.race([
+        handleArrived(location),
+        new Promise((resolve, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 60000)
+        ),
+      ]);
+
       if (arrivedRes) {
         const newObj = {
           ...arrivedRes,
@@ -332,7 +344,12 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       stopArrivedLoading();
       handleSuccess();
     } catch (error) {
-      alert("ERROR SQLITE ARRIVED");
+      stopArrivedLoading();
+
+      showAlert(
+        "Arrived not process. Please try again or reload app if still not processing",
+        "danger"
+      );
       console.log("ERROR SQLITE ARRIVED PROCESS: ", error);
     }
   };
@@ -376,17 +393,11 @@ const OfficeMapScreen = ({ theme, navigation }) => {
             `offline_trip WHERE id = (SELECT MAX(id) FROM offline_trip)`
           );
         } else {
-          dispatch(setMsg(res?.error?.error));
-          dispatch(setVisible(true));
-          dispatch(setColor("warning"));
+          showAlert(res?.error?.error, "warning");
         }
       }
 
       stopDoneLoading();
-      // navigation.navigate("Dashboard", {
-      //   screen: "DashboardStack",
-      //   params: { reload: true },
-      // });
 
       navigation.reset({
         index: 0,
@@ -398,7 +409,6 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         ],
       });
     } catch (error) {
-      alert("ERROR DONE PROCESS");
       console.log("ERROR DONE PROCESS: ", error);
     }
   };
@@ -445,7 +455,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     );
   }
 
-  if (!location || trip?.locations?.length < 0) {
+  if (!location) {
     return <LoaderAnimation />;
   }
   return (

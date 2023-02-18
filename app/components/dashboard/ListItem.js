@@ -6,18 +6,16 @@ import { TouchableOpacity, View } from "react-native";
 import { Button, Text, withTheme } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { useCreateTripMutation } from "../../api/metroApi";
-import {
-  setColor,
-  setMsg,
-  setVisible,
-} from "../../redux-toolkit/counter/snackbarSlice";
 import { validatorStatus } from "../../redux-toolkit/counter/vaidatorSlice";
 import { deleteFromTable } from "../../utility/sqlite";
+import useToast from "../../hooks/useToast";
 
 const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
   const { colors } = theme;
+
   const dispatch = useDispatch();
   const net = useSelector((state) => state.net.value);
+  const { showAlert } = useToast();
 
   const [createTrip, { isLoading }] = useCreateTripMutation();
 
@@ -68,19 +66,16 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
     form.append("diesels", JSON.stringify(item.diesels));
 
     const res = await createTrip(form);
-    console.log(res);
     if (res?.data) {
       // Remove offline trip to sqlite database and state
-      // await deleteFromTable(`offline_trip WHERE id=${item._id}`);
-      // setTrip((prevState) => [
-      //   ...prevState.filter((obj) => obj._id !== item._id),
-      // ]);
+      await deleteFromTable(`offline_trip WHERE id=${item._id}`);
+      setTrip((prevState) => [
+        ...prevState.filter((obj) => obj._id !== item._id),
+      ]);
 
       // Add new created trip to state to display in dashboard
       setTrip((prevState) => [res.data.data, ...prevState]);
       setTotalCount((prevState) => prevState + 1);
-      // setTotalCount(0);
-      // setTrip([]);
     } else {
       if (res?.error?.data?.error) {
         await deleteFromTable(`offline_trip WHERE id=${item._id}`);
@@ -88,9 +83,7 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
           ...prevState.filter((obj) => obj._id !== item._id),
         ]);
       }
-      dispatch(setMsg(res?.error?.error || res?.error?.data?.error));
-      dispatch(setVisible(true));
-      dispatch(setColor("warning"));
+      showAlert(res?.error?.error || res?.error?.data?.error, "warning");
     }
   };
 

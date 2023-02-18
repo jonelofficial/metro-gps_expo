@@ -5,18 +5,14 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 import { withTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  setColor,
-  setMsg,
-  setVisible,
-} from "../redux-toolkit/counter/snackbarSlice";
+import { useSelector } from "react-redux";
+import useToast from "../hooks/useToast";
 
 const DashboardCamera = ({ theme }) => {
   const navigation = useNavigation();
   const { colors } = theme;
 
-  const dispatch = useDispatch();
+  const { showAlert } = useToast();
   const validator = useSelector((state) => state.validator.value);
 
   return (
@@ -24,13 +20,10 @@ const DashboardCamera = ({ theme }) => {
       <TouchableOpacity
         onPress={() => {
           if (!validator) {
-            dispatch(
-              setMsg(
-                "You have an unfinished trip. Please report to your immediate supervisor or resume the transaction."
-              )
+            showAlert(
+              "You have an unfinished trip. Please report to your immediate supervisor or resume the transaction.",
+              "danger"
             );
-            dispatch(setVisible(true));
-            dispatch(setColor("danger"));
           } else {
             navigation.navigate("DashboardStackScan");
           }
