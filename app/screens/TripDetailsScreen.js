@@ -138,7 +138,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                         Gas Station: {name?.label}
                       </Text>
                     </View>
-                    {gas?.gas_station_name.length > 0 && (
+                    {name?.label === "Others" && (
                       <View style={{ paddingBottom: 5 }}>
                         <Text style={styles.text}>
                           Gas Station Name: {gas?.gas_station_name}

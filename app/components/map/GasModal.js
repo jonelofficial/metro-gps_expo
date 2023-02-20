@@ -97,13 +97,14 @@ const GasModal = ({
             setFieldValue,
           }) => {
             useEffect(() => {
+              const name = items.find((el) => el?._id === value);
               if (value) {
                 setFieldValue("gas_station_id", value);
                 setErrors("gas_station_id", null);
               }
 
               if (value !== "507f191e810c19729de860ea") {
-                setFieldValue("gas_station_name", value);
+                setFieldValue("gas_station_name", name?.label);
                 setErrors("gas_station_name", null);
               } else {
                 setFieldValue("gas_station_name", "");

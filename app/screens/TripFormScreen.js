@@ -114,7 +114,7 @@ const TripFormScreen = ({ theme, route, navigation }) => {
           <View>
             <Text style={{ fontSize: 13, color: colors.light }}>
               If the autofill does not match the actual odometer, please edit
-              based pn the actual odometer
+              based on the actual odometer
             </Text>
           </View>
 
