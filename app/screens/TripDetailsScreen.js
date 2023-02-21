@@ -110,6 +110,10 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                       >
                         {`${loc?.status}:`}
                       </Text>
+                      <Text>
+                        {loc?.date && dayjs(loc.date).format("MM-DD-YY h:mm a")}
+                      </Text>
+
                       <Text
                         style={[styles.text, { flexWrap: "wrap" }]}
                         numberOfLines={3}

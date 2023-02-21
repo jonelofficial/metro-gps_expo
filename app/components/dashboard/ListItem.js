@@ -9,9 +9,11 @@ import { useCreateTripMutation } from "../../api/metroApi";
 import { validatorStatus } from "../../redux-toolkit/counter/vaidatorSlice";
 import { deleteFromTable } from "../../utility/sqlite";
 import useToast from "../../hooks/useToast";
+import { useState } from "react";
 
-const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
+const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
   const { colors } = theme;
+  const [syncing, setSyncing] = useState(false);
 
   const dispatch = useDispatch();
   const net = useSelector((state) => state.net.value);
@@ -53,6 +55,7 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
 
   const handleSync = async () => {
     // start sync loading
+    setSyncing(true);
     const form = new FormData();
     form.append("vehicle_id", item.vehicle_id);
     form.append("odometer", item.odometer);
@@ -72,10 +75,11 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
       setTrip((prevState) => [
         ...prevState.filter((obj) => obj._id !== item._id),
       ]);
-
       // // Add new created trip to state to display in dashboard
-      // setTrip((prevState) => [res.data.data, ...prevState]);
-      // setTotalCount((prevState) => prevState + 1);
+      if (page !== 1) {
+        setTrip((prevState) => [res.data.data, ...prevState]);
+        setTotalCount((prevState) => prevState + 1);
+      }
     } else {
       if (res?.error?.data?.error) {
         await deleteFromTable(`offline_trip WHERE id=${item._id}`);
@@ -85,6 +89,7 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
       }
       showAlert(res?.error?.error || res?.error?.data?.error, "warning");
     }
+    setSyncing(false);
   };
 
   return (
@@ -112,7 +117,7 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
                 borderRadius: 10,
                 marginRight: 13,
                 backgroundColor:
-                  newLocations.length % 2 !== 0 || !net || isLoading
+                  newLocations.length % 2 !== 0 || !net || isLoading || syncing
                     ? colors.notActive
                     : colors.primary,
                 display:
@@ -129,7 +134,9 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount }) => {
                     ? colors.danger
                     : colors.white,
               }}
-              disabled={newLocations.length % 2 !== 0 || isLoading || !net}
+              disabled={
+                newLocations.length % 2 !== 0 || isLoading || !net || syncing
+              }
               loading={isLoading}
               onPress={handleSync}
             >

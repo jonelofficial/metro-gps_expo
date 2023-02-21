@@ -44,6 +44,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   const net = useSelector((state) => state.net.value);
   // STATE
   const [noData, setNoData] = useState(false);
+  const [offSet, setOffSet] = useState(0);
   // SCROLL
   const [prevScrollPos, setPrevScrollPos] = useState(0);
   // FOR USER DETAILS
@@ -78,7 +79,7 @@ const DashboardScreen = ({ theme, navigation }) => {
       searchBy: state.searchBy,
       date: state.date,
     },
-    { refetchOnMountOrArgChange: true }
+    { refetchOnMountOrArgChange: true, skip: !net }
   );
 
   useEffect(() => {
@@ -221,8 +222,8 @@ const DashboardScreen = ({ theme, navigation }) => {
 
   const onRefresh = async () => {
     if (isFetching) {
-      showAlert("Please wait fecthing to finish", "warning");
-    } else {
+      showAlert("Already loading", "warning");
+    } else if (!isFetching && net) {
       setNoData(false);
       setSearch(null);
       setDate(new Date());
@@ -231,7 +232,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   };
 
   const onEndReached = async () => {
-    if (trip?.length >= 25 && !isFetching && !noData) {
+    if (trip?.length >= 25 && !isFetching && !noData && net) {
       setState((prevState) => ({ ...prevState, page: prevState.page + 1 }));
     }
   };
@@ -244,13 +245,26 @@ const DashboardScreen = ({ theme, navigation }) => {
         onPress={() => navigation.navigate("TripDetails", { item })}
         setTrip={setTrip}
         setTotalCount={setTotalCount}
-        handleOfflineTrip={handleOfflineTrip}
+        page={state?.page}
       />
     );
   };
 
   // ANIMATION
+  useEffect(() => {
+    offSet === 0 && slideIn();
+
+    return () => {
+      null;
+    };
+  }, [offSet]);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const flatListRef = useRef(null);
+
+  const scrollToTop = () => {
+    flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+  };
 
   const slideIn = () => {
     Animated.timing(fadeAnim, {
@@ -270,6 +284,7 @@ const DashboardScreen = ({ theme, navigation }) => {
 
   const onScroll = (e) => {
     const currentScrollPos = e.nativeEvent.contentOffset.y;
+    setOffSet(currentScrollPos);
 
     if (currentScrollPos > prevScrollPos) {
       // Scroll Down
@@ -292,7 +307,7 @@ const DashboardScreen = ({ theme, navigation }) => {
         error?.data?.error ||
         "Please make sure you have internet connection to fetch trip."
       }`,
-      "danger"
+      !net ? "danger" : "warning"
     );
   }
 
@@ -376,13 +391,16 @@ const DashboardScreen = ({ theme, navigation }) => {
               ? `${totalCount} items`
               : !isFetching
               ? "No item found"
-              : "Loading"}
+              : isLoading || isFetching
+              ? "Loading"
+              : "No more data to show"}
           </Text>
         </View>
 
         {/* LIST ITEM */}
-        {trip && !isLoading ? (
+        {trip && !isLoading && (
           <FlatList
+            ref={flatListRef}
             onScroll={onScroll}
             showsVerticalScrollIndicator={false}
             refreshing={false}
@@ -393,7 +411,7 @@ const DashboardScreen = ({ theme, navigation }) => {
             onEndReachedThreshold={0.0001}
             ItemSeparatorComponent={<Divider style={{ height: 1 }} />}
             ListFooterComponent={
-              isFetching && !noData ? (
+              (isFetching || isLoading) && !noData ? (
                 <ActivityIndicator animating={true} color={colors.primary} />
               ) : (
                 !isFetching &&
@@ -404,8 +422,6 @@ const DashboardScreen = ({ theme, navigation }) => {
               )
             }
           />
-        ) : (
-          <Text>loading</Text>
         )}
 
         {/* CAMERA */}
