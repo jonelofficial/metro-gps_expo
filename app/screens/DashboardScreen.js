@@ -222,7 +222,10 @@ const DashboardScreen = ({ theme, navigation }) => {
 
   const onRefresh = async () => {
     if (isFetching) {
-      showAlert("Already loading", "warning");
+      showAlert(
+        "Already loading. Reload the app if it is still processing.",
+        "warning"
+      );
     } else if (!isFetching && net) {
       setNoData(false);
       setSearch(null);
@@ -391,7 +394,7 @@ const DashboardScreen = ({ theme, navigation }) => {
               ? `${totalCount} items`
               : !isFetching
               ? "No item found"
-              : isLoading || isFetching
+              : isFetching
               ? "Loading"
               : "No more data to show"}
           </Text>
@@ -411,13 +414,17 @@ const DashboardScreen = ({ theme, navigation }) => {
             onEndReachedThreshold={0.0001}
             ItemSeparatorComponent={<Divider style={{ height: 1 }} />}
             ListFooterComponent={
-              (isFetching || isLoading) && !noData ? (
-                <ActivityIndicator animating={true} color={colors.primary} />
+              isFetching && !noData ? (
+                <View style={{ paddingVertical: 10 }}>
+                  <ActivityIndicator animating={true} color={colors.primary} />
+                </View>
               ) : (
                 !isFetching &&
                 noData &&
                 trip?.length > 25 && (
-                  <Text style={{ textAlign: "center" }}>No data to show</Text>
+                  <Text style={{ textAlign: "center", paddingVertical: 10 }}>
+                    No data to show
+                  </Text>
                 )
               )
             }
