@@ -154,7 +154,8 @@ const DashboardScreen = ({ theme, navigation }) => {
         setNoData(true);
       }
 
-      if (state?.page === 1 && data?.data?.length !== 0) {
+      // if (state?.page === 1 && data?.data?.length !== 0)
+      if (state?.page === 1) {
         setTrip(data?.data);
         setTotalCount(data?.data?.length);
         handleOfflineTrip();

@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import moment from "moment-timezone";
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button, Divider, Text, withTheme } from "react-native-paper";
@@ -66,14 +66,16 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
         <ScrollView>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>ID:</Text>
-            <Text style={styles.text}>
+            <Text style={[styles.text, { textTransform: "none" }]}>
               {item?._id?.length > 20 ? `${item?._id?.slice(20)}` : item?._id}
             </Text>
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Date:</Text>
-            <Text style={styles.text}>
-              {dayjs(item?.trip_date).format("MMM-DD-YY hh:mm a")}
+            <Text style={[styles.text, { textTransform: "none" }]}>
+              {moment(item?.trip_date)
+                .tz("Asia/Manila")
+                .format("MMM-DD-YY hh:mm a")}
             </Text>
           </View>
           <View style={styles.textWrapper}>
@@ -82,9 +84,22 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Vehicle: </Text>
-            <Text style={styles.text}>{`${
-              item?.vehicle_id?.plate_no || "Details will show when sync"
-            } - ${item?.vehicle_id?.name || ""}`}</Text>
+            <View>
+              {item?.vehicle_id?.plate_no ? (
+                <>
+                  <Text
+                    style={[styles.text, { textTransform: "uppercase" }]}
+                  >{`${item?.vehicle_id?.plate_no}`}</Text>
+                  <Text
+                    style={[styles.text, { textTransform: "none" }]}
+                  >{`${item?.vehicle_id?.name}`}</Text>
+                </>
+              ) : (
+                <Text style={[styles.text, { textTransform: "none" }]}>
+                  Details will show when sync.
+                </Text>
+              )}
+            </View>
           </View>
           <View style={styles.textWrapper}>
             <Text style={styles.label}>Location: </Text>
@@ -101,6 +116,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                         style={[
                           styles.text,
                           {
+                            textTransform: "uppercase",
                             color:
                               loc?.status === "left"
                                 ? colors.danger
@@ -110,8 +126,11 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                       >
                         {`${loc?.status}:`}
                       </Text>
-                      <Text>
-                        {loc?.date && dayjs(loc.date).format("MM-DD-YY h:mm a")}
+                      <Text style={[styles.text, { textTransform: "none" }]}>
+                        {loc?.date &&
+                          moment(loc.date)
+                            .tz("Asia/Manila")
+                            .format("MMM-DD-YY hh:mm a")}
                       </Text>
 
                       <Text
