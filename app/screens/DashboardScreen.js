@@ -231,7 +231,7 @@ const DashboardScreen = ({ theme, navigation }) => {
         "Already loading. Reload the app if it is still processing.",
         "warning"
       );
-    } else if (!isFetching && net) {
+    } else if (!isFetching && !offlineLoading && net) {
       setNoData(false);
       setSearch(null);
       setDate(new Date());
@@ -240,7 +240,13 @@ const DashboardScreen = ({ theme, navigation }) => {
   };
 
   const onEndReached = async () => {
-    if (trip?.length >= 25 && !isFetching && !noData && net) {
+    if (
+      trip?.length >= 25 &&
+      !isFetching &&
+      !offlineLoading &&
+      !noData &&
+      net
+    ) {
       setState((prevState) => ({ ...prevState, page: prevState.page + 1 }));
     }
   };
