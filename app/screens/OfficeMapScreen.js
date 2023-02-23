@@ -188,11 +188,16 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       {
         text: "YES",
         onPress: async () => {
-          if (trip?.locations.length % 2 !== 0 && !location) {
-            await sqliteArrived();
-            onToggleDoneModal();
-          } else if (trip?.locations.length % 2 === 0 && !location) {
-            onToggleDoneModal();
+          if (trip) {
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: "Dashboard",
+                  params: { screen: "DashboardStack" },
+                },
+              ],
+            });
           } else {
             showAlert("Please finish the map loading", "warning");
           }

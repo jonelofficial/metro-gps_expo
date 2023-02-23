@@ -12,6 +12,7 @@ const AppNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        animation: "fade",
       }}
     >
       <Stack.Screen name="Dashboard" component={DashboardNavigator} />
