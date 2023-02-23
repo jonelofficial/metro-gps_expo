@@ -48,6 +48,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   const [estimatedOdo, setEstimatedOdo] = useState(0);
   const [trip, setTrip] = useState({ locations: [] });
   const [points, setPoints] = useState([]);
+  const [syncingTrip, setSyncingTrip] = useState(true);
 
   // SUCCESS LOADER
 
@@ -106,7 +107,10 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   // FOR UNMOUNTING
   useEffect(() => {
     (async () => {
+      await deleteFromTable("route");
       await reloadMapState();
+      await getRoute();
+      setSyncingTrip(false);
     })();
     // HANDLE APP STATE
     const subscription = AppState.addEventListener(
@@ -117,7 +121,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     // HANDLE TRIP INTERVAL. 300000 = 5 minutes
     const loc = setInterval(() => {
       (async () => {
-        const intervalRes = await handleInterval(location);
+        const intervalRes = await handleInterval();
         if (intervalRes) {
           const newObj = {
             ...intervalRes,
@@ -130,6 +134,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     }, 300000);
 
     return async () => {
+      await updateRoute();
       deleteFromTable("route");
       clearInterval(loc);
       subscription.remove();
@@ -141,7 +146,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     if (location) {
       (async () => {
         // INSERT POINTS OR PATH TO SQLITE
-        if (location && location?.coords?.speed >= 1.4) {
+        if (location && location?.coords?.speed >= 1.4 && !syncingTrip) {
           setPoints((currentValue) => [
             ...currentValue,
             {
@@ -239,9 +244,49 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     }, 1900);
   };
 
+  // UPDATING ROUTE IF TRIP ALREADY HAVE POINTS OR ROUTE
+  const getRoute = async () => {
+    const tripRes = await selectTable("offline_trip");
+    const points = JSON.parse(tripRes[0]?.points);
+
+    points?.length > 0 &&
+      points?.map((point) => {
+        setPoints((currentValue) => [
+          ...currentValue,
+          {
+            latitude: point?.latitude,
+            longitude: point?.longitude,
+          },
+        ]);
+
+        insertToTable("INSERT INTO route (points) values (?)", [
+          JSON.stringify({
+            latitude: point?.latitude,
+            longitude: point?.longitude,
+          }),
+        ]);
+      });
+  };
+
+  // WHEN UNMOUNT THIS CODE UPDATE THE TRIP ROUTE OR POINTS
+  const updateRoute = async () => {
+    const routeRes = await selectTable("route");
+
+    const mapPoints = [
+      ...(await routeRes?.map((item) => JSON.parse(item?.points))),
+    ];
+
+    await updateToTable(
+      "UPDATE offline_trip SET points = (?) WHERE id = (SELECT MAX(id) FROM offline_trip)",
+      [JSON.stringify(mapPoints)]
+    );
+  };
+
   const reloadMapState = async () => {
     const tripRes = await selectTable("offline_trip");
     const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
+    locPoint?.length % 2 !== 0 && start(new Date());
+
     if (locPoint?.length > 0) {
       setTrip({
         locations: [
