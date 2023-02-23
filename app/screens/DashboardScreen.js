@@ -207,7 +207,7 @@ const DashboardScreen = ({ theme, navigation }) => {
     if (event.type === "dismissed") return onClose();
     onClose();
 
-    if (net) {
+    if (!isFetching && !offlineLoading && net) {
       setTotalCount(0);
       setTrip([]);
       setDate(value);
@@ -219,7 +219,9 @@ const DashboardScreen = ({ theme, navigation }) => {
       }));
     } else {
       showAlert(
-        "No internet detected. Please connect to internet and try again.",
+        isFetching || offlineLoading
+          ? "App is loading."
+          : "No internet detected. Please connect to internet and try again.",
         "danger"
       );
     }
