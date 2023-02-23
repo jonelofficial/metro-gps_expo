@@ -17,13 +17,14 @@ import { setVisible } from "../redux-toolkit/counter/snackbarSlice";
 import OfflineNotice from "../components/OfflineNotice";
 import { deleteFromTable, selectTable } from "../utility/sqlite";
 import { useKeepAwake } from "expo-keep-awake";
-import { Alert, Linking, ToastAndroid } from "react-native";
+import { Alert, Linking, Platform, ToastAndroid } from "react-native";
 
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import * as Network from "expo-network";
 import { Camera } from "expo-camera";
+import Constants from "expo-constants";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,6 +33,8 @@ const AppScreen = ({ theme }) => {
   const { colors } = theme;
   useKeepAwake();
   runSQLite();
+
+  const AppVersion = Constants?.manifest?.version;
 
   const dispatch = useDispatch();
   const token = useSelector((state) => state.token.value);
@@ -82,11 +85,13 @@ const AppScreen = ({ theme }) => {
   useEffect(() => {
     (async () => {
       if (await TaskManager.isTaskRegisteredAsync("background-location-task")) {
-        console.log("Location task working");
         Location.stopLocationUpdatesAsync("background-location-task");
         // TaskManager.unregisterTaskAsync("background-location-task");
       }
-      ToastAndroid.show(`Welcome to Metro GPS`, ToastAndroid.SHORT);
+
+      Platform?.OS === "android" &&
+        ToastAndroid.show(`Metro GPS v${AppVersion}`, ToastAndroid.SHORT);
+
       try {
         const camera = await Camera.requestCameraPermissionsAsync();
         const media = await MediaLibrary.requestPermissionsAsync();

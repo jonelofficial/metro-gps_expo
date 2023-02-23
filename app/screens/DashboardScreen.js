@@ -45,6 +45,7 @@ const DashboardScreen = ({ theme, navigation }) => {
   // STATE
   const [noData, setNoData] = useState(false);
   const [offSet, setOffSet] = useState(0);
+  const [offlineLoading, setOfflineLoading] = useState(true);
   // SCROLL
   const [prevScrollPos, setPrevScrollPos] = useState(0);
   // FOR USER DETAILS
@@ -169,6 +170,8 @@ const DashboardScreen = ({ theme, navigation }) => {
   };
 
   const handleOfflineTrip = async () => {
+    setOfflineLoading(true);
+
     const res = await selectTable("offline_trip");
     if (res?.length > 0) {
       validator ? handleNotSyncNotif() : handleUnfinishedTrip();
@@ -197,6 +200,7 @@ const DashboardScreen = ({ theme, navigation }) => {
       });
     }
     setTotalCount((prevState) => prevState + res?.length);
+    setOfflineLoading(false);
   };
 
   const onDateSelected = async (event, value) => {
@@ -389,13 +393,13 @@ const DashboardScreen = ({ theme, navigation }) => {
         {/* TOTAL ITEMS */}
         <View style={{ alignItems: "center", marginBottom: 8 }}>
           <Text style={{ fontSize: 17, color: colors.light }}>
-            {totalCount === 1 && !isFetching
+            {totalCount === 1 && !isFetching && !offlineLoading
               ? `${totalCount} item`
-              : totalCount > 1 && !isFetching
+              : totalCount > 1 && !isFetching && !offlineLoading
               ? `${totalCount} items`
-              : !isFetching
+              : !isFetching && !offlineLoading
               ? "No item found"
-              : isFetching
+              : isFetching || offlineLoading
               ? "Loading"
               : "No more data to show"}
           </Text>
@@ -415,7 +419,7 @@ const DashboardScreen = ({ theme, navigation }) => {
             onEndReachedThreshold={0.0001}
             ItemSeparatorComponent={<Divider style={{ height: 1 }} />}
             ListFooterComponent={
-              isFetching && !noData ? (
+              (isFetching || offlineLoading) && !noData ? (
                 <View style={{ paddingVertical: 10 }}>
                   <ActivityIndicator animating={true} color={colors.primary} />
                 </View>
