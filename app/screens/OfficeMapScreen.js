@@ -39,8 +39,29 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   // HOOKS AND CONFIG
 
   const { showAlert } = useToast();
-  const { location, showMap, requestPremissions } = taskManager();
   const { handleInterval, handleLeft, handleArrived } = useLocations();
+
+  const { location, showMap, requestPremissions } = taskManager(async () => {
+    const intervalRes = await handleInterval();
+    if (intervalRes) {
+      const newObj = {
+        ...intervalRes,
+        date: moment(Date.now()).tz("Asia/Manila"),
+      };
+
+      reloadRoute(newObj);
+    } else {
+      const newObj = {
+        lat: location?.coords?.latitude,
+        long: location?.coords?.longitude,
+        address: [{}],
+        status: "interval",
+        date: moment(Date.now()).tz("Asia/Manila"),
+      };
+      reloadRoute(newObj);
+    }
+  });
+
   const net = useSelector((state) => state.net.value);
 
   // STATE
@@ -118,25 +139,9 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       handleAppStateChange
     );
 
-    // HANDLE TRIP INTERVAL. 300000 = 5 minutes
-    const loc = setInterval(() => {
-      (async () => {
-        const intervalRes = await handleInterval();
-        if (intervalRes) {
-          const newObj = {
-            ...intervalRes,
-            date: moment(Date.now()).tz("Asia/Manila"),
-          };
-
-          reloadRoute(newObj);
-        }
-      })();
-    }, 300000);
-
     return async () => {
       await updateRoute();
       deleteFromTable("route");
-      clearInterval(loc);
       subscription.remove();
     };
   }, []);

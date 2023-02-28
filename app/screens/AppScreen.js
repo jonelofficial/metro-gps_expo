@@ -84,9 +84,12 @@ const AppScreen = ({ theme }) => {
 
   useEffect(() => {
     (async () => {
-      if (await TaskManager.isTaskRegisteredAsync("background-location-task")) {
+      if (
+        (await TaskManager.isTaskRegisteredAsync("background-location-task")) ||
+        (await TaskManager.isTaskRegisteredAsync("interval"))
+      ) {
         Location.stopLocationUpdatesAsync("background-location-task");
-        // TaskManager.unregisterTaskAsync("background-location-task");
+        Location.stopLocationUpdatesAsync("interval");
       }
 
       Platform?.OS === "android" &&

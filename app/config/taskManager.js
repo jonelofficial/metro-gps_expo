@@ -6,7 +6,7 @@ import useToast from "../hooks/useToast";
 const LOCATION_TASK_NAME = "background-location-task";
 let alertTimer = null;
 
-const taskManager = () => {
+const taskManager = (interval) => {
   const [location, setLocation] = useState();
   const [showMap, setShowMap] = useState(false);
   const { showAlert } = useToast();
@@ -46,6 +46,10 @@ const taskManager = () => {
     }
   });
 
+  TaskManager.defineTask("interval", ({ data, error }) => {
+    interval();
+  });
+
   useEffect(() => {
     (async () => {
       // EXPO LOCATION
@@ -55,9 +59,16 @@ const taskManager = () => {
         const { status: backgroundStatus } =
           await Location.requestBackgroundPermissionsAsync();
         if (backgroundStatus === "granted") {
+          // FOR LOCATION BACKGROUND OR FOREGROUND
           await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
             enableHighAccuracy: true,
             accuracy: Location.LocationAccuracy.BestForNavigation,
+          });
+          // FOR INTERVAL BACKGROUND OR FOREGROUND
+          await Location.startLocationUpdatesAsync("interval", {
+            enableHighAccuracy: true,
+            accuracy: Location.LocationAccuracy.BestForNavigation,
+            timeInterval: 300000,
           });
           setShowMap(true);
         }
@@ -66,6 +77,7 @@ const taskManager = () => {
 
     return () => {
       Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+      Location.stopLocationUpdatesAsync("interval");
     };
   }, []);
 
