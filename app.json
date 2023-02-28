@@ -16,7 +16,13 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["location", "fetch"],
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location while it is in use to provide you with location-based services.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location while it is in use to provide you with location-based services.",
+        "NSLocationAlwaysUsageDescription": "This app needs access to your location while it is in use to provide you with location-based services."
+      }
     },
     "android": {
       "adaptiveIcon": {
