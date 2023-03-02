@@ -42,8 +42,8 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
   const km = item.points?.length > 0 && getPathLength(item.points) / 1000;
 
   // Getting TIME
-  const startDate = dayjs(newLocations[0].date);
-  const endDate = dayjs(newLocations[newLocations.length - 1].date);
+  const startDate = dayjs(newLocations[0]?.date);
+  const endDate = dayjs(newLocations[newLocations.length - 1]?.date);
   const duration = endDate.diff(startDate);
   const totalMinutes = Math.floor(duration / (1000 * 60));
   const hours = Math.floor(totalMinutes / 60);
