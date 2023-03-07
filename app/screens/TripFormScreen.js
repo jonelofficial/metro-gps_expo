@@ -181,7 +181,6 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                 touched,
                 setFieldValue,
                 setErrors,
-                setTouched,
               }) => {
                 useEffect(() => {
                   if (image) {
