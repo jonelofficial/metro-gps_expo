@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
 import useToast from "../hooks/useToast";
+import moment from "moment-timezone";
+import { useNavigation } from "@react-navigation/native";
 
 const LOCATION_TASK_NAME = "background-location-task";
 let alertTimer = null;
@@ -10,6 +12,7 @@ const taskManager = (interval) => {
   const [location, setLocation] = useState();
   const [showMap, setShowMap] = useState(false);
   const { showAlert } = useToast();
+  const navigation = useNavigation();
 
   useEffect(() => {
     (() => {
@@ -18,6 +21,15 @@ const taskManager = (interval) => {
           "No Location detected. Please reload app and make sure phone GPS is ON",
           "danger"
         );
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: "Dashboard",
+              params: { screen: "DashboardStack" },
+            },
+          ],
+        });
       }, 30000);
     })();
 
@@ -31,7 +43,6 @@ const taskManager = (interval) => {
 
   TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
     if (error) {
-      // Error occurred - check `error.message` for more details.
       console.log(`Task Manager ${LOCATION_TASK_NAME} Error: `, error);
       return;
     }
@@ -47,7 +58,21 @@ const taskManager = (interval) => {
   });
 
   TaskManager.defineTask("interval", ({ data, error }) => {
-    interval();
+    console.log("task manager interval working");
+    // THIS WILL ADD LOCATION WHEN IN BACKGROUND AND GEOCODE LOCATION IN BACKEND
+    if (data) {
+      const result = data.locations[0];
+
+      const newObj = {
+        lat: result?.coords?.latitude,
+        long: result?.coords?.longitude,
+        address: [{ status: "background" }],
+        status: "interval",
+        date: moment(Date.now()).tz("Asia/Manila"),
+      };
+
+      interval(newObj);
+    }
   });
 
   useEffect(() => {
@@ -66,9 +91,8 @@ const taskManager = (interval) => {
           });
           // FOR INTERVAL BACKGROUND OR FOREGROUND
           await Location.startLocationUpdatesAsync("interval", {
-            enableHighAccuracy: true,
-            accuracy: Location.LocationAccuracy.BestForNavigation,
-            timeInterval: 300000,
+            timeInterval: 2000, // 1 minutes
+            // 900000 15 minutes
           });
           setShowMap(true);
         }
