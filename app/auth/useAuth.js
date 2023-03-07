@@ -27,6 +27,38 @@ const useAuth = () => {
   } = useStorage();
   const dispatch = useDispatch();
 
+  const getDepartment = async () => {
+    try {
+      const response = await fetch(process.env.CEDAR_URL, {
+        headers: {
+          Authorization: `Bearer ${process.env.CEDAR_TOKEN}`,
+        },
+      });
+      const departments = await response.json();
+      if (departments.data) {
+        // Handle store and update departments master list to local storage
+
+        let departmentsCount;
+        departmentsCount = departments.data.length;
+        const data = await selectTable("department");
+        if (data.length === 0) {
+          await insertToTable("INSERT INTO department (data) values (?)", [
+            JSON.stringify(departments.data),
+          ]);
+        } else if (departmentsCount !== data.length) {
+          await deleteFromTable("department");
+          await insertToTable("INSERT INTO department (data) values (?)", [
+            JSON.stringify(departments.data),
+          ]);
+        }
+
+        // End
+      }
+    } catch (error) {
+      console.log("GET DEPARTMENT API ERROR: ", error);
+    }
+  };
+
   const getVehicles = async (token) => {
     try {
       const response = await fetch(`${process.env.BASEURL}/vehicle/cars`, {
@@ -142,6 +174,7 @@ const useAuth = () => {
           "INSERT INTO user (username, password, token) values (?,?,?)",
           [values.username, values.password, data.token]
         );
+        await getDepartment();
         await getVehicles(data.token);
         await getGasStation(data.token);
         storeToken(data.token);
