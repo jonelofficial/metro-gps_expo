@@ -19,16 +19,58 @@ import { useDispatch, useSelector } from "react-redux";
 import { removeImage } from "../redux-toolkit/counter/imageSlice";
 import Scanner from "../components/Scanner";
 import { officeFormSchema } from "../utility/schema/validation";
-import { spliceCompanion } from "../redux-toolkit/counter/companionSlice";
+import {
+  removeCompanion,
+  spliceCompanion,
+} from "../redux-toolkit/counter/companionSlice";
 import moment from "moment-timezone";
-import { insertToTable } from "../utility/sqlite";
+import { insertToTable, selectTable } from "../utility/sqlite";
+import DropDownPicker from "react-native-dropdown-picker";
 
 const TripFormScreen = ({ theme, route, navigation }) => {
   const { colors } = theme;
   const { vehicle_id } = route.params;
   const image = useSelector((state) => state.image.value);
   const companion = useSelector((state) => state.companion.value);
+  const user = useSelector((state) => state.token.userDetails);
   const dispatch = useDispatch();
+
+  // STATE
+  const [departments, setDepartments] = useState([]);
+  const [value, setValue] = useState(user?.department);
+
+  useEffect(() => {
+    // HANDLE BACK
+    BackHandler.addEventListener("hardwareBackPress", backAction);
+
+    (async () => {
+      const res = await selectTable("department");
+
+      const data = JSON.parse(res[0]?.data);
+
+      setDepartments(
+        data &&
+          departments.length === 0 && [
+            ...data.map((item) => ({
+              ...item,
+              value: item?.department_name,
+              label: item?.department_name,
+            })),
+          ]
+      );
+    })();
+    return () => {
+      BackHandler.removeEventListener("hardwareBackPress", backAction);
+      dispatch(removeImage());
+      dispatch(removeCompanion());
+    };
+  }, []);
+
+  const {
+    isOpen: showDropdown,
+    onClose: onCloseDropdown,
+    onToggle: onToggleDropdown,
+  } = useDisclosure();
 
   const {
     isOpen: showCamera,
@@ -52,7 +94,7 @@ const TripFormScreen = ({ theme, route, navigation }) => {
     onToggleLoadingBtn();
     Keyboard.dismiss();
     await insertToTable(
-      "INSERT INTO offline_trip (vehicle_id, odometer, image, companion, others, locations, gas, date) values (?,?,?,?,?,?,?,?)",
+      "INSERT INTO offline_trip (vehicle_id, odometer, image, companion, others, locations, gas, date, charging) values (?,?,?,?,?,?,?,?,?)",
       [
         vehicle_id._id,
         data.odometer,
@@ -66,6 +108,7 @@ const TripFormScreen = ({ theme, route, navigation }) => {
         JSON.stringify([]),
         JSON.stringify([]),
         JSON.stringify(moment(Date.now()).tz("Asia/Manila")),
+        data?.charging,
       ]
     );
     resetForm();
@@ -82,13 +125,6 @@ const TripFormScreen = ({ theme, route, navigation }) => {
     }
     return false;
   };
-
-  useEffect(() => {
-    // HANDLE BACK
-    BackHandler.addEventListener("hardwareBackPress", backAction);
-    return () =>
-      BackHandler.removeEventListener("hardwareBackPress", backAction);
-  }, []);
 
   return (
     <>
@@ -131,6 +167,7 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                 others: "",
                 odometer_image_path: image,
                 companion: companion,
+                charging: value,
               }}
               validationSchema={officeFormSchema}
               onSubmit={onSubmit}
@@ -144,6 +181,7 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                 touched,
                 setFieldValue,
                 setErrors,
+                setTouched,
               }) => {
                 useEffect(() => {
                   if (image) {
@@ -155,6 +193,7 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                     null;
                   };
                 }, [image]);
+
                 useEffect(() => {
                   if (companion) {
                     setFieldValue("companion", companion);
@@ -165,6 +204,17 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                     null;
                   };
                 }, [companion]);
+
+                useEffect(() => {
+                  if (value !== "") {
+                    setFieldValue("charging", value);
+                    setErrors("charging", null);
+                  }
+
+                  return () => {
+                    null;
+                  };
+                }, [value]);
 
                 return (
                   <>
@@ -254,6 +304,41 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                           </Text>
                         </TouchableOpacity>
                       </View>
+
+                      {/* CHARGING */}
+                      <Text style={{ marginBottom: 8 }}>Charging:</Text>
+                      <DropDownPicker
+                        open={showDropdown}
+                        value={value}
+                        items={departments}
+                        onChangeValue={handleChange}
+                        setOpen={onToggleDropdown}
+                        setValue={setValue}
+                        setItems={setDepartments}
+                        placeholder="Select gas station"
+                        textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
+                        style={{
+                          borderRadius: 15,
+                          borderColor: colors.light,
+                          marginBottom:
+                            touched.charging && errors.charging ? 0 : 12,
+                        }}
+                        dropDownContainerStyle={{
+                          borderColor: colors.light,
+                          maxHeight: 150,
+                        }}
+                      />
+                      {touched?.charging && errors?.charging && (
+                        <Text
+                          style={{
+                            color: "red",
+                            fontSize: 14,
+                            padding: 5,
+                          }}
+                        >
+                          {errors.charging}
+                        </Text>
+                      )}
 
                       <TextField
                         touched={touched}
