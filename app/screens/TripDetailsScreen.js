@@ -55,6 +55,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
       padding: 10,
       borderRadius: 10,
       flex: 1,
+      flexWrap: "wrap",
     },
     textWrapper: { flexDirection: "row", marginBottom: 2 },
     label: {
@@ -233,6 +234,10 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                   </Text>
                 );
               })}
+            </View>
+            <View style={styles.textWrapper}>
+              <Text style={styles.label}>Charging: </Text>
+              <Text style={styles.text}>{item?.charging}</Text>
             </View>
             <View style={styles.textWrapper}>
               <Text style={styles.label}>Others: </Text>
