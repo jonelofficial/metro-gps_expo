@@ -1,18 +1,18 @@
 import React, { useEffect } from "react";
-import { createTable, showTable } from "../utility/sqlite";
+import { createTable, dropTable, showTable } from "../utility/sqlite";
 
 const runSQLite = () => {
   useEffect(() => {
     (async () => {
       // await dropTable("user");
-      // await dropTable("locations");
+      // await dropTable("offline_trip");
 
       // const res = await showTable();
       // console.log("T A B L E: ", res);
 
       await createTable(
         "offline_trip",
-        "id integer primary key not null, date TEXT, vehicle_id TEXT , odometer TEXT, odometer_done TEXT, image LONGTEXT, companion LONGTEXT, points LONGTEXT, others TEXT, locations LONGTEXT , gas LONGTEXT"
+        "id integer primary key not null, date TEXT, vehicle_id TEXT , odometer TEXT, odometer_done TEXT, image LONGTEXT, companion LONGTEXT, points LONGTEXT, others TEXT, locations LONGTEXT , gas LONGTEXT, charging TEXT"
       );
 
       await createTable(
@@ -39,9 +39,15 @@ const runSQLite = () => {
         "vehicles",
         "id integer primary key not null, _id TEXT, plate_no TEXT, vehicle_type TEXT, name TEXT,brand TEXT, fuel_type TEXT, km_per_liter INTEGER"
       );
+
       await createTable(
         "gas_station",
         "id integer primary key not null, _id TEXT, label TEXT"
+      );
+
+      await createTable(
+        "department",
+        "id integer primary key not null, data LONGTEXT"
       );
     })();
     return () => {
