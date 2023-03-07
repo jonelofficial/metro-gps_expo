@@ -11,6 +11,7 @@ export const loginSchema = Yup.object().shape({
 export const officeFormSchema = Yup.object().shape({
   odometer: Yup.number().required().label("Odometer"),
   odometer_image_path: Yup.object().required().label("Odometer Picture"),
+  charging: Yup.string().required().label("Charging"),
   others: Yup.string().label("Others"),
 });
 
