@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Button, IconButton, Text, withTheme } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Button,
+  IconButton,
+  Text,
+  withTheme,
+} from "react-native-paper";
 import Screen from "../components/Screen";
 import {
   Alert,
@@ -29,6 +35,7 @@ import LoaderAnimation from "../components/loading/LoaderAnimation";
 import SuccessAnimation from "../components/loading/SuccessAnimation";
 import { useCreateTripMutation } from "../api/metroApi";
 import useToast from "../hooks/useToast";
+import { validatorStatus } from "../redux-toolkit/counter/vaidatorSlice";
 
 const OfficeMapScreen = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -41,26 +48,11 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   const { showAlert } = useToast();
   const { handleInterval, handleLeft, handleArrived } = useLocations();
 
-  const { location, showMap, requestPremissions } = taskManager(async () => {
-    const intervalRes = await handleInterval();
-    if (intervalRes) {
-      const newObj = {
-        ...intervalRes,
-        date: moment(Date.now()).tz("Asia/Manila"),
-      };
+  // for background interval
 
-      reloadRoute(newObj);
-    } else {
-      const newObj = {
-        lat: location?.coords?.latitude,
-        long: location?.coords?.longitude,
-        address: [{}],
-        status: "interval",
-        date: moment(Date.now()).tz("Asia/Manila"),
-      };
-      reloadRoute(newObj);
-    }
-  });
+  const { location, showMap, requestPremissions } = taskManager((newObj) =>
+    reloadRoute(newObj)
+  );
 
   const net = useSelector((state) => state.net.value);
 
@@ -131,7 +123,6 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       await deleteFromTable("route");
       await reloadMapState();
       await getRoute();
-      setSyncingTrip(false);
     })();
     // HANDLE APP STATE
     const subscription = AppState.addEventListener(
@@ -139,7 +130,25 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       handleAppStateChange
     );
 
+    // HANDLE TRIP INTERVAL. 300000 = 5 minutes
+    const loc = setInterval(() => {
+      (async () => {
+        console.log(await selectTable("offline_trip"));
+        console.log("task manager interval  working");
+        const intervalRes = await handleInterval();
+        if (intervalRes) {
+          const newObj = {
+            ...intervalRes,
+            date: moment(Date.now()).tz("Asia/Manila"),
+          };
+
+          reloadRoute(newObj);
+        }
+      })();
+    }, 60000);
+
     return async () => {
+      clearInterval(loc);
       await updateRoute();
       deleteFromTable("route");
       subscription.remove();
@@ -150,8 +159,8 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   useEffect(() => {
     if (location) {
       (async () => {
-        // INSERT POINTS OR PATH TO SQLITE
-        if (location && location?.coords?.speed >= 1.4 && !syncingTrip) {
+        // INSERT POINTS OR PATH TO SQLITE location?.coords?.speed >= 1.4  <= 0
+        if (location && !location?.coords?.speed <= 0 && !syncingTrip) {
           setPoints((currentValue) => [
             ...currentValue,
             {
@@ -251,6 +260,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
   // UPDATING ROUTE IF TRIP ALREADY HAVE POINTS OR ROUTE
   const getRoute = async () => {
+    setSyncingTrip(true);
     const tripRes = await selectTable("offline_trip");
     const points = JSON.parse(tripRes[0]?.points);
 
@@ -271,6 +281,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
           }),
         ]);
       });
+    setSyncingTrip(false);
   };
 
   // WHEN UNMOUNT THIS CODE UPDATE THE TRIP ROUTE OR POINTS
@@ -289,20 +300,18 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
   const reloadMapState = async () => {
     const tripRes = await selectTable("offline_trip");
+
     const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
-    locPoint?.length % 2 !== 0 && start(new Date());
+
+    const newLocations = locPoint.filter(
+      (location) => location.status == "left" || location.status == "arrived"
+    );
+
+    newLocations?.length % 2 !== 0 && start(new Date());
 
     if (locPoint?.length > 0) {
       setTrip({
-        locations: [
-          ...locPoint
-            .filter(
-              (item) => item.status === "left" || item.status === "arrived"
-            )
-            .map((filterItem) => {
-              return filterItem;
-            }),
-        ],
+        locations: [...newLocations],
       });
     }
   };
@@ -439,6 +448,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         form.append("trip_date", JSON.parse(offlineTrip[0]?.date));
         form.append("locations", offlineTrip[0].locations);
         form.append("diesels", offlineTrip[0].gas);
+        form.append("charging", offlineTrip[0].charging);
 
         const res = await createTrip(form);
 
@@ -452,6 +462,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         }
       }
 
+      dispatch(validatorStatus(true));
       stopDoneLoading();
 
       navigation.reset({
@@ -515,6 +526,21 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   }
   return (
     <>
+      {syncingTrip && (
+        <View
+          style={{
+            position: "absolute",
+            zIndex: 999,
+            backgroundColor: "rgba(0, 0, 0, 0.2)",
+            height: "100%",
+            width: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <ActivityIndicator animating={true} color={colors.primary} />
+        </View>
+      )}
       {showLoader && <SuccessAnimation />}
       <Screen>
         <View
