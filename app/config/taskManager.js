@@ -91,8 +91,8 @@ const taskManager = (interval) => {
           });
           // FOR INTERVAL BACKGROUND OR FOREGROUND
           await Location.startLocationUpdatesAsync("interval", {
-            timeInterval: 2000, // 1 minutes
-            // 900000 15 minutes
+            timeInterval: 600000,
+            // 600000 10 minutes
           });
           setShowMap(true);
         }
