@@ -160,7 +160,11 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                           style={[styles.text, { flexWrap: "wrap" }]}
                           numberOfLines={3}
                         >
-                          {`${loc?.address[0]?.name} ${loc?.address[0]?.city} ${loc?.address[0]?.subregion}`}
+                          {`${loc?.address[0]?.name || "(No Name)"}  ${
+                            loc?.address[0]?.district || "(No District)"
+                          } ${loc?.address[0]?.city || "(No City)"}  ${
+                            loc?.address[0]?.subregion || "(No Subregion)"
+                          }`}
                         </Text>
                       </View>
                       {item?.locations.length - 1 !== i && (
