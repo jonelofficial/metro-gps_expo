@@ -150,6 +150,7 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
                 borderWidth: 1,
                 borderRadius: 5,
                 borderColor: item?.offline ? colors.white : colors.success,
+                minWidth: 65,
               }}
             >
               <Text
@@ -174,11 +175,9 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
 
           <View style={{ flexDirection: "row" }}>
             <Text style={{ color: colors.primary }}>
-              {hours == 0 ? `${minutes} ` : `${hour} `}
-            </Text>
-            <Text style={{ color: item?.offline && colors.white }}>
-              {hours >= 2 ? "hours." : hours == 0 ? "" : "hour."}
-              {minutes > 1 ? "minutes" : "minute"}
+              {hours > 0 ? hours + " hours " : ""}
+              {minutes > 0 ? minutes + " minutes " : ""}
+              {hours <= 0 && minutes <= 0 && "0 minute"}
             </Text>
           </View>
         </View>
