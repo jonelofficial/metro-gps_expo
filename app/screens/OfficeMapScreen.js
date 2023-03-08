@@ -36,6 +36,7 @@ import SuccessAnimation from "../components/loading/SuccessAnimation";
 import { useCreateTripMutation } from "../api/metroApi";
 import useToast from "../hooks/useToast";
 import { validatorStatus } from "../redux-toolkit/counter/vaidatorSlice";
+import * as TaskManager from "expo-task-manager";
 
 const OfficeMapScreen = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -123,6 +124,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       await deleteFromTable("route");
       await reloadMapState();
       await getRoute();
+      // console.log(await TaskManager.getRegisteredTasksAsync());
     })();
     // HANDLE APP STATE
     const subscription = AppState.addEventListener(
@@ -145,7 +147,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
           reloadRoute(newObj);
         }
       })();
-    }, 60000);
+    }, 900000);
 
     return async () => {
       clearInterval(loc);
