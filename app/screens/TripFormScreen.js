@@ -52,7 +52,6 @@ const TripFormScreen = ({ theme, route, navigation }) => {
         data &&
           departments.length === 0 && [
             ...data.map((item) => ({
-              ...item,
               value: item?.department_name,
               label: item?.department_name,
             })),
@@ -306,27 +305,29 @@ const TripFormScreen = ({ theme, route, navigation }) => {
 
                       {/* CHARGING */}
                       <Text style={{ marginBottom: 8 }}>Charging:</Text>
-                      <DropDownPicker
-                        open={showDropdown}
-                        value={value}
-                        items={departments}
-                        onChangeValue={handleChange}
-                        setOpen={onToggleDropdown}
-                        setValue={setValue}
-                        setItems={setDepartments}
-                        placeholder="Select gas station"
-                        textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
-                        style={{
-                          borderRadius: 15,
-                          borderColor: colors.light,
-                          marginBottom:
-                            touched.charging && errors.charging ? 0 : 12,
-                        }}
-                        dropDownContainerStyle={{
-                          borderColor: colors.light,
-                          maxHeight: 150,
-                        }}
-                      />
+                      {departments && departments.length !== 0 && (
+                        <DropDownPicker
+                          open={showDropdown}
+                          value={value}
+                          items={departments}
+                          onChangeValue={handleChange}
+                          setOpen={onToggleDropdown}
+                          setValue={setValue}
+                          setItems={setDepartments}
+                          placeholder="Select gas station"
+                          textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
+                          style={{
+                            borderRadius: 15,
+                            borderColor: colors.light,
+                            marginBottom:
+                              touched.charging && errors.charging ? 0 : 12,
+                          }}
+                          dropDownContainerStyle={{
+                            borderColor: colors.light,
+                            maxHeight: 150,
+                          }}
+                        />
+                      )}
                       {touched?.charging && errors?.charging && (
                         <Text
                           style={{
