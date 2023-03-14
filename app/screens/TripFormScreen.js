@@ -314,7 +314,7 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                           setOpen={onToggleDropdown}
                           setValue={setValue}
                           setItems={setDepartments}
-                          placeholder="Select gas station"
+                          placeholder="Select department"
                           textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
                           style={{
                             borderRadius: 15,

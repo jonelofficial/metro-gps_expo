@@ -8,7 +8,7 @@ import { useNavigation } from "@react-navigation/native";
 const LOCATION_TASK_NAME = "background-location-task";
 let alertTimer = null;
 
-const taskManager = (interval) => {
+const taskManager = (interval, onBackground) => {
   const [location, setLocation] = useState();
   const [showMap, setShowMap] = useState(false);
   const { showAlert } = useToast();
@@ -58,9 +58,12 @@ const taskManager = (interval) => {
   });
 
   TaskManager.defineTask("interval", ({ data, error }) => {
-    console.log("task manager interval working");
     // THIS WILL ADD LOCATION WHEN IN BACKGROUND AND GEOCODE LOCATION IN BACKEND
-    if (data) {
+    if (error) {
+      console.log(`Task Manager interval Error: `, error);
+      return;
+    }
+    if (data && onBackground) {
       const result = data.locations[0];
 
       const newObj = {
@@ -91,6 +94,8 @@ const taskManager = (interval) => {
           });
           // FOR INTERVAL BACKGROUND OR FOREGROUND
           await Location.startLocationUpdatesAsync("interval", {
+            enableHighAccuracy: true,
+            accuracy: Location.LocationAccuracy.BestForNavigation,
             timeInterval: 600000,
             // 600000 10 minutes
           });

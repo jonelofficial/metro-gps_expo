@@ -41,6 +41,14 @@ import * as TaskManager from "expo-task-manager";
 const OfficeMapScreen = ({ theme, navigation }) => {
   const { colors } = theme;
   const user = useSelector((state) => state.token.userDetails);
+  // STATE
+  const [totalKm, setTotalKm] = useState(0);
+  const [estimatedOdo, setEstimatedOdo] = useState(0);
+  const [trip, setTrip] = useState({ locations: [] });
+  const [points, setPoints] = useState([]);
+  const [syncingTrip, setSyncingTrip] = useState(true);
+  const [onBackground, setOnBackground] = useState(false);
+
   // TIMER
   const { seconds, minutes, hours, start, pause } = useStopwatch({});
 
@@ -51,18 +59,12 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
   // for background interval
 
-  const { location, showMap, requestPremissions } = taskManager((newObj) =>
-    reloadRoute(newObj)
+  const { location, showMap, requestPremissions } = taskManager(
+    (newObj) => reloadRoute(newObj),
+    onBackground
   );
 
   const net = useSelector((state) => state.net.value);
-
-  // STATE
-  const [totalKm, setTotalKm] = useState(0);
-  const [estimatedOdo, setEstimatedOdo] = useState(0);
-  const [trip, setTrip] = useState({ locations: [] });
-  const [points, setPoints] = useState([]);
-  const [syncingTrip, setSyncingTrip] = useState(true);
 
   // SUCCESS LOADER
 
@@ -135,8 +137,6 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     // HANDLE TRIP INTERVAL. 300000 = 5 minutes
     const loc = setInterval(() => {
       (async () => {
-        console.log(await selectTable("offline_trip"));
-        console.log("task manager interval  working");
         const intervalRes = await handleInterval();
         if (intervalRes) {
           const newObj = {
@@ -147,7 +147,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
           reloadRoute(newObj);
         }
       })();
-    }, 900000);
+    }, 600000);
 
     return async () => {
       clearInterval(loc);
@@ -232,6 +232,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   const handleAppStateChange = async (nextAppState) => {
     let notif;
     if (nextAppState === "background") {
+      setOnBackground(true);
       const content = {
         title: `Fresh Morning ${
           user.first_name[0].toUpperCase() +
@@ -246,6 +247,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       });
       reloadRoute();
     } else {
+      setOnBackground(false);
       await Notifications.cancelAllScheduledNotificationsAsync(notif);
     }
   };
