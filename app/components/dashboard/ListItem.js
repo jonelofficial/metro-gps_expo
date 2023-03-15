@@ -67,6 +67,7 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
     form.append("trip_date", item.trip_date);
     form.append("locations", JSON.stringify(item.locations));
     form.append("diesels", JSON.stringify(item.diesels));
+    form.append("charging", item.charging);
 
     const res = await createTrip(form);
     if (res?.data) {

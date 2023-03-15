@@ -194,6 +194,7 @@ const DashboardScreen = ({ theme, navigation }) => {
             trip_date: JSON.parse(item?.date),
             others: item?.others,
             offline: true,
+            charging: item?.charging,
           },
           ...prevState,
         ]);
