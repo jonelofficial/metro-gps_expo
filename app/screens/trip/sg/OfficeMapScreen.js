@@ -6,7 +6,7 @@ import {
   Text,
   withTheme,
 } from "react-native-paper";
-import Screen from "../components/Screen";
+import Screen from "../../../components/Screen";
 import {
   Alert,
   AppState,
@@ -15,27 +15,27 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import taskManager from "../config/taskManager";
+import taskManager from "../../../config/taskManager";
 import { getPathLength } from "geolib";
 import {
   deleteFromTable,
   insertToTable,
   selectTable,
   updateToTable,
-} from "../utility/sqlite";
-import useLocations from "../hooks/useLocations";
+} from "../../../utility/sqlite";
+import useLocations from "../../../hooks/useLocations";
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment-timezone";
-import useDisclosure from "../hooks/useDisclosure";
+import useDisclosure from "../../../hooks/useDisclosure";
 import * as Notifications from "expo-notifications";
-import GasModal from "../components/map/GasModal";
-import DoneModal from "../components/map/DoneModal";
+import GasModal from "../../../components/map/GasModal";
+import DoneModal from "../../../components/map/DoneModal";
 import { useStopwatch } from "react-timer-hook";
-import LoaderAnimation from "../components/loading/LoaderAnimation";
-import SuccessAnimation from "../components/loading/SuccessAnimation";
-import { useCreateTripMutation } from "../api/metroApi";
-import useToast from "../hooks/useToast";
-import { validatorStatus } from "../redux-toolkit/counter/vaidatorSlice";
+import LoaderAnimation from "../../../components/loading/LoaderAnimation";
+import SuccessAnimation from "../../../components/loading/SuccessAnimation";
+import { useCreateTripMutation } from "../../../api/metroApi";
+import useToast from "../../../hooks/useToast";
+import { validatorStatus } from "../../../redux-toolkit/counter/vaidatorSlice";
 import * as TaskManager from "expo-task-manager";
 
 const OfficeMapScreen = ({ theme, navigation }) => {

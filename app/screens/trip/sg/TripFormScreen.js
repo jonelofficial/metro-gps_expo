@@ -9,22 +9,22 @@ import {
   View,
 } from "react-native";
 import { Text, withTheme } from "react-native-paper";
-import SubmitButton from "../components/form/SubmitButton";
-import TextField from "../components/form/TextField";
-import Screen from "../components/Screen";
-import useDisclosure from "../hooks/useDisclosure";
+import SubmitButton from "../../../components/form/SubmitButton";
+import TextField from "../../../components/form/TextField";
+import Screen from "../../../components/Screen";
+import useDisclosure from "../../../hooks/useDisclosure";
 import { Ionicons } from "@expo/vector-icons";
-import AppCamera from "../components/AppCamera";
+import AppCamera from "../../../components/AppCamera";
 import { useDispatch, useSelector } from "react-redux";
-import { removeImage } from "../redux-toolkit/counter/imageSlice";
-import Scanner from "../components/Scanner";
-import { officeFormSchema } from "../utility/schema/validation";
+import { removeImage } from "../../../redux-toolkit/counter/imageSlice";
+import Scanner from "../../../components/Scanner";
+import { officeFormSchema } from "../../../utility/schema/validation";
 import {
   removeCompanion,
   spliceCompanion,
-} from "../redux-toolkit/counter/companionSlice";
+} from "../../../redux-toolkit/counter/companionSlice";
 import moment from "moment-timezone";
-import { insertToTable, selectTable } from "../utility/sqlite";
+import { insertToTable, selectTable } from "../../../utility/sqlite";
 import DropDownPicker from "react-native-dropdown-picker";
 
 const TripFormScreen = ({ theme, route, navigation }) => {

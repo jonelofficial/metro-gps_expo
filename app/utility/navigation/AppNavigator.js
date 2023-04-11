@@ -2,12 +2,15 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 
 import TripDetailsScreen from "../../screens/TripDetailsScreen";
-import DashboardNavigator from "./DashboardNavigator";
-import OfficeNavigator from "./OfficeNavigator";
+import DashboardNavigator from "./dashboard/DashboardNavigator";
+import TripNavigator from "./trip/TripNavigator";
+import { useSelector } from "react-redux";
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
+  const user = useSelector((state) => state.token.userDetails);
+
   return (
     <Stack.Navigator
       screenOptions={{
@@ -17,7 +20,7 @@ const AppNavigator = () => {
     >
       <Stack.Screen name="Dashboard" component={DashboardNavigator} />
       <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
-      <Stack.Screen name="Office" component={OfficeNavigator} />
+      <Stack.Screen name="Office" component={TripNavigator} />
     </Stack.Navigator>
   );
 };

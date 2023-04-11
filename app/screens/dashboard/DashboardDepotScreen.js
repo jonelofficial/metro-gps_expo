@@ -18,22 +18,22 @@ import {
   withTheme,
 } from "react-native-paper";
 import { useSelector } from "react-redux";
-import { useGetAllTripsQuery } from "../api/metroApi";
-import Screen from "../components/Screen";
-import useParams from "../hooks/useParams";
+import { useGetAllTripsQuery } from "../../api/metroApi";
+import Screen from "../../components/Screen";
+import useParams from "../../hooks/useParams";
 import { Ionicons } from "@expo/vector-icons";
-import useDisclosure from "../hooks/useDisclosure";
+import useDisclosure from "../../hooks/useDisclosure";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import dayjs from "dayjs";
-import ListItem from "../components/dashboard/ListItem";
-import DashboardCamera from "../components/DashboardCamera";
-import useAuth from "../auth/useAuth";
-import { selectTable } from "../utility/sqlite";
-import SyncingAnimation from "../components/loading/SyncingAnimation";
+import ListItem from "../../components/dashboard/ListItem";
+import DashboardCamera from "../../components/DashboardCamera";
+import useAuth from "../../auth/useAuth";
+import { selectTable } from "../../utility/sqlite";
+import SyncingAnimation from "../../components/loading/SyncingAnimation";
 import * as Notifications from "expo-notifications";
-import useToast from "../hooks/useToast";
+import useToast from "../../hooks/useToast";
 
-const DashboardScreen = ({ theme, navigation }) => {
+const DashboardDepotScreen = ({ theme, navigation }) => {
   const { colors } = theme;
   const { logout } = useAuth();
 
@@ -355,7 +355,7 @@ const DashboardScreen = ({ theme, navigation }) => {
               />
             ) : (
               <Image
-                source={require("../assets/placeholder/profile_placeholder.png")}
+                source={require("../../assets/placeholder/profile_placeholder.png")}
                 style={styles.image}
               />
             )}
@@ -529,4 +529,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withTheme(DashboardScreen);
+export default withTheme(DashboardDepotScreen);
