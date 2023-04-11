@@ -19,7 +19,7 @@ export const metroApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Trip"],
+  tagTypes: ["Trip", "Hauling"],
   endpoints: (builder) => ({
     // T R I P S
     getAllTrips: builder.query({
@@ -36,7 +36,18 @@ export const metroApi = createApi({
       invalidatesTags: ["Trip"],
       // provides: (result) => [{ type: "Trip", id: result.id }],
     }),
+
+    // HAULING
+    getAllTripsHauling: builder.query({
+      query: (params) =>
+        `/depot/apk-trips-hauling?page=${params?.page}&limit=${params?.limit}&search=${params?.search}&searchBy=${params?.searchBy}&date=${params?.date}`,
+      providesTags: ["Hauling"],
+    }),
   }),
 });
 
-export const { useGetAllTripsQuery, useCreateTripMutation } = metroApi;
+export const {
+  useGetAllTripsQuery,
+  useCreateTripMutation,
+  useGetAllTripsHaulingQuery,
+} = metroApi;

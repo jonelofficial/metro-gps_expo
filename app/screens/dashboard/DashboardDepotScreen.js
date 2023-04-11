@@ -18,7 +18,7 @@ import {
   withTheme,
 } from "react-native-paper";
 import { useSelector } from "react-redux";
-import { useGetAllTripsQuery } from "../../api/metroApi";
+import { useGetAllTripsHaulingQuery } from "../../api/metroApi";
 import Screen from "../../components/Screen";
 import useParams from "../../hooks/useParams";
 import { Ionicons } from "@expo/vector-icons";
@@ -72,16 +72,16 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
   const { reset, setState, state } = useParams();
 
   // STATE FOR RTK
-  const { data, isLoading, isFetching, error, isError } = useGetAllTripsQuery(
-    {
-      page: state.page,
-      limit: state.limit,
-      search: user?.userId,
-      searchBy: state.searchBy,
-      date: state.date,
-    },
-    { refetchOnMountOrArgChange: true, skip: !net }
-  );
+  const { data, isLoading, isFetching, error, isError } =
+    useGetAllTripsHaulingQuery(
+      {
+        page: state.page,
+        limit: state.limit,
+        searchBy: state.searchBy,
+        date: state.date,
+      },
+      { refetchOnMountOrArgChange: true, skip: !net }
+    );
 
   useEffect(() => {
     Notifications.setNotificationHandler({

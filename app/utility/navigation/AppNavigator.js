@@ -1,7 +1,9 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 
-import TripDetailsScreen from "../../screens/TripDetailsScreen";
+import TripDetailsScreen from "../../screens/trip/sg/TripDetailsScreen";
+import DepotDetailsScreen from "../../screens/trip/depot/DepotDetailsScreen";
+import LiveDetailsScreen from "../../screens/trip/live/LiveDetailsScreen";
 import DashboardNavigator from "./dashboard/DashboardNavigator";
 import TripNavigator from "./trip/TripNavigator";
 import { useSelector } from "react-redux";
@@ -19,7 +21,16 @@ const AppNavigator = () => {
       }}
     >
       <Stack.Screen name="Dashboard" component={DashboardNavigator} />
-      <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
+      <Stack.Screen
+        name="TripDetails"
+        component={
+          user?.trip_template === "Service Vehicle"
+            ? TripDetailsScreen
+            : user?.trip_template === "Depot"
+            ? DepotDetailsScreen
+            : LiveDetailsScreen
+        }
+      />
       <Stack.Screen name="Office" component={TripNavigator} />
     </Stack.Navigator>
   );

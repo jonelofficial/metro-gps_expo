@@ -17,10 +17,10 @@ import {
   ActivityIndicator,
 } from "react-native-paper";
 import { useDispatch } from "react-redux";
-import Screen from "../components/Screen";
-import useDisclosure from "../hooks/useDisclosure";
-import { validatorStatus } from "../redux-toolkit/counter/vaidatorSlice";
-import { selectTable } from "../utility/sqlite";
+import Screen from "../../../components/Screen";
+import useDisclosure from "../../../hooks/useDisclosure";
+import { validatorStatus } from "../../../redux-toolkit/counter/vaidatorSlice";
+import { selectTable } from "../../../utility/sqlite";
 
 const TripDetailsScreen = ({ route, theme, navigation }) => {
   const [staion, setStaion] = useState([]);
@@ -290,7 +290,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
           }}
         >
           <Image
-            defaultSource={require("../assets/placeholder/car_placeholder.png")}
+            defaultSource={require("../../../assets/placeholder/car_placeholder.png")}
             style={{
               height: "93%",
               borderRadius: 10,
