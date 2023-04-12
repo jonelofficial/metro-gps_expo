@@ -1,11 +1,27 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { Appbar, Button, Divider, Text, withTheme } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Appbar,
+  Button,
+  Divider,
+  Modal,
+  Portal,
+  Text,
+  withTheme,
+} from "react-native-paper";
 import { selectTable } from "../../../utility/sqlite";
 import { useDispatch } from "react-redux";
-import { ScrollView, StyleSheet, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import moment from "moment-timezone";
 import Screen from "../../../components/Screen";
 import { validatorStatus } from "../../../redux-toolkit/counter/vaidatorSlice";
+import useDisclosure from "../../../hooks/useDisclosure";
 
 const DepotDetailsScreen = ({ route, theme, navigation }) => {
   const { colors } = theme;
@@ -13,6 +29,14 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
   const [station, setStation] = useState([]);
 
   const dispatch = useDispatch();
+
+  const { isOpen, onClose, onToggle } = useDisclosure();
+
+  const {
+    isOpen: isLoading,
+    onClose: onCloseLoading,
+    onToggle: onToggleLoading,
+  } = useDisclosure();
 
   const newLocations = item.locations.filter(
     (location) => location.status == "left" || location.status == "arrived"
@@ -170,9 +194,24 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
               <Content label="Farm" details={item?.farm} />
               <Content label="Odo" details={item?.odometer} />
               <Content label="Odo Done" details={item?.odometer_done} />
+              {item?.odometer_image_path && (
+                <Content
+                  label="Odo Image"
+                  details={
+                    <TouchableOpacity onPress={onToggle}>
+                      <Text style={{ color: colors.primary }}>View</Text>
+                    </TouchableOpacity>
+                  }
+                />
+              )}
               <Content label="Others" details={item?.others} />
               <Content label="Charging" details={item?.charging} />
-              <Content label="Companion" details={item?.companion} />
+              <Content
+                label="Companion"
+                details={item?.companion.map((comp) => {
+                  return comp?.first_name;
+                })}
+              />
               <Content label="Temperature" details={item?.temperature} />
               <Content label="Tare Weight" details={item?.tare_weight} />
               <Content label="Gross Weight" details={item?.gross_weight} />
@@ -279,6 +318,58 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
           </View>
         )}
       </Screen>
+
+      {/* ODO IMAGE */}
+      <Portal>
+        <Modal
+          visible={isOpen}
+          onDismiss={onClose}
+          contentContainerStyle={{
+            backgroundColor: "white",
+            margin: 15,
+            padding: 20,
+            borderRadius: 10,
+            justifyContent: "space-between",
+          }}
+        >
+          <Image
+            defaultSource={require("../../../assets/placeholder/car_placeholder.png")}
+            style={{
+              height: "93%",
+              borderRadius: 10,
+            }}
+            source={{
+              uri: `${process.env.BASEURL}/${item?.odometer_image_path}`,
+            }}
+            onLoadStart={onToggleLoading}
+            onLoadEnd={onCloseLoading}
+          />
+          {isLoading && (
+            <View
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                zIndex: 999,
+              }}
+            >
+              <ActivityIndicator size="small" />
+            </View>
+          )}
+
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "flex-end",
+              marginTop: 10,
+            }}
+          >
+            <Button onPress={onClose} textColor={colors.danger}>
+              Close
+            </Button>
+          </View>
+        </Modal>
+      </Portal>
     </>
   );
 };

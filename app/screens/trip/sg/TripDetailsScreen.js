@@ -1,5 +1,5 @@
 import moment from "moment-timezone";
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -15,6 +15,7 @@ import {
   Text,
   withTheme,
   ActivityIndicator,
+  Appbar,
 } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import Screen from "../../../components/Screen";
@@ -26,10 +27,13 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
   const [staion, setStaion] = useState([]);
   const { item } = route.params;
   const { colors } = theme;
+
   const newLocations = item.locations.filter(
     (location) => location.status == "left" || location.status == "arrived"
   );
+
   const { isOpen, onClose, onToggle } = useDisclosure();
+
   const {
     isOpen: isLoading,
     onClose: onCloseLoading,
@@ -48,25 +52,6 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
       null;
     };
   }, []);
-
-  // const styles = StyleSheet.create({
-  //   container: {
-  //     margin: 15,
-  //     padding: 10,
-  //     borderRadius: 10,
-  //     flex: 1,
-  //     flexWrap: "wrap",
-  //   },
-  //   textWrapper: { flexDirection: "row", marginBottom: 2 },
-  //   label: {
-  //     minWidth: 100,
-  //     color: item?.offline ? colors.white : colors.dark,
-  //   },
-  //   text: {
-  //     textTransform: "capitalize",
-  //     color: item?.offline ? colors.white : colors.dark,
-  //   },
-  // });
 
   const Content = ({ label, details, labelStyle, detailsStyle }) => {
     return (
@@ -155,192 +140,166 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
 
   return (
     <>
-      {/* <Screen>
-        <View
-          style={[
-            styles.container,
-            {
-              backgroundColor:
-                newLocations.length % 2 !== 0 ||
-                newLocations.length === 0 ||
-                isNaN(item?.odometer_done)
-                  ? colors.danger
-                  : item?.offline
-                  ? colors.primarySync
-                  : colors.white,
-            },
-          ]}
-        >
+      <Screen>
+        <Appbar.Header statusBarHeight={0}>
+          <Appbar.BackAction
+            onPress={() => {
+              navigation.goBack();
+            }}
+          />
+          <Appbar.Content title={item?.user_id?.trip_template} />
+        </Appbar.Header>
+        <View style={styles.container}>
           <ScrollView>
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>ID:</Text>
-              <Text style={[styles.text, { textTransform: "none" }]}>
-                {item?._id?.length > 20 ? `${item?._id?.slice(20)}` : item?._id}
-              </Text>
+            <View style={styles.containerWrapper}>
+              <Text>User Details</Text>
+              <Line />
+              <Content
+                label="Employee ID"
+                details={item?.user_id?.employee_id}
+              />
+              <Content
+                label="Name"
+                details={item?.user_id?.first_name}
+                detailsStyle={{ textTransform: "capitalize" }}
+              />
+              <Content
+                label="Department"
+                details={item?.user_id?.department}
+                detailsStyle={{ textTransform: "capitalize" }}
+              />
             </View>
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>Date:</Text>
-              <Text style={[styles.text, { textTransform: "none" }]}>
-                {moment(item?.trip_date)
+
+            <View style={styles.containerWrapper}>
+              <Text>Vehicle Details</Text>
+              <Line />
+              <Content label="Plate #" details={item?.vehicle_id?.plate_no} />
+              <Content label="Details" details={item?.vehicle_id?.name} />
+            </View>
+
+            <View style={styles.containerWrapper}>
+              <Text>Trip Details</Text>
+              <Line />
+              <Content
+                label="ID"
+                details={
+                  item?._id?.length > 20 ? `${item?._id?.slice(20)}` : item?._id
+                }
+              />
+              <Content
+                label="Trip Date"
+                details={moment(item?.trip_date)
                   .tz("Asia/Manila")
                   .format("MMM-DD-YY hh:mm a")}
-              </Text>
-            </View>
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>Type:</Text>
-              <Text style={styles.text}>{item?.user_id?.trip_template}</Text>
-            </View>
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>Vehicle: </Text>
-              <View>
-                {item?.vehicle_id?.plate_no ? (
-                  <>
-                    <Text
-                      style={[styles.text, { textTransform: "uppercase" }]}
-                    >{`${item?.vehicle_id?.plate_no}`}</Text>
-                    <Text
-                      style={[styles.text, { textTransform: "none" }]}
-                    >{`${item?.vehicle_id?.name}`}</Text>
-                  </>
-                ) : (
-                  <Text style={[styles.text, { textTransform: "none" }]}>
-                    Details will show when sync.
-                  </Text>
-                )}
-              </View>
-            </View>
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>Location: </Text>
+              />
 
-              <View style={{ flexDirection: "column" }}>
-                {item?.locations.map((loc, i) => {
-                  if (loc?.status !== "left" && loc?.status !== "arrived") {
-                    return null;
+              <Content label="Odo" details={item?.odometer} />
+              <Content label="Odo Done" details={item?.odometer_done} />
+              {item?.odometer_image_path && (
+                <Content
+                  label="Odo Image"
+                  details={
+                    <TouchableOpacity onPress={onToggle}>
+                      <Text style={{ color: colors.primary }}>View</Text>
+                    </TouchableOpacity>
                   }
-                  return (
-                    <View key={i} style={{ marginBottom: 5 }}>
-                      <View style={{ paddingBottom: 5, width: "80%" }}>
-                        <Text
-                          style={[
-                            styles.text,
-                            {
-                              textTransform: "uppercase",
-                              color:
-                                loc?.status === "left"
-                                  ? colors.danger
-                                  : colors.success,
-                            },
-                          ]}
-                        >
-                          {`${loc?.status}:`}
-                        </Text>
-                        <Text style={[styles.text, { textTransform: "none" }]}>
-                          {loc?.date &&
-                            moment(loc.date)
-                              .tz("Asia/Manila")
-                              .format("MMM-DD-YY hh:mm a")}
-                        </Text>
+                />
+              )}
+              <Content label="Others" details={item?.others} />
+              <Content
+                label="Charging"
+                details={item?.charging}
+                detailsStyle={{ textTransform: "capitalize" }}
+              />
+              <Content
+                label="Companion"
+                details={item?.companion.map((comp) => {
+                  return comp?.first_name;
+                })}
+              />
+            </View>
 
-                        <Text
-                          style={[styles.text, { flexWrap: "wrap" }]}
-                          numberOfLines={3}
-                        >
-                          {`${loc?.address[0]?.name || "(No Name)"}  ${
-                            loc?.address[0]?.district || "(No District)"
-                          } ${loc?.address[0]?.city || "(No City)"}  ${
-                            loc?.address[0]?.subregion || "(No Subregion)"
-                          }`}
-                        </Text>
-                      </View>
-                      {item?.locations.length - 1 !== i && (
-                        <Divider style={{ height: 1, width: 30 }} />
-                      )}
-                    </View>
+            {newLocations.length > 0 && (
+              <View style={styles.containerWrapper}>
+                <Text>Location Details</Text>
+                <Line />
+
+                {newLocations.map((loc, i) => {
+                  return (
+                    <Fragment key={i}>
+                      <Content
+                        label="Status"
+                        details={loc?.status}
+                        detailsStyle={{
+                          textTransform: "capitalize",
+                          color:
+                            loc?.status === "left"
+                              ? colors.danger
+                              : colors.success,
+                        }}
+                      />
+                      <Content
+                        label="Date"
+                        details={
+                          loc?.date &&
+                          moment(loc.date)
+                            .tz("Asia/Manila")
+                            .format("MMM-DD-YY hh:mm a")
+                        }
+                      />
+                      <Content
+                        label="Address"
+                        details={`${loc?.address[0]?.name || "(No Name)"}  ${
+                          loc?.address[0]?.district || "(No District)"
+                        } ${loc?.address[0]?.city || "(No City)"}  ${
+                          loc?.address[0]?.subregion || "(No Subregion)"
+                        }`}
+                      />
+
+                      {newLocations.length !== i + 1 && <MapDivider />}
+                    </Fragment>
                   );
                 })}
-              </View>
-            </View>
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>Diesel: </Text>
-
-              <View style={{ flexDirection: "column" }}>
-                {item?.diesels.map((gas, i) => {
-                  const name = staion.find(
-                    (el) => el._id === gas.gas_station_id
-                  );
-                  return (
-                    <View key={i} style={{ marginBottom: 5 }}>
-                      <View style={{ paddingBottom: 5 }}>
-                        <Text style={styles.text}>
-                          Gas Station: {name?.label}
-                        </Text>
-                      </View>
-                      {name?.label === "Others" && (
-                        <View style={{ paddingBottom: 5 }}>
-                          <Text style={styles.text}>
-                            Gas Station Name: {gas?.gas_station_name}
-                          </Text>
-                        </View>
-                      )}
-                      <View style={{ paddingBottom: 5 }}>
-                        <Text style={styles.text}>
-                          Odomter: {gas?.odometer}
-                        </Text>
-                      </View>
-                      <View style={{ paddingBottom: 5 }}>
-                        <Text style={styles.text}>Liter: {gas?.liter}</Text>
-                      </View>
-                      <View style={{ paddingBottom: 5 }}>
-                        <Text style={styles.text}>Amount: {gas?.amount}</Text>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-            {item?.odometer_image_path && (
-              <View style={styles.textWrapper}>
-                <Text style={styles.label}>Odo Image:</Text>
-                <TouchableOpacity onPress={onToggle}>
-                  <Text style={{ color: colors.primary }}>View</Text>
-                </TouchableOpacity>
               </View>
             )}
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>Odo: </Text>
-              <Text style={styles.text}>{item?.odometer}</Text>
-            </View>
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>Odo Done: </Text>
-              <Text style={styles.text}>{item?.odometer_done}</Text>
-            </View>
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>Companion: </Text>
-              {item?.companion.map((comp, i) => {
-                return (
-                  <Text key={i} style={styles.text}>
-                    {comp?.first_name}
-                  </Text>
-                );
-              })}
-            </View>
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>Charging: </Text>
-              <Text style={styles.text}>{item?.charging}</Text>
-            </View>
-            <View style={styles.textWrapper}>
-              <Text style={styles.label}>Others: </Text>
-              {item?.others !== "null" && (
-                <Text style={styles.text}>{item?.others}</Text>
-              )}
-            </View>
+
+            {item?.diesels.length > 0 && (
+              <View style={styles.containerWrapper}>
+                <Text>Diesels Details</Text>
+                <Line />
+                {item.diesels.map((diesel, i) => {
+                  return (
+                    <Fragment key={i}>
+                      <Content
+                        label="Station"
+                        details={diesel?.gas_station_name}
+                        detailsStyle={{
+                          textTransform: "capitalize",
+                        }}
+                      />
+                      <Content label="Odometer" details={diesel?.odometer} />
+                      <Content label="Liter" details={diesel?.liter} />
+                      <Content label="Amount" details={`₱ ${diesel?.amount}`} />
+
+                      {item.diesels.length !== i + 1 && <MapDivider />}
+                    </Fragment>
+                  );
+                })}
+              </View>
+            )}
           </ScrollView>
         </View>
 
         {(newLocations.length % 2 !== 0 ||
           newLocations.length === 0 ||
           isNaN(item?.odometer_done)) && (
-          <View style={{ paddingBottom: 15, paddingHorizontal: 10 }}>
+          <View
+            style={{
+              paddingBottom: 15,
+              paddingHorizontal: 10,
+              marginHorizontal: 10,
+            }}
+          >
             <Button
               mode="contained"
               style={{ borderRadius: 35, backgroundColor: colors.success }}
@@ -359,7 +318,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
             </Button>
           </View>
         )}
-      </Screen> */}
+      </Screen>
 
       {/* ODO IMAGE */}
       <Portal>
