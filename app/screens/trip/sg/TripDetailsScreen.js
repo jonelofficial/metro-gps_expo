@@ -49,28 +49,113 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
     };
   }, []);
 
+  // const styles = StyleSheet.create({
+  //   container: {
+  //     margin: 15,
+  //     padding: 10,
+  //     borderRadius: 10,
+  //     flex: 1,
+  //     flexWrap: "wrap",
+  //   },
+  //   textWrapper: { flexDirection: "row", marginBottom: 2 },
+  //   label: {
+  //     minWidth: 100,
+  //     color: item?.offline ? colors.white : colors.dark,
+  //   },
+  //   text: {
+  //     textTransform: "capitalize",
+  //     color: item?.offline ? colors.white : colors.dark,
+  //   },
+  // });
+
+  const Content = ({ label, details, labelStyle, detailsStyle }) => {
+    return (
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          paddingLeft: 10,
+          paddingVertical: 2.5,
+        }}
+      >
+        <View
+          style={{
+            flex: 1.5,
+          }}
+        >
+          <Text style={[labelStyle]}>{label}</Text>
+        </View>
+        <View style={{ flex: 3, marginLeft: 10 }}>
+          <Text style={[detailsStyle]}>{details}</Text>
+        </View>
+      </View>
+    );
+  };
+
+  const Line = () => {
+    return (
+      <Divider
+        style={{
+          height: 2,
+          borderRadius: 10,
+          backgroundColor: colors.primary,
+          marginBottom: 10,
+        }}
+      />
+    );
+  };
+
+  const MapDivider = () => {
+    return (
+      <>
+        <Divider
+          style={{
+            height: 15,
+            backgroundColor: "transparent",
+          }}
+        />
+        <Divider
+          style={{
+            height: 2,
+            width: "80%",
+            alignSelf: "center",
+            opacity: 0.5,
+            borderRadius: 50,
+          }}
+        />
+        <Divider
+          style={{
+            height: 15,
+            backgroundColor: "transparent",
+          }}
+        />
+      </>
+    );
+  };
+
   const styles = StyleSheet.create({
     container: {
       margin: 15,
       padding: 10,
       borderRadius: 10,
       flex: 1,
-      flexWrap: "wrap",
+      backgroundColor:
+        newLocations.length % 2 !== 0 ||
+        newLocations.length === 0 ||
+        isNaN(item?.odometer_done)
+          ? colors.danger
+          : item?.offline
+          ? colors.primarySync
+          : colors.white,
     },
-    textWrapper: { flexDirection: "row", marginBottom: 2 },
-    label: {
-      minWidth: 100,
-      color: item?.offline ? colors.white : colors.dark,
-    },
-    text: {
-      textTransform: "capitalize",
-      color: item?.offline ? colors.white : colors.dark,
+    containerWrapper: {
+      marginBottom: 25,
     },
   });
 
   return (
     <>
-      <Screen>
+      {/* <Screen>
         <View
           style={[
             styles.container,
@@ -274,7 +359,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
             </Button>
           </View>
         )}
-      </Screen>
+      </Screen> */}
 
       {/* ODO IMAGE */}
       <Portal>

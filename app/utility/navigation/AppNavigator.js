@@ -30,6 +30,7 @@ const AppNavigator = () => {
             ? DepotDetailsScreen
             : LiveDetailsScreen
         }
+        options={{ animation: "slide_from_right" }}
       />
       <Stack.Screen name="Office" component={TripNavigator} />
     </Stack.Navigator>
