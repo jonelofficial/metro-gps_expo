@@ -25,6 +25,7 @@ import * as Notifications from "expo-notifications";
 import * as Network from "expo-network";
 import { Camera } from "expo-camera";
 import Constants from "expo-constants";
+import { validatorStatus } from "../redux-toolkit/counter/vaidatorSlice";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -57,6 +58,7 @@ const AppScreen = ({ theme }) => {
 
       if (!token) return null;
 
+      dispatch(validatorStatus(null));
       dispatch(addUser(user));
       dispatch(addToken({ token: token }));
     } catch (error) {

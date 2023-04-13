@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { createTable, dropTable, showTable } from "../utility/sqlite";
+import * as SQLite from "expo-sqlite";
 
 const runSQLite = () => {
   useEffect(() => {
@@ -10,9 +11,13 @@ const runSQLite = () => {
       // const res = await showTable();
       // console.log("T A B L E: ", res);
 
+      // const db = SQLite.openDatabase("mydb.db");
+
+      // console.log(db);
+
       await createTable(
         "offline_trip",
-        "id integer primary key not null, date TEXT, vehicle_id TEXT , odometer TEXT, odometer_done TEXT, image LONGTEXT, companion LONGTEXT, points LONGTEXT, others TEXT, locations LONGTEXT , gas LONGTEXT, charging TEXT"
+        "id integer primary key not null, date TEXT, user_id TEXT, vehicle_id TEXT , odometer TEXT, odometer_done TEXT, image LONGTEXT, companion LONGTEXT, points LONGTEXT, others TEXT, locations LONGTEXT , gas LONGTEXT, charging TEXT"
       );
 
       await createTable(

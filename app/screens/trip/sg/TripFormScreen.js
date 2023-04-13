@@ -93,8 +93,9 @@ const TripFormScreen = ({ theme, route, navigation }) => {
     onToggleLoadingBtn();
     Keyboard.dismiss();
     await insertToTable(
-      "INSERT INTO offline_trip (vehicle_id, odometer, image, companion, others, locations, gas, date, charging) values (?,?,?,?,?,?,?,?,?)",
+      "INSERT INTO offline_trip (user_id,vehicle_id, odometer, image, companion, others, locations, gas, date, charging) values (?,?,?,?,?,?,?,?,?,?)",
       [
+        user?.userId,
         vehicle_id._id,
         data.odometer,
         JSON.stringify({

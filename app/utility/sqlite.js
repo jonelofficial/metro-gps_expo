@@ -91,13 +91,28 @@ export const createTable = async (tableName, fields) => {
   });
 };
 
+// export const showTable = async () => {
+//   return new Promise((resolve, reject) => {
+//     db.transaction((tx) => {
+//       tx.executeSql(
+//         "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
+//         (transact, res) => resolve(res),
+//         (transact, err) => reject(err)
+//       );
+//     });
+//   });
+// };
+
 export const showTable = async () => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
-        (transact, res) => resolve(res),
-        (transact, err) => reject(err)
+        "SELECT name FROM sqlite_master WHERE type='table'",
+        [],
+        (_, result) => {
+          resolve(result);
+        },
+        (_, err) => reject(err)
       );
     });
   });
