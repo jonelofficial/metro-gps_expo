@@ -13,6 +13,7 @@ import { deleteFromTable, insertToTable, selectTable } from "../utility/sqlite";
 import useStorage from "./useStorage";
 
 import useToast from "../hooks/useToast";
+import { validatorStatus } from "../redux-toolkit/counter/vaidatorSlice";
 
 const useAuth = () => {
   const netStatus = useSelector((state) => state.net.value);
@@ -215,6 +216,7 @@ const useAuth = () => {
   };
 
   const logout = async () => {
+    dispatch(validatorStatus(true));
     dispatch(removeToken());
     dispatch(removeUser());
     removeTokenState();

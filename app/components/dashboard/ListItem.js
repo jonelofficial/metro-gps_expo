@@ -36,7 +36,7 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
     return () => {
       null;
     };
-  }, []);
+  }, [item]);
 
   // Getting KM
   const km = item.points?.length > 0 && getPathLength(item.points) / 1000;

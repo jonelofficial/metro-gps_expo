@@ -174,9 +174,7 @@ const DashboardScreen = ({ theme, navigation }) => {
 
     const res = await selectTable("offline_trip");
     if (res?.length > 0) {
-      validator
-        ? handleNotSyncNotif()
-        : validator === false && handleUnfinishedTrip();
+      validator ? handleNotSyncNotif() : handleUnfinishedTrip();
 
       await res.map((item) => {
         if (user?.userId !== item?.user_id) {

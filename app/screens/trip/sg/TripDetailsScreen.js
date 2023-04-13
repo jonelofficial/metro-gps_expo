@@ -16,6 +16,7 @@ import {
   withTheme,
   ActivityIndicator,
   Appbar,
+  Card,
 } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import Screen from "../../../components/Screen";
@@ -24,7 +25,7 @@ import { validatorStatus } from "../../../redux-toolkit/counter/vaidatorSlice";
 import { selectTable } from "../../../utility/sqlite";
 
 const TripDetailsScreen = ({ route, theme, navigation }) => {
-  const [staion, setStaion] = useState([]);
+  const [station, setStation] = useState([]);
   const { item } = route.params;
   const { colors } = theme;
 
@@ -45,7 +46,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
   useEffect(() => {
     (async () => {
       const gasRes = await selectTable("gas_station");
-      setStaion([...gasRes.map((item) => ({ ...item, value: item._id }))]);
+      setStation([...gasRes.map((item) => ({ ...item, value: item._id }))]);
     })();
 
     return () => {
@@ -120,18 +121,10 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
 
   const styles = StyleSheet.create({
     container: {
-      margin: 15,
+      marginHorizontal: 15,
       padding: 10,
       borderRadius: 10,
       flex: 1,
-      backgroundColor:
-        newLocations.length % 2 !== 0 ||
-        newLocations.length === 0 ||
-        isNaN(item?.odometer_done)
-          ? colors.danger
-          : item?.offline
-          ? colors.primarySync
-          : colors.white,
     },
     containerWrapper: {
       marginBottom: 25,
@@ -151,141 +144,161 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
         </Appbar.Header>
         <View style={styles.container}>
           <ScrollView>
-            <View style={styles.containerWrapper}>
-              <Text>User Details</Text>
-              <Line />
-              <Content
-                label="Employee ID"
-                details={item?.user_id?.employee_id}
-              />
-              <Content
-                label="Name"
-                details={item?.user_id?.first_name}
-                detailsStyle={{ textTransform: "capitalize" }}
-              />
-              <Content
-                label="Department"
-                details={item?.user_id?.department}
-                detailsStyle={{ textTransform: "capitalize" }}
-              />
-            </View>
-
-            <View style={styles.containerWrapper}>
-              <Text>Vehicle Details</Text>
-              <Line />
-              <Content label="Plate #" details={item?.vehicle_id?.plate_no} />
-              <Content label="Details" details={item?.vehicle_id?.name} />
-            </View>
-
-            <View style={styles.containerWrapper}>
-              <Text>Trip Details</Text>
-              <Line />
-              <Content
-                label="ID"
-                details={
-                  item?._id?.length > 20 ? `${item?._id?.slice(20)}` : item?._id
-                }
-              />
-              <Content
-                label="Trip Date"
-                details={moment(item?.trip_date)
-                  .tz("Asia/Manila")
-                  .format("MMM-DD-YY hh:mm a")}
-              />
-
-              <Content label="Odo" details={item?.odometer} />
-              <Content label="Odo Done" details={item?.odometer_done} />
-              {item?.odometer_image_path && (
+            <Card style={styles.containerWrapper}>
+              <Card.Content>
+                <Text>User Details</Text>
+                <Line />
                 <Content
-                  label="Odo Image"
+                  label="Employee ID"
+                  details={item?.user_id?.employee_id}
+                />
+                <Content
+                  label="Name"
+                  details={item?.user_id?.first_name}
+                  detailsStyle={{ textTransform: "capitalize" }}
+                />
+                <Content
+                  label="Department"
+                  details={item?.user_id?.department}
+                  detailsStyle={{ textTransform: "capitalize" }}
+                />
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.containerWrapper}>
+              <Card.Content>
+                <Text>Vehicle Details</Text>
+                <Line />
+                <Content label="Plate #" details={item?.vehicle_id?.plate_no} />
+                <Content label="Details" details={item?.vehicle_id?.name} />
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.containerWrapper}>
+              <Card.Content>
+                <Text>Trip Details</Text>
+                <Line />
+                <Content
+                  label="ID"
                   details={
-                    <TouchableOpacity onPress={onToggle}>
-                      <Text style={{ color: colors.primary }}>View</Text>
-                    </TouchableOpacity>
+                    item?._id?.length > 20
+                      ? `${item?._id?.slice(20)}`
+                      : item?._id
                   }
                 />
-              )}
-              <Content label="Others" details={item?.others} />
-              <Content
-                label="Charging"
-                details={item?.charging}
-                detailsStyle={{ textTransform: "capitalize" }}
-              />
-              <Content
-                label="Companion"
-                details={item?.companion.map((comp) => {
-                  return comp?.first_name;
-                })}
-              />
-            </View>
+                <Content
+                  label="Trip Date"
+                  details={moment(item?.trip_date)
+                    .tz("Asia/Manila")
+                    .format("MMM-DD-YY hh:mm a")}
+                />
+
+                <Content label="Odo" details={item?.odometer} />
+                <Content label="Odo Done" details={item?.odometer_done} />
+                {item?.odometer_image_path && (
+                  <Content
+                    label="Odo Image"
+                    details={
+                      <TouchableOpacity onPress={onToggle}>
+                        <Text style={{ color: colors.primary }}>View</Text>
+                      </TouchableOpacity>
+                    }
+                  />
+                )}
+                <Content label="Others" details={item?.others} />
+                <Content
+                  label="Charging"
+                  details={item?.charging}
+                  detailsStyle={{ textTransform: "capitalize" }}
+                />
+                <Content
+                  label="Companion"
+                  details={item?.companion.map((comp) => {
+                    return comp?.first_name;
+                  })}
+                />
+              </Card.Content>
+            </Card>
 
             {newLocations.length > 0 && (
-              <View style={styles.containerWrapper}>
-                <Text>Location Details</Text>
-                <Line />
+              <Card
+                style={[
+                  styles.containerWrapper,
+                  { marginBottom: item?.diesels.length <= 0 && 70 },
+                ]}
+              >
+                <Card.Content>
+                  <Text>Location Details</Text>
+                  <Line />
 
-                {newLocations.map((loc, i) => {
-                  return (
-                    <Fragment key={i}>
-                      <Content
-                        label="Status"
-                        details={loc?.status}
-                        detailsStyle={{
-                          textTransform: "capitalize",
-                          color:
-                            loc?.status === "left"
-                              ? colors.danger
-                              : colors.success,
-                        }}
-                      />
-                      <Content
-                        label="Date"
-                        details={
-                          loc?.date &&
-                          moment(loc.date)
-                            .tz("Asia/Manila")
-                            .format("MMM-DD-YY hh:mm a")
-                        }
-                      />
-                      <Content
-                        label="Address"
-                        details={`${loc?.address[0]?.name || "(No Name)"}  ${
-                          loc?.address[0]?.district || "(No District)"
-                        } ${loc?.address[0]?.city || "(No City)"}  ${
-                          loc?.address[0]?.subregion || "(No Subregion)"
-                        }`}
-                      />
+                  {newLocations.map((loc, i) => {
+                    return (
+                      <Fragment key={i}>
+                        <Content
+                          label="Status"
+                          details={loc?.status}
+                          detailsStyle={{
+                            textTransform: "capitalize",
+                            color:
+                              loc?.status === "left"
+                                ? colors.danger
+                                : colors.success,
+                          }}
+                        />
+                        <Content
+                          label="Date"
+                          details={
+                            loc?.date &&
+                            moment(loc.date)
+                              .tz("Asia/Manila")
+                              .format("MMM-DD-YY hh:mm a")
+                          }
+                        />
+                        <Content
+                          label="Address"
+                          details={`${loc?.address[0]?.name || "(No Name)"}  ${
+                            loc?.address[0]?.district || "(No District)"
+                          } ${loc?.address[0]?.city || "(No City)"}  ${
+                            loc?.address[0]?.subregion || "(No Subregion)"
+                          }`}
+                        />
 
-                      {newLocations.length !== i + 1 && <MapDivider />}
-                    </Fragment>
-                  );
-                })}
-              </View>
+                        {newLocations.length !== i + 1 && <MapDivider />}
+                      </Fragment>
+                    );
+                  })}
+                </Card.Content>
+              </Card>
             )}
 
             {item?.diesels.length > 0 && (
-              <View style={styles.containerWrapper}>
-                <Text>Diesels Details</Text>
-                <Line />
-                {item.diesels.map((diesel, i) => {
-                  return (
-                    <Fragment key={i}>
-                      <Content
-                        label="Station"
-                        details={diesel?.gas_station_name}
-                        detailsStyle={{
-                          textTransform: "capitalize",
-                        }}
-                      />
-                      <Content label="Odometer" details={diesel?.odometer} />
-                      <Content label="Liter" details={diesel?.liter} />
-                      <Content label="Amount" details={`₱ ${diesel?.amount}`} />
+              <Card style={[styles.containerWrapper, { marginBottom: 70 }]}>
+                <Card.Content>
+                  <Text>Diesels Details</Text>
+                  <Line />
+                  {item.diesels.map((diesel, i) => {
+                    return (
+                      <Fragment key={i}>
+                        <Content
+                          label="Station"
+                          details={diesel?.gas_station_name}
+                          detailsStyle={{
+                            textTransform: "capitalize",
+                          }}
+                        />
+                        <Content label="Odometer" details={diesel?.odometer} />
+                        <Content label="Liter" details={diesel?.liter} />
+                        <Content
+                          label="Amount"
+                          details={`₱ ${diesel?.amount}`}
+                        />
 
-                      {item.diesels.length !== i + 1 && <MapDivider />}
-                    </Fragment>
-                  );
-                })}
-              </View>
+                        {item.diesels.length !== i + 1 && <MapDivider />}
+                      </Fragment>
+                    );
+                  })}
+                </Card.Content>
+              </Card>
             )}
           </ScrollView>
         </View>
