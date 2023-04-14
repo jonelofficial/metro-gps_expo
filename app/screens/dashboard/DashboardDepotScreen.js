@@ -175,7 +175,11 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
     const res = await selectTable("offline_trip");
     if (res?.length > 0) {
       validator ? handleNotSyncNotif() : handleUnfinishedTrip();
+
       await res.map((item) => {
+        if (user?.userId !== item?.user_id) {
+          return null;
+        }
         setTrip((prevState) => [
           {
             _id: item.id,
@@ -198,9 +202,10 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
           },
           ...prevState,
         ]);
+        setTotalCount((prevState) => prevState + 1);
       });
     }
-    setTotalCount((prevState) => prevState + res?.length);
+
     setOfflineLoading(false);
   };
 

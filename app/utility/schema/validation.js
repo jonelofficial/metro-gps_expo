@@ -8,6 +8,8 @@ export const loginSchema = Yup.object().shape({
     .label("Password"),
 });
 
+// SERVICE GROUP
+
 export const officeFormSchema = Yup.object().shape({
   odometer: Yup.number().required().label("Odometer"),
   odometer_image_path: Yup.object().required().label("Odometer Picture"),
@@ -38,4 +40,14 @@ export const gasModalSchema = Yup.object().shape({
     .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
     .required()
     .label("Amount"),
+});
+
+// DEPOT HAULING
+export const haulingFormSchema = Yup.object().shape({
+  odometer: Yup.number().label("Odometer"),
+  // odometer_image_path: Yup.object().required().label("Odometer Picture"),
+  charging: Yup.string().required().label("Charging"),
+  others: Yup.string().label("Others"),
+  farm: Yup.string().label("Others"),
+  tare_weight: Yup.string().label("Others"),
 });

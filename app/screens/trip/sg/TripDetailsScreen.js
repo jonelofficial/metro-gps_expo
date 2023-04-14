@@ -221,12 +221,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
             </Card>
 
             {newLocations.length > 0 && (
-              <Card
-                style={[
-                  styles.containerWrapper,
-                  { marginBottom: item?.diesels.length <= 0 && 70 },
-                ]}
-              >
+              <Card style={styles.containerWrapper}>
                 <Card.Content>
                   <Text>Location Details</Text>
                   <Line />
@@ -272,7 +267,7 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
             )}
 
             {item?.diesels.length > 0 && (
-              <Card style={[styles.containerWrapper, { marginBottom: 70 }]}>
+              <Card style={styles.containerWrapper}>
                 <Card.Content>
                   <Text>Diesels Details</Text>
                   <Line />
