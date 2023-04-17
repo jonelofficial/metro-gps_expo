@@ -172,7 +172,7 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
   const handleOfflineTrip = async () => {
     setOfflineLoading(true);
 
-    const res = await selectTable("offline_trip");
+    const res = await selectTable("depot_hauling");
     if (res?.length > 0) {
       validator ? handleNotSyncNotif() : handleUnfinishedTrip();
 
@@ -199,6 +199,15 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
             others: item?.others,
             offline: true,
             charging: item?.charging,
+
+            trip_type: item?.trip_type,
+            destination: item?.destination,
+            farm: item?.farm,
+            temperature: item?.temperature,
+            tare_weight: item?.tare_weight,
+            gross_weight: item?.gross_weight,
+            net_weight: item?.net_weight,
+            doa_count: item?.doa_count,
           },
           ...prevState,
         ]);

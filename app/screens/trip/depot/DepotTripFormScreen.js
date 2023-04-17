@@ -3,6 +3,7 @@ import {
   BackHandler,
   FlatList,
   Image,
+  Keyboard,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -11,8 +12,11 @@ import {
 import { Text, withTheme } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { removeImage } from "../../../redux-toolkit/counter/imageSlice";
-import { removeCompanion } from "../../../redux-toolkit/counter/companionSlice";
-import { selectTable } from "../../../utility/sqlite";
+import {
+  removeCompanion,
+  spliceCompanion,
+} from "../../../redux-toolkit/counter/companionSlice";
+import { insertToTable, selectTable } from "../../../utility/sqlite";
 import useDisclosure from "../../../hooks/useDisclosure";
 import Screen from "../../../components/Screen";
 import { Formik } from "formik";
@@ -21,6 +25,9 @@ import TextField from "../../../components/form/TextField";
 import { Ionicons } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
 import { haulingFormSchema } from "../../../utility/schema/validation";
+import AppCamera from "../../../components/AppCamera";
+import Scanner from "../../../components/Scanner";
+import moment from "moment-timezone";
 
 const DepotTripFormScreen = ({ theme, route, navigation }) => {
   const { colors } = theme;
@@ -47,7 +54,7 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
     { value: "hauling", label: "Hauling" },
     { value: "delivery", label: "Delivery" },
   ]);
-  const [tripTypeValue, setTripTypeValue] = useState();
+  const [tripTypeValue, setTripTypeValue] = useState(user?.trip_type);
 
   const {
     isOpen: showTripTypeDropdown,
@@ -125,7 +132,59 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
   } = useDisclosure();
 
   const onSubmit = async (data, { resetForm }) => {
+    onToggleLoadingBtn();
+    Keyboard.dismiss();
+
     console.log(data);
+
+    await insertToTable(
+      `
+    INSERT INTO depot_hauling (
+      user_id,
+      vehicle_id,
+      odometer,
+      image,
+      companion,
+      others,
+      locations,
+      gas,
+      date,
+      charging,
+      trip_type,
+      destination,
+      farm,
+      temperature,
+      tare_weight
+    )
+    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    `,
+      [
+        user?.userId,
+        vehicle_id._id,
+        data.odometer,
+        JSON.stringify({
+          name: new Date() + "_odometer",
+          uri: data.odometer_image_path?.uri || null,
+          type: "image/jpg",
+        }),
+        JSON.stringify(companion),
+        data.others,
+        JSON.stringify([]),
+        JSON.stringify([]),
+        JSON.stringify(moment(Date.now()).tz("Asia/Manila")),
+        data?.charging,
+        data?.trip_type,
+        data?.destination,
+        data?.farm,
+        JSON.stringify([data?.temperature]),
+        JSON.stringify([data?.tare_weight]),
+      ]
+    );
+
+    resetForm();
+    dispatch(removeImage());
+    onCloseLoadingBtn();
+    // navigation.navigate("OfficeMap");
   };
 
   const Errors = ({ children }) => {
@@ -158,6 +217,11 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
       borderRadius: 10,
     },
     companionBtn: { fontSize: 14, color: colors.primary },
+    companionWrapper: {
+      marginBottom: 5,
+      flexDirection: "row",
+    },
+    companionText: { marginRight: 10, textTransform: "capitalize" },
   });
 
   return (
@@ -189,10 +253,11 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
                     others: "",
                     tare_weight: "",
                     farm: "",
+                    temperature: "",
                     odometer_image_path: image,
                     companion: companion,
                     charging: value,
-                    trip_type: tripType,
+                    trip_type: tripTypeValue,
                     destination: destination,
                   }}
                   validationSchema={haulingFormSchema}
@@ -233,10 +298,7 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
 
                     // Charging validation
                     useEffect(() => {
-                      console.log("CHARGING: ", value !== "");
-
                       if (value !== "") {
-                        console.log(value);
                         setFieldValue("charging", value);
                         setErrors("charging", null);
                       }
@@ -248,28 +310,29 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
 
                     // Trip type validation
                     useEffect(() => {
-                      if (tripType !== "") {
-                        setFieldValue("trip_type", tripType);
+                      if (tripTypeValue !== "") {
+                        setFieldValue("trip_type", tripTypeValue);
                         setErrors("trip_type", null);
                       }
 
                       return () => {
                         null;
                       };
-                    }, [tripType]);
+                    }, [tripTypeValue]);
 
                     // Destinations validation
                     useEffect(() => {
                       if (destination !== "") {
                         setFieldValue("destination", destination);
                         setErrors("destination", null);
+                        setFieldValue("farm", destination && "testing");
+                        setErrors("farm", null);
                       }
 
                       return () => {
                         null;
                       };
                     }, [destination]);
-
                     return (
                       <>
                         <View>
@@ -295,7 +358,17 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
                               />
                             )}
 
-                            <TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => {
+                                if (image) {
+                                  dispatch(removeImage());
+                                  onToggleCamera();
+                                } else {
+                                  Keyboard.dismiss();
+                                  onToggleCamera();
+                                }
+                              }}
+                            >
                               <Ionicons
                                 name={
                                   image ? "ios-camera-reverse" : "ios-camera"
@@ -329,7 +402,7 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
                               borderRadius: 15,
                               borderColor: colors.light,
                               marginBottom:
-                                touched.charging && errors.charging ? 0 : 12,
+                                touched.trip_type && errors.trip_type ? 0 : 12,
                               zIndex: 0,
                             }}
                             dropDownContainerStyle={{
@@ -338,6 +411,10 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
                               zIndex: 99,
                             }}
                           />
+                          {/* TRIP TYPE ERROR HANDLING */}
+                          {touched?.trip_type && errors?.trip_type && (
+                            <Errors>{errors.trip_type}</Errors>
+                          )}
 
                           {/* DESTINATIONS */}
                           <Text style={styles.text}>Destinations:</Text>
@@ -355,7 +432,9 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
                               borderRadius: 15,
                               borderColor: colors.light,
                               marginBottom:
-                                touched.charging && errors.charging ? 0 : 12,
+                                touched.destination && errors.destination
+                                  ? 0
+                                  : 12,
                               zIndex: 0,
                             }}
                             dropDownContainerStyle={{
@@ -364,6 +443,10 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
                               zIndex: 99,
                             }}
                           />
+                          {/* DESTINATION ERROR HANDLING */}
+                          {touched?.destination && errors?.destination && (
+                            <Errors>{errors.destination}</Errors>
+                          )}
 
                           {/* FARM */}
                           <TextField
@@ -375,6 +458,18 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
                             name="farm"
                             label="Farm (Autofill)"
                             editable={false}
+                          />
+
+                          {/* ODOMETER */}
+                          <TextField
+                            touched={touched}
+                            errors={errors}
+                            handleChange={handleChange}
+                            handleBlur={handleBlur}
+                            values={values}
+                            name="temperature"
+                            label="Temperature"
+                            keyboardType="numeric"
                           />
 
                           {/* TARE WEIGHT */}
@@ -425,7 +520,24 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
                           {/* COMPANION */}
                           <Text style={styles.text}>Companion:</Text>
                           <View style={styles.text}>
-                            <TouchableOpacity>
+                            {companion.length > 0 &&
+                              companion.map((item, i) => (
+                                <View key={i} style={styles.companionWrapper}>
+                                  <Text style={styles.companionText}>
+                                    {item.first_name}
+                                  </Text>
+                                  <TouchableOpacity
+                                    onPress={() => dispatch(spliceCompanion(i))}
+                                  >
+                                    <Ionicons
+                                      name={"close-circle"}
+                                      size={20}
+                                      color={colors.danger}
+                                    />
+                                  </TouchableOpacity>
+                                </View>
+                              ))}
+                            <TouchableOpacity onPress={onToggleScanner}>
                               <Text style={styles.companionBtn}>
                                 Add Companion
                               </Text>
@@ -459,10 +571,9 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
             </View>
           )}
         />
-        {/* <ScrollView>
-          
-        </ScrollView> */}
       </Screen>
+      {showCamera && <AppCamera onCloseCamera={onCloseCamera} />}
+      {showScanner && <Scanner onCloseScanner={onCloseScanner} />}
     </>
   );
 };

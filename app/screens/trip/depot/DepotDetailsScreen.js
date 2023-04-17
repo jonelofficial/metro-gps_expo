@@ -29,6 +29,7 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
   const { item } = route.params;
   const [station, setStation] = useState([]);
 
+  console.log(item);
   const dispatch = useDispatch();
 
   const { isOpen, onClose, onToggle } = useDisclosure();
@@ -63,7 +64,7 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
       >
         <View
           style={{
-            flex: 1.5,
+            flex: 1.6,
           }}
         >
           <Text style={[labelStyle]}>{label}</Text>
@@ -205,16 +206,32 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                   />
                 )}
                 <Content label="Others" details={item?.others} />
-                <Content label="Charging" details={item?.charging} />
+                <Content
+                  label="Charging"
+                  details={item?.charging}
+                  detailsStyle={{ textTransform: "capitalize" }}
+                />
                 <Content
                   label="Companion"
-                  details={item?.companion?.map((comp) => {
-                    return comp?.first_name;
+                  details={item?.companion?.map((item) => {
+                    return <Text>{item?.first_name}</Text>;
+                  })}
+                  detailsStyle={{ textTransform: "capitalize" }}
+                />
+                <Content
+                  label="Temperature"
+                  details={JSON.parse(item?.temperature).map((item) => {
+                    return <Text>{item}</Text>;
                   })}
                 />
-                <Content label="Temperature" details={item?.temperature} />
-                <Content label="Tare Weight" details={item?.tare_weight} />
+                <Content
+                  label="Tare Weight"
+                  details={JSON.parse(item?.tare_weight).map((item) => {
+                    return <Text>{item}</Text>;
+                  })}
+                />
                 <Content label="Gross Weight" details={item?.gross_weight} />
+                <Content label="Net Weight" details={item?.net_weight} />
                 <Content label="DOA Count" details={item?.doa_count} />
               </Card.Content>
             </Card>
