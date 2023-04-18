@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { Text, withTheme } from "react-native-paper";
+import React from "react";
+import { Button, IconButton, Text, withTheme } from "react-native-paper";
+import Screen from "../../../../components/Screen";
+import { useState } from "react";
+import { useEffect } from "react";
+import { selectTable } from "../../../../utility/sqlite";
+import { StyleSheet, View } from "react-native";
 import { useStopwatch } from "react-timer-hook";
-import { selectTable } from "../../../utility/sqlite";
-import useDisclosure from "../../../hooks/useDisclosure";
-import { StyleSheet } from "react-native";
+import useDisclosure from "../../../../hooks/useDisclosure";
 
-const LiveMapScreen = ({ theme }) => {
+const HaulingMap = ({ theme }) => {
   const { colors } = theme;
   // STATE
   const [trip, setTrip] = useState([]);
@@ -141,12 +144,13 @@ const LiveMapScreen = ({ theme }) => {
           : colors.dark,
     },
   });
+
   return (
     <>
       <Screen>
         <View style={styles.firstContainer}>
           <Text>
-            M E T R O {"  "} G P S {"  "} L I V E
+            M E T R O {"  "} G P S {"  "} H A U L I N G
           </Text>
         </View>
 
@@ -244,4 +248,4 @@ const LiveMapScreen = ({ theme }) => {
   );
 };
 
-export default withTheme(LiveMapScreen);
+export default withTheme(HaulingMap);

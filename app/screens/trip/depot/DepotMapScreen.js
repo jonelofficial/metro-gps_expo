@@ -1,8 +1,15 @@
 import React from "react";
-import { Text } from "react-native-paper";
+import HaulingMap from "./map/HaulingMap";
+import DeliveryMap from "./map/DeliveryMap";
 
-const DepotMapScreen = () => {
-  return <Text>DepotMapScreen</Text>;
+const DepotMapScreen = ({ route }) => {
+  const { trip_type } = route.params;
+
+  if (trip_type === "hauling") {
+    return <HaulingMap />;
+  } else {
+    return <DeliveryMap />;
+  }
 };
 
 export default DepotMapScreen;

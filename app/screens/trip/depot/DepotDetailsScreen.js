@@ -29,7 +29,6 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
   const { item } = route.params;
   const [station, setStation] = useState([]);
 
-  console.log(item);
   const dispatch = useDispatch();
 
   const { isOpen, onClose, onToggle } = useDisclosure();
@@ -382,6 +381,9 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                 dispatch(validatorStatus(true));
                 navigation.navigate("Office", {
                   screen: "OfficeMap",
+                  params: {
+                    trip_type: item?.trip_type,
+                  },
                 });
               }}
             >

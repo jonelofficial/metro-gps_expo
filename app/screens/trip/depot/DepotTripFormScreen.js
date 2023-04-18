@@ -188,7 +188,12 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
     resetForm();
     dispatch(removeImage());
     onCloseLoadingBtn();
-    // navigation.navigate("OfficeMap");
+    navigation.navigate("Office", {
+      screen: "OfficeMap",
+      params: {
+        trip_type: data?.trip_type,
+      },
+    });
   };
 
   const Errors = ({ children }) => {
