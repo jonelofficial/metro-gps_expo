@@ -154,9 +154,11 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
       destination,
       farm,
       temperature,
-      tare_weight
+      tare_weight,
+      gross_weight,
+      net_weight
     )
-    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `,
       [
         user?.userId,
@@ -178,6 +180,8 @@ const DepotTripFormScreen = ({ theme, route, navigation }) => {
         data?.farm,
         JSON.stringify([data?.temperature]),
         JSON.stringify([data?.tare_weight]),
+        JSON.stringify([]),
+        JSON.stringify([]),
       ]
     );
 

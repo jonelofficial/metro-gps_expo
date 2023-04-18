@@ -142,35 +142,42 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
         </Appbar.Header>
         <View style={styles.container}>
           <ScrollView>
-            <Card style={styles.containerWrapper}>
-              <Card.Content>
-                <Text>User Details</Text>
-                <Line />
-                <Content
-                  label="Employee ID"
-                  details={item?.user_id?.employee_id}
-                />
-                <Content
-                  label="Name"
-                  details={item?.user_id?.first_name}
-                  detailsStyle={{ textTransform: "capitalize" }}
-                />
-                <Content
-                  label="Department"
-                  details={item?.user_id?.department}
-                  detailsStyle={{ textTransform: "capitalize" }}
-                />
-              </Card.Content>
-            </Card>
+            {(newLocations.length < 0 || !isNaN(item?.odometer_done)) && (
+              <Card style={styles.containerWrapper}>
+                <Card.Content>
+                  <Text>User Details</Text>
+                  <Line />
+                  <Content
+                    label="Employee ID"
+                    details={item?.user_id?.employee_id}
+                  />
+                  <Content
+                    label="Name"
+                    details={item?.user_id?.first_name}
+                    detailsStyle={{ textTransform: "capitalize" }}
+                  />
+                  <Content
+                    label="Department"
+                    details={item?.user_id?.department}
+                    detailsStyle={{ textTransform: "capitalize" }}
+                  />
+                </Card.Content>
+              </Card>
+            )}
 
-            <Card style={styles.containerWrapper}>
-              <Card.Content>
-                <Text>Vehicle Details</Text>
-                <Line />
-                <Content label="Plate #" details={item?.vehicle_id?.plate_no} />
-                <Content label="Details" details={item?.vehicle_id?.name} />
-              </Card.Content>
-            </Card>
+            {(newLocations.length < 0 || !isNaN(item?.odometer_done)) && (
+              <Card style={styles.containerWrapper}>
+                <Card.Content>
+                  <Text>Vehicle Details</Text>
+                  <Line />
+                  <Content
+                    label="Plate #"
+                    details={item?.vehicle_id?.plate_no}
+                  />
+                  <Content label="Details" details={item?.vehicle_id?.name} />
+                </Card.Content>
+              </Card>
+            )}
 
             <Card style={styles.containerWrapper}>
               <Card.Content>
@@ -213,25 +220,65 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                 />
                 <Content
                   label="Companion"
-                  details={item?.companion?.map((item) => {
-                    return <Text>{item?.first_name}</Text>;
-                  })}
+                  details={
+                    typeof item?.companion === "string"
+                      ? JSON.parse(item?.companion).map((item, i) => {
+                          return <Text key={i}>{item?.first_name}</Text>;
+                        })
+                      : item?.companion?.map((item, i) => {
+                          return <Text key={i}>{item?.first_name}</Text>;
+                        })
+                  }
                   detailsStyle={{ textTransform: "capitalize" }}
                 />
                 <Content
                   label="Temperature"
-                  details={JSON.parse(item?.temperature).map((item) => {
-                    return <Text>{item}</Text>;
-                  })}
+                  details={
+                    typeof item?.temperature === "string"
+                      ? JSON.parse(item?.temperature).map((item, i) => {
+                          return <Text key={i}>{item}</Text>;
+                        })
+                      : item?.temperature.map((item, i) => {
+                          return <Text key={i}>{item}</Text>;
+                        })
+                  }
                 />
                 <Content
                   label="Tare Weight"
-                  details={JSON.parse(item?.tare_weight).map((item) => {
-                    return <Text>{item}</Text>;
-                  })}
+                  details={
+                    typeof item?.tare_weight === "string"
+                      ? JSON.parse(item?.tare_weight).map((item, i) => {
+                          return <Text key={i}>{item}</Text>;
+                        })
+                      : item?.tare_weight.map((item, i) => {
+                          return <Text key={i}>{item}</Text>;
+                        })
+                  }
                 />
-                <Content label="Gross Weight" details={item?.gross_weight} />
-                <Content label="Net Weight" details={item?.net_weight} />
+                <Content
+                  label="Gross Weight"
+                  details={
+                    typeof item?.gross_weight === "string"
+                      ? JSON.parse(item?.gross_weight).map((item, i) => {
+                          return <Text key={i}>{item}</Text>;
+                        })
+                      : item?.gross_weight.map((item, i) => {
+                          return <Text key={i}>{item}</Text>;
+                        })
+                  }
+                />
+                <Content
+                  label="Net Weight"
+                  details={
+                    typeof item?.net_weight === "string"
+                      ? JSON.parse(item?.net_weight).map((item, i) => {
+                          return <Text key={i}>{item}</Text>;
+                        })
+                      : item?.net_weight.map((item, i) => {
+                          return <Text key={i}>{item}</Text>;
+                        })
+                  }
+                />
                 <Content label="DOA Count" details={item?.doa_count} />
               </Card.Content>
             </Card>
