@@ -4,19 +4,34 @@ import Screen from "../../../../components/Screen";
 import { useState } from "react";
 import { useEffect } from "react";
 import { selectTable } from "../../../../utility/sqlite";
-import { StyleSheet, View } from "react-native";
+import { Keyboard, StyleSheet, View } from "react-native";
 import { useStopwatch } from "react-timer-hook";
 import useDisclosure from "../../../../hooks/useDisclosure";
+import GasModal from "../../../../components/map/GasModal";
+import useToast from "../../../../hooks/useToast";
+import taskManager from "../../../../config/taskManager";
+import LoaderAnimation from "../../../../components/loading/LoaderAnimation";
+import useLocations from "../../../../hooks/useLocations";
+import AutoSuccessAnimation from "../../../../components/loading/AutoSuccessAnimation";
 
 const HaulingMap = ({ theme }) => {
   const { colors } = theme;
   // STATE
   const [trip, setTrip] = useState([]);
 
+  // TOAST
+  const { showAlert } = useToast();
+
+  // LOCATION
+  const { location, showMap, requestPremissions } = taskManager();
+
+  const { handleArrived, handleInterval, handleLeft } = useLocations();
+
   // TIMER
   const { seconds, minutes, hours, start, pause } = useStopwatch({});
 
   useEffect(() => {
+    start();
     (async () => {
       const res = await selectTable("depot_hauling");
       setTrip(res[res.length - 1]);
@@ -145,8 +160,51 @@ const HaulingMap = ({ theme }) => {
     },
   });
 
+  const handleLeftButton = async () => {
+    try {
+      startLeftLoading();
+      start(new Date());
+
+      stopLefLoading();
+      startLoader();
+    } catch (error) {
+      stopLefLoading();
+
+      showAlert(
+        "Left not process. Please try again or reload app if still not processing",
+        "danger"
+      );
+    }
+  };
+
+  const handleGasSubmit = async (data) => {
+    try {
+      Keyboard.dismiss();
+      startGasLoading();
+
+      stopGasLoading();
+      onCloseGasModal();
+    } catch (error) {
+      showAlert(`ERROR SQLTIE GAS PROCESS`, "danger");
+    }
+  };
+
+  if (!showMap) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Allow permission for locations</Text>
+        <Button onPress={requestPremissions}>Request Permission</Button>
+      </View>
+    );
+  }
+
+  if (!location) {
+    return <LoaderAnimation />;
+  }
+
   return (
     <>
+      <AutoSuccessAnimation loop={showLoader} stop={stopLoader} />
       <Screen>
         <View style={styles.firstContainer}>
           <Text>
@@ -179,7 +237,7 @@ const HaulingMap = ({ theme }) => {
                     trip?.locations?.length > 0)
                 }
                 loading={leftLoading}
-                onPress={() => console.log("left")}
+                onPress={handleLeftButton}
               >
                 Left
               </Button>
@@ -219,7 +277,7 @@ const HaulingMap = ({ theme }) => {
               style={{ borderRadius: 10 }}
               disabled={arrivedLoading || leftLoading}
               loading={true}
-              onPress={() => console.log("gas")}
+              onPress={onToggleGasModal}
             />
           </View>
 
@@ -244,6 +302,16 @@ const HaulingMap = ({ theme }) => {
           </View>
         </View>
       </Screen>
+
+      {/* DONE MODAL */}
+
+      {/* GAS MODAL */}
+      <GasModal
+        showGasModal={showGasModal}
+        gasLoading={gasLoading}
+        onCloseGasModal={onCloseGasModal}
+        onSubmit={handleGasSubmit}
+      />
     </>
   );
 };
