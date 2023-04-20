@@ -54,3 +54,15 @@ export const haulingFormSchema = Yup.object().shape({
   charging: Yup.string().required().label("Charging"),
   others: Yup.string().label("Others"),
 });
+
+// DEPOT DELIVERY
+export const deliveryFormSchema = Yup.object().shape({
+  odometer: Yup.number().required().label("Odometer"),
+  odometer_image_path: Yup.object().required().label("Odometer Picture"),
+  trip_type: Yup.string().required().label("Trip Type"),
+  destination: Yup.string().required().label("Destination"),
+  route: Yup.string().required("Select destination to autofill").label("Route"),
+  temperature: Yup.string().required().label("Temperature"),
+  charging: Yup.string().required().label("Charging"),
+  others: Yup.string().label("Others"),
+});
