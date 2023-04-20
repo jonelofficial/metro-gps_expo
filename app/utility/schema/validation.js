@@ -42,6 +42,17 @@ export const gasModalSchema = Yup.object().shape({
     .label("Amount"),
 });
 
+// DEFAULT HAULING
+
+export const depotDefaultFormSchema = Yup.object().shape({
+  odometer: Yup.number().required().label("Odometer"),
+  odometer_image_path: Yup.object().required().label("Odometer Picture"),
+  trip_type: Yup.string().required().label("Trip Type"),
+  temperature: Yup.string().required().label("Temperature"),
+  charging: Yup.string().required().label("Charging"),
+  others: Yup.string().label("Others"),
+});
+
 // DEPOT HAULING
 export const haulingFormSchema = Yup.object().shape({
   odometer: Yup.number().required().label("Odometer"),
