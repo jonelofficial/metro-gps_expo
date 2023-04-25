@@ -66,6 +66,26 @@ export const haulingFormSchema = Yup.object().shape({
   others: Yup.string().label("Others"),
 });
 
+export const arrivedModalSchema = Yup.object().shape({
+  temperature: Yup.number().required().label("Temperature"),
+  tare_weight: Yup.number().required().label("Tare Weight"),
+});
+
+export const arrivedModalFullSchema = Yup.object().shape({
+  temperature: Yup.number().required().label("Temperature"),
+  tare_weight: Yup.number().required().label("Tare Weight"),
+  net_weight: Yup.number().required().label("Net Weight"),
+  gross_weight: Yup.number().required().label("Gross Weight"),
+  doa_count: Yup.number().required().label("DOA Count"),
+});
+
+export const leftModalSchema = Yup.object().shape({
+  temperature: Yup.number().required().label("Temperature"),
+  tare_weight: Yup.number().required().label("Tare Weight"),
+  net_weight: Yup.number().required().label("Net Weight"),
+  gross_weight: Yup.number().required().label("Gross Weight"),
+});
+
 // DEPOT DELIVERY
 export const deliveryFormSchema = Yup.object().shape({
   odometer: Yup.number().required().label("Odometer"),

@@ -36,9 +36,9 @@ const DoneModal = ({
           </TouchableOpacity>
         </View>
 
-        <Text style={{ textAlign: "center" }}>
+        {/* <Text style={{ textAlign: "center" }}>
           Please input current vehicle odometer.
-        </Text>
+        </Text> */}
 
         <Formik
           initialValues={{
@@ -64,13 +64,13 @@ const DoneModal = ({
                   handleBlur={handleBlur}
                   values={values}
                   name="odometer_done"
-                  label="Odometer Done"
+                  label="Vehicle Odometer"
                   keyboardType="numeric"
                   defaultValue={values["odometer_done"]}
                 />
                 <SubmitButton
                   onPress={handleSubmit}
-                  title="Done"
+                  title="Proceed"
                   isLoading={doneLoading}
                   disabled={doneLoading}
                 />

@@ -3,8 +3,20 @@ import { Button, IconButton, Text, withTheme } from "react-native-paper";
 import Screen from "../../../../components/Screen";
 import { useState } from "react";
 import { useEffect } from "react";
-import { selectTable } from "../../../../utility/sqlite";
-import { Keyboard, StyleSheet, View } from "react-native";
+import {
+  deleteFromTable,
+  insertToTable,
+  selectTable,
+  updateToTable,
+} from "../../../../utility/sqlite";
+import {
+  Alert,
+  AppState,
+  BackHandler,
+  Keyboard,
+  StyleSheet,
+  View,
+} from "react-native";
 import { useStopwatch } from "react-timer-hook";
 import useDisclosure from "../../../../hooks/useDisclosure";
 import GasModal from "../../../../components/map/GasModal";
@@ -13,33 +25,43 @@ import taskManager from "../../../../config/taskManager";
 import LoaderAnimation from "../../../../components/loading/LoaderAnimation";
 import useLocations from "../../../../hooks/useLocations";
 import AutoSuccessAnimation from "../../../../components/loading/AutoSuccessAnimation";
+import LeftModal from "../../../../components/modal/hauling/LeftModal";
+import ArrivedModal from "../../../../components/modal/hauling/ArrivedModal";
+import DoneModal from "../../../../components/map/DoneModal";
+import { useDispatch, useSelector } from "react-redux";
+import { getPathLength } from "geolib";
+import * as Notifications from "expo-notifications";
+import moment from "moment-timezone";
+import { validatorStatus } from "../../../../redux-toolkit/counter/vaidatorSlice";
 
-const HaulingMap = ({ theme }) => {
+const HaulingMap = ({ theme, navigation }) => {
   const { colors } = theme;
   // STATE
-  const [trip, setTrip] = useState([]);
+  const [trip, setTrip] = useState({ locations: [] });
+  const [totalKm, setTotalKm] = useState(0);
+  const [estimatedOdo, setEstimatedOdo] = useState(0);
+  const [points, setPoints] = useState([]);
+  const [syncingTrip, setSyncingTrip] = useState(true);
+  const [onBackground, setOnBackground] = useState(false);
+
+  const dispatch = useDispatch();
 
   // TOAST
   const { showAlert } = useToast();
 
   // LOCATION
-  const { location, showMap, requestPremissions } = taskManager();
+  const { location, showMap, requestPremissions } = taskManager(
+    (newObj) => reloadRoute(newObj),
+    onBackground
+  );
 
   const { handleArrived, handleInterval, handleLeft } = useLocations();
 
+  // NET
+  const net = useSelector((state) => state.net.value);
+
   // TIMER
   const { seconds, minutes, hours, start, pause } = useStopwatch({});
-
-  useEffect(() => {
-    start();
-    (async () => {
-      const res = await selectTable("depot_hauling");
-      setTrip(res[res.length - 1]);
-      console.log(res[res.length - 1]);
-    })();
-
-    return () => {};
-  }, []);
 
   // SUCCESS LOADER
 
@@ -58,9 +80,21 @@ const HaulingMap = ({ theme }) => {
   } = useDisclosure();
 
   const {
+    isOpen: showLeftModal,
+    onClose: onCloseLeftModal,
+    onToggle: onToggleLeftModal,
+  } = useDisclosure();
+
+  const {
     isOpen: arrivedLoading,
     onClose: stopArrivedLoading,
     onToggle: startArrivedLoading,
+  } = useDisclosure();
+
+  const {
+    isOpen: showArrivedModal,
+    onClose: onCloseArrivedModal,
+    onToggle: onToggleArrivedModal,
   } = useDisclosure();
 
   // GAS DISCLOSURE
@@ -92,6 +126,468 @@ const HaulingMap = ({ theme }) => {
     onClose: onCloseDoneModal,
     onToggle: onToggleDoneModal,
   } = useDisclosure();
+
+  // FOR UNMOUNTING
+  useEffect(() => {
+    start();
+    (async () => {
+      await deleteFromTable("route");
+      await reloadMapState();
+      await getRoute();
+    })();
+
+    // HANDLE APP STATE
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    // HANDLE TRIP INTERVAL. 300000 = 5 minutes
+    const loc = setInterval(() => {
+      (async () => {
+        const intervalRes = await handleInterval();
+        if (intervalRes) {
+          const newObj = {
+            ...intervalRes,
+            date: moment(Date.now()).tz("Asia/Manila"),
+          };
+
+          reloadRoute(newObj);
+        }
+      })();
+    }, 600000);
+
+    return async () => {
+      clearInterval(loc);
+      await updateRoute();
+      deleteFromTable("route");
+      subscription.remove();
+    };
+  }, []);
+
+  // PATH OR POINTS AND TOTAL KM USEEFFECT
+  useEffect(() => {
+    if (location) {
+      (async () => {
+        if (location && !location?.coords?.speed <= 0 && !syncingTrip) {
+          setPoints((currentValue) => [
+            ...currentValue,
+            {
+              latitude: location?.coords?.latitude,
+              longitude: location?.coords?.longitude,
+            },
+          ]);
+
+          insertToTable("INSERT INTO route (points) values (?)", [
+            JSON.stringify({
+              latitude: location?.coords?.latitude,
+              longitude: location?.coords?.longitude,
+            }),
+          ]);
+        }
+
+        // COMPUTE TOTAL KM
+        const meter = getPathLength(points);
+        const km = meter / 1000;
+        setTotalKm(km.toFixed(1));
+      })();
+    }
+
+    return () => {
+      null;
+    };
+  }, [location]);
+
+  // HANDLE BACK
+  useEffect(() => {
+    BackHandler.addEventListener("hardwareBackPress", backAction);
+    return () => {
+      BackHandler.removeEventListener("hardwareBackPress", backAction);
+    };
+  }, [trip]);
+
+  const backAction = () => {
+    Alert.alert("Hold on!", "Are you sure you want to go back?", [
+      {
+        text: "Cancel",
+        onPress: () => null,
+        style: "cancel",
+      },
+      {
+        text: "YES",
+        onPress: async () => {
+          if (trip) {
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: "Dashboard",
+                  params: { screen: "DashboardStack" },
+                },
+              ],
+            });
+          } else {
+            showAlert("Please finish the map loading", "warning");
+          }
+        },
+      },
+    ]);
+    return true;
+  };
+  const handleAppStateChange = async (nextAppState) => {
+    let notif;
+
+    if (nextAppState === "background") {
+      setOnBackground(true);
+      const content = {
+        title: `Fresh Morning ${
+          user?.first_name[0].toUpperCase() +
+          user?.first_name.substring(1).toLowerCase()
+        }`,
+        body: "You have an existing transaction. Please go back to the Metro app and finish it.",
+      };
+
+      notif = Notifications.scheduleNotificationAsync({
+        content,
+        trigger: { seconds: 1 },
+      });
+      reloadRoute();
+    } else {
+      setOnBackground(false);
+      await Notifications.cancelAllScheduledNotificationsAsync(notif);
+    }
+  };
+
+  const reloadRoute = async (newObj) => {
+    let mapPoints = [];
+    const routeRes = await selectTable("route");
+    if (routeRes.length > 0) {
+      mapPoints = [...routeRes.map((item) => JSON.parse(item?.points))];
+      setPoints(mapPoints);
+
+      const meter = getPathLength(mapPoints);
+      const km = meter / 1000;
+      setTotalKm(km.toFixed(1));
+    }
+
+    const tripRes = await selectTable("depot_hauling");
+
+    if (newObj) {
+      let locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
+      locPoint.push(newObj);
+
+      await updateToTable(
+        "UPDATE depot_hauling SET points = (?) , locations = (?) WHERE id = (SELECT MAX(id) FROM depot_hauling)",
+        [JSON.stringify(mapPoints), JSON.stringify(locPoint)]
+      );
+    }
+
+    const meter = mapPoints.length > 0 ? getPathLength(mapPoints) : 0;
+    const km = meter / 1000;
+    const odo = JSON.parse(tripRes[tripRes?.length - 1]?.odometer);
+
+    setEstimatedOdo(parseFloat(km.toFixed(1)) + parseFloat(odo));
+  };
+
+  const updateRoute = async () => {
+    const routeRes = await selectTable("route");
+
+    const mapPoints = [
+      ...(await routeRes?.map((item) => JSON.parse(item?.points))),
+    ];
+
+    await updateToTable(
+      "UPDATE depot_hauling SET points = (?) WHERE id = (SELECT MAX(id) FROM depot_hauling)",
+      [JSON.stringify(mapPoints)]
+    );
+  };
+
+  const getRoute = async () => {
+    setSyncingTrip(true);
+    const tripRes = await selectTable("depot_hauling");
+    const points = JSON.parse(tripRes[tripRes.length - 1]?.points);
+
+    points?.length > 0 &&
+      points?.map((point) => {
+        setPoints((currentValue) => [
+          ...currentValue,
+          {
+            latitude: point?.latitude,
+            longitude: point?.longitude,
+          },
+        ]);
+
+        insertToTable("INSERT INTO route (points) values (?)", [
+          JSON.stringify({
+            latitude: point?.latitude,
+            longitude: point?.longitude,
+          }),
+        ]);
+      });
+    setSyncingTrip(false);
+  };
+
+  const reloadMapState = async () => {
+    const tripRes = await selectTable("depot_hauling");
+
+    const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
+
+    const newLocations = locPoint.filter(
+      (location) => location.status == "left" || location.status == "arrived"
+    );
+
+    newLocations?.length % 2 !== 0 && start(new Date());
+
+    if (locPoint?.length > 0) {
+      setTrip({
+        locations: [...newLocations],
+      });
+    }
+  };
+
+  const handleLeftButton = async (data) => {
+    try {
+      Keyboard.dismiss();
+      startLeftLoading();
+      start(new Date());
+
+      const leftRes = await Promise.race([
+        handleLeft(location),
+        new Promise((resolve, reject) =>
+          setTimeout(() => {
+            reject(new Error("Timeout"));
+          }, 60000)
+        ),
+      ]);
+
+      if (leftRes) {
+        const newObj = {
+          ...leftRes,
+          date: moment(Date.now()).tz("Asia/Manila"),
+        };
+
+        await reloadRoute(newObj);
+        await reloadMapState();
+
+        const tripRes = await selectTable("depot_hauling");
+
+        let tare_weight = JSON.parse(tripRes[tripRes.length - 1]?.tare_weight);
+
+        let gross_weight = JSON.parse(
+          tripRes[tripRes.length - 1]?.gross_weight
+        );
+
+        let net_weight = JSON.parse(tripRes[tripRes.length - 1]?.net_weight);
+
+        let temperature = JSON.parse(tripRes[tripRes.length - 1]?.temperature);
+
+        tare_weight.push(data?.tare_weight);
+        gross_weight.push(data?.gross_weight);
+        net_weight.push(data?.net_weight);
+        temperature.push(data?.temperature);
+
+        await updateToTable(
+          `UPDATE depot_hauling SET 
+          tare_weight = (?) , 
+          gross_weight = (?) , 
+          net_weight = (?) , 
+          temperature = (?) 
+          WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
+          [
+            JSON.stringify(tare_weight),
+            JSON.stringify(gross_weight),
+            JSON.stringify(net_weight),
+            JSON.stringify(temperature),
+          ]
+        );
+      }
+
+      stopLefLoading();
+      onCloseLeftModal();
+      startLoader();
+    } catch (error) {
+      stopLefLoading();
+      console.log(error);
+      showAlert(
+        "Left not process. Please try again or reload app if still not processing",
+        "danger"
+      );
+    }
+  };
+
+  const sqliteLeft = async () => {
+    try {
+      Keyboard.dismiss();
+      startLeftLoading();
+      start(new Date());
+
+      const leftRes = await Promise.race([
+        handleLeft(location),
+        new Promise((resolve, reject) =>
+          setTimeout(() => {
+            reject(new Error("Timeout"));
+          }, 60000)
+        ),
+      ]);
+
+      if (leftRes) {
+        const newObj = {
+          ...leftRes,
+          date: moment(Date.now()).tz("Asia/Manila"),
+        };
+
+        await reloadRoute(newObj);
+        await reloadMapState();
+      }
+
+      stopLefLoading();
+      startLoader();
+    } catch (error) {
+      stopLefLoading();
+      console.log(error);
+      showAlert(
+        "Left not process. Please try again or reload app if still not processing",
+        "danger"
+      );
+    }
+  };
+
+  const sqliteArrived = async (data) => {
+    try {
+      Keyboard.dismiss();
+      startArrivedLoading();
+      pause();
+
+      const arrivedRes = await Promise.race([
+        handleArrived(location),
+        new Promise((resolve, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 6000)
+        ),
+      ]);
+
+      if (arrivedRes) {
+        const newObj = {
+          ...arrivedRes,
+          date: moment(Date.now()).tz("Asia/Manila"),
+        };
+
+        await reloadRoute(newObj);
+        await reloadMapState();
+
+        const tripRes = await selectTable("depot_hauling");
+        if (trip?.locations?.length <= 1) {
+          let tare_weight = JSON.parse(
+            tripRes[tripRes.length - 1]?.tare_weight
+          );
+
+          let temperature = JSON.parse(
+            tripRes[tripRes.length - 1]?.temperature
+          );
+
+          tare_weight.push(data?.tare_weight);
+          temperature.push(data?.temperature);
+
+          await updateToTable(
+            `UPDATE depot_hauling SET 
+            tare_weight = (?) ,
+            temperature = (?) 
+            WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
+            [JSON.stringify(tare_weight), JSON.stringify(temperature)]
+          );
+        } else {
+          let tare_weight = JSON.parse(
+            tripRes[tripRes.length - 1]?.tare_weight
+          );
+
+          let gross_weight = JSON.parse(
+            tripRes[tripRes.length - 1]?.gross_weight
+          );
+
+          let net_weight = JSON.parse(tripRes[tripRes.length - 1]?.net_weight);
+
+          let temperature = JSON.parse(
+            tripRes[tripRes.length - 1]?.temperature
+          );
+
+          tare_weight.push(data?.tare_weight);
+          gross_weight.push(data?.gross_weight);
+          net_weight.push(data?.net_weight);
+          temperature.push(data?.temperature);
+
+          await updateToTable(
+            `UPDATE depot_hauling SET 
+            tare_weight = (?) , 
+            gross_weight = (?) , 
+            net_weight = (?) , 
+            doa_count = (?) , 
+            temperature = (?) 
+            WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
+            [
+              JSON.stringify(tare_weight),
+              JSON.stringify(gross_weight),
+              JSON.stringify(net_weight),
+              data?.doa_count,
+              JSON.stringify(temperature),
+            ]
+          );
+        }
+      }
+
+      stopArrivedLoading();
+      onCloseArrivedModal();
+      startLoader();
+    } catch (error) {
+      stopArrivedLoading();
+      console.log(error);
+      showAlert(
+        "Arrived not process. Please try again or reload app if still not processing",
+        "danger"
+      );
+    }
+  };
+
+  const handleGasSubmit = async (data) => {
+    try {
+      Keyboard.dismiss();
+      startGasLoading();
+
+      stopGasLoading();
+      onCloseGasModal();
+    } catch (error) {
+      showAlert(`ERROR SQLTIE GAS PROCESS`, "danger");
+    }
+  };
+
+  const sqliteDone = async (data) => {
+    try {
+      Keyboard.dismiss();
+      startDoneLoading();
+
+      const routeRes = await selectTable("route");
+      const mapPoints = [...routeRes.map((item) => JSON.parse(item?.points))];
+
+      await updateToTable(
+        "UPDATE depot_hauling SET odometer_done = (?), points = (?)  WHERE id = (SELECT MAX(id) FROM depot_hauling)",
+        [data.odometer_done, JSON.stringify(mapPoints)]
+      );
+
+      dispatch(validatorStatus(true));
+      stopDoneLoading();
+
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "Dashboard",
+            params: { screen: "DashboardStack" },
+          },
+        ],
+      });
+    } catch (error) {
+      console.log("ERROR DONE PROCESS: ", error);
+    }
+  };
 
   const styles = StyleSheet.create({
     firstContainer: {
@@ -133,6 +629,8 @@ const HaulingMap = ({ theme }) => {
         ? colors.notActive
         : trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
         ? colors.notActive
+        : trip?.locations?.length > 3
+        ? colors.notActive
         : colors.danger,
     },
     arrivedButton: {
@@ -146,7 +644,7 @@ const HaulingMap = ({ theme }) => {
     doneContainer: { position: "absolute", bottom: 0, left: 0, right: 0 },
     doneButton: {
       backgroundColor:
-        trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
+        trip?.locations?.length < 4 && trip?.locations?.length > 0
           ? colors.notActive
           : trip?.locations?.length === 0
           ? colors.notActive
@@ -159,35 +657,6 @@ const HaulingMap = ({ theme }) => {
           : colors.dark,
     },
   });
-
-  const handleLeftButton = async () => {
-    try {
-      startLeftLoading();
-      start(new Date());
-
-      stopLefLoading();
-      startLoader();
-    } catch (error) {
-      stopLefLoading();
-
-      showAlert(
-        "Left not process. Please try again or reload app if still not processing",
-        "danger"
-      );
-    }
-  };
-
-  const handleGasSubmit = async (data) => {
-    try {
-      Keyboard.dismiss();
-      startGasLoading();
-
-      stopGasLoading();
-      onCloseGasModal();
-    } catch (error) {
-      showAlert(`ERROR SQLTIE GAS PROCESS`, "danger");
-    }
-  };
 
   if (!showMap) {
     return (
@@ -220,7 +689,7 @@ const HaulingMap = ({ theme }) => {
             }:${
               seconds < 10 ? `0${seconds}` : seconds >= 10 && seconds
             }`}</Text>
-            <Text>{`  Total KM: totalKm || ${"0"}`}</Text>
+            <Text>{`  Total KM:  ${totalKm || "0"}`}</Text>
           </View>
 
           {/* LEFT AND ARRIVED BUTTON */}
@@ -234,10 +703,17 @@ const HaulingMap = ({ theme }) => {
                   leftLoading ||
                   arrivedLoading ||
                   (trip?.locations?.length % 2 !== 0 &&
-                    trip?.locations?.length > 0)
+                    trip?.locations?.length > 0) ||
+                  trip?.locations?.length > 3
                 }
                 loading={leftLoading}
-                onPress={handleLeftButton}
+                onPress={async () => {
+                  if (trip?.locations?.length <= 0) {
+                    await sqliteLeft();
+                  } else {
+                    onToggleLeftModal();
+                  }
+                }}
               >
                 Left
               </Button>
@@ -255,7 +731,7 @@ const HaulingMap = ({ theme }) => {
                   trip?.locations?.length === 0
                 }
                 loading={arrivedLoading}
-                onPress={() => console.log("arrived")}
+                onPress={onToggleArrivedModal}
               >
                 Arrived
               </Button>
@@ -288,14 +764,13 @@ const HaulingMap = ({ theme }) => {
               style={styles.doneButton}
               labelStyle={styles.buttonLabelStyle}
               disabled={
-                (trip?.locations?.length % 2 !== 0 &&
-                  trip?.locations?.length > 0) ||
+                (trip?.locations?.length < 4 && trip?.locations?.length > 0) ||
                 trip?.locations?.length === 0 ||
                 arrivedLoading ||
                 leftLoading ||
                 doneLoading
               }
-              onPress={() => console.log("done")}
+              onPress={onToggleDoneModal}
             >
               Done
             </Button>
@@ -304,6 +779,13 @@ const HaulingMap = ({ theme }) => {
       </Screen>
 
       {/* DONE MODAL */}
+      <DoneModal
+        showDoneModal={showDoneModal}
+        estimatedOdo={1}
+        doneLoading={doneLoading}
+        onCloseDoneModal={onCloseDoneModal}
+        onSubmit={sqliteDone}
+      />
 
       {/* GAS MODAL */}
       <GasModal
@@ -311,6 +793,23 @@ const HaulingMap = ({ theme }) => {
         gasLoading={gasLoading}
         onCloseGasModal={onCloseGasModal}
         onSubmit={handleGasSubmit}
+      />
+
+      {/* LEFT MODAL */}
+      <LeftModal
+        leftLoading={leftLoading}
+        onCloseLeftModal={onCloseLeftModal}
+        showLeftModal={showLeftModal}
+        onSubmit={handleLeftButton}
+      />
+
+      {/* ARRIVED MODAL */}
+      <ArrivedModal
+        arrivedLoading={arrivedLoading}
+        onCloseArrivedModal={onCloseArrivedModal}
+        showArrivedModal={showArrivedModal}
+        onSubmit={sqliteArrived}
+        trip={trip}
       />
     </>
   );

@@ -200,7 +200,7 @@ const GasModal = ({
                 />
                 <SubmitButton
                   onPress={handleSubmit}
-                  title="Done"
+                  title="Proceed"
                   isLoading={gasLoading}
                   disabled={gasLoading}
                 />

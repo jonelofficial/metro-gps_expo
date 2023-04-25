@@ -16,7 +16,7 @@ const TextField = ({
       <TextInput
         mode="outlined"
         label={label}
-        placeholder={`Input ${name}`}
+        placeholder={`Input ${label}`}
         onChangeText={handleChange(name)}
         onBlur={handleBlur(name)}
         value={values[name]}
