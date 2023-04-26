@@ -25,13 +25,13 @@ import { Ionicons } from "@expo/vector-icons";
 import useDisclosure from "../../hooks/useDisclosure";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import dayjs from "dayjs";
-import ListItem from "../../components/dashboard/ListItem";
 import DashboardCamera from "../../components/DashboardCamera";
 import useAuth from "../../auth/useAuth";
 import { selectTable } from "../../utility/sqlite";
 import SyncingAnimation from "../../components/loading/SyncingAnimation";
 import * as Notifications from "expo-notifications";
 import useToast from "../../hooks/useToast";
+import DepotListItem from "../../components/dashboard/DepotListItem";
 
 const DashboardDepotScreen = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -270,7 +270,7 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
 
   const renderItem = ({ item, index }) => {
     return (
-      <ListItem
+      <DepotListItem
         key={index}
         item={item}
         onPress={() => navigation.navigate("TripDetails", { item })}

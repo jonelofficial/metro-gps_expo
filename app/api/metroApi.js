@@ -43,6 +43,15 @@ export const metroApi = createApi({
         `/depot/apk-trips-hauling?page=${params?.page}&limit=${params?.limit}&search=${params?.search}&searchBy=${params?.searchBy}&date=${params?.date}`,
       providesTags: ["Hauling"],
     }),
+    createHaulingTrip: builder.mutation({
+      query: (payload) => ({
+        url: "/depot/trip-hauling",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Hauling"],
+      // provides: (result) => [{ type: "Trip", id: result.id }],
+    }),
   }),
 });
 
@@ -50,4 +59,5 @@ export const {
   useGetAllTripsQuery,
   useCreateTripMutation,
   useGetAllTripsHaulingQuery,
+  useCreateHaulingTripMutation,
 } = metroApi;

@@ -33,6 +33,7 @@ import { getPathLength } from "geolib";
 import * as Notifications from "expo-notifications";
 import moment from "moment-timezone";
 import { validatorStatus } from "../../../../redux-toolkit/counter/vaidatorSlice";
+import { useCreateHaulingTripMutation } from "../../../../api/metroApi";
 
 const HaulingMap = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -45,6 +46,7 @@ const HaulingMap = ({ theme, navigation }) => {
   const [onBackground, setOnBackground] = useState(false);
 
   const dispatch = useDispatch();
+  const [createTrip, { isLoading }] = useCreateHaulingTripMutation();
 
   // TOAST
   const { showAlert } = useToast();
@@ -129,7 +131,6 @@ const HaulingMap = ({ theme, navigation }) => {
 
   // FOR UNMOUNTING
   useEffect(() => {
-    start();
     (async () => {
       await deleteFromTable("route");
       await reloadMapState();
@@ -572,6 +573,46 @@ const HaulingMap = ({ theme, navigation }) => {
         [data.odometer_done, JSON.stringify(mapPoints)]
       );
 
+      if (net) {
+        const offlineTrip = await selectTable(
+          "depot_hauling WHERE id = (SELECT MAX(id) FROM depot_hauling)"
+        );
+
+        const img = JSON.parse(offlineTrip[0]?.image);
+        const form = new FormData();
+
+        form.append("trip_date", JSON.parse(offlineTrip[0]?.date));
+        form.append("trip_type", offlineTrip[0]?.trip_type);
+        form.append("destination", offlineTrip[0]?.destination);
+        form.append("farm", offlineTrip[0]?.farm);
+        form.append("vehicle_id", offlineTrip[0]?.vehicle_id);
+        form.append("locations", offlineTrip[0]?.locations);
+        form.append("diesels", offlineTrip[0]?.gas);
+        form.append("odometer", JSON.parse(offlineTrip[0]?.odometer));
+        form.append("odometer_done", JSON.parse(data?.odometer_done));
+        img?.uri !== null && form.append("image", img);
+        form.append("others", offlineTrip[0].others);
+        form.append("charging", offlineTrip[0].charging);
+        form.append("companion", offlineTrip[0].companion);
+        form.append("points", JSON.stringify(mapPoints));
+        form.append("temperature", offlineTrip[0].temperature);
+        form.append("tare_weight", offlineTrip[0].tare_weight);
+        form.append("gross_weight", offlineTrip[0].gross_weight);
+        form.append("net_weight", offlineTrip[0].net_weight);
+        form.append("doa_count", offlineTrip[0].doa_count);
+
+        const res = await createTrip(form);
+
+        if (res?.data) {
+          // Remove offline trip to sqlite database and state
+          await deleteFromTable(
+            `depot_hauling WHERE id = (SELECT MAX(id) FROM depot_hauling)`
+          );
+        } else {
+          showAlert(res?.error?.error, "warning");
+        }
+      }
+
       dispatch(validatorStatus(true));
       stopDoneLoading();
 
@@ -782,7 +823,7 @@ const HaulingMap = ({ theme, navigation }) => {
       <DoneModal
         showDoneModal={showDoneModal}
         estimatedOdo={1}
-        doneLoading={doneLoading}
+        doneLoading={doneLoading || isLoading}
         onCloseDoneModal={onCloseDoneModal}
         onSubmit={sqliteDone}
       />

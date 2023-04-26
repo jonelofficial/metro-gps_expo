@@ -127,7 +127,6 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
       marginBottom: 25,
     },
   });
-
   return (
     <>
       <Screen>
@@ -141,7 +140,7 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
         </Appbar.Header>
         <View style={styles.container}>
           <ScrollView>
-            {(newLocations.length < 0 || !isNaN(item?.odometer_done)) && (
+            {item?.user_id?.employee_id != undefined && (
               <Card style={styles.containerWrapper}>
                 <Card.Content>
                   <Text>User Details</Text>
@@ -164,7 +163,7 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
               </Card>
             )}
 
-            {(newLocations.length < 0 || !isNaN(item?.odometer_done)) && (
+            {item?.vehicle_id?.plate_no != undefined && (
               <Card style={styles.containerWrapper}>
                 <Card.Content>
                   <Text>Vehicle Details</Text>
