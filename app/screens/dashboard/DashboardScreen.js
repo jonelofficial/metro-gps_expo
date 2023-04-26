@@ -407,13 +407,13 @@ const DashboardScreen = ({ theme, navigation }) => {
         {/* TOTAL ITEMS */}
         <View style={{ alignItems: "center", marginBottom: 8 }}>
           <Text style={{ fontSize: 17, color: colors.light }}>
-            {totalCount === 1 && !isFetching && !offlineLoading
+            {totalCount === 1 && !isFetching && !offlineLoading && !isLoading
               ? `${totalCount} item`
-              : totalCount > 1 && !isFetching && !offlineLoading
+              : totalCount > 1 && !isFetching && !offlineLoading && !isLoading
               ? `${totalCount} items`
-              : !isFetching && !offlineLoading
+              : !isFetching && !offlineLoading && !isLoading
               ? "No item found"
-              : isFetching || offlineLoading
+              : isFetching || offlineLoading || isLoading
               ? "Loading"
               : "No more data to show"}
           </Text>

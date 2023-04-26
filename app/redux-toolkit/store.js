@@ -7,6 +7,17 @@ import companionReducer from "../redux-toolkit/counter/companionSlice";
 import snackbarReducer from "./counter/snackbarSlice";
 import validatorReducer from "./counter/vaidatorSlice";
 
+// middleware: (getDefaultMiddleware) =>
+// getDefaultMiddleware().concat(metroApi.middleware),
+
+const middleware = [
+  ...getDefaultMiddleware({
+    // serializableCheck: false, // Disable serializability check
+    // immutableCheck: false,
+  }),
+  metroApi.middleware, // Add the metroApi middleware
+];
+
 export const store = configureStore({
   reducer: {
     token: tokenReducer,
@@ -17,6 +28,5 @@ export const store = configureStore({
     validator: validatorReducer,
     [metroApi.reducerPath]: metroApi.reducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(metroApi.middleware),
+  middleware,
 });
