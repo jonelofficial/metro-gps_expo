@@ -468,6 +468,7 @@ const HaulingMap = ({ theme, navigation }) => {
       ]);
 
       if (arrivedRes) {
+        onCloseArrivedModal();
         const newObj = {
           ...arrivedRes,
           date: moment(Date.now()).tz("Asia/Manila"),

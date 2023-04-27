@@ -29,9 +29,13 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
   const { item } = route.params;
   const { colors } = theme;
 
-  const newLocations = item.locations.filter(
-    (location) => location.status == "left" || location.status == "arrived"
-  );
+  const newLocations = item.locations
+    .filter(
+      (location) => location.status == "left" || location.status == "arrived"
+    )
+    .sort((a, b) => {
+      return new Date(a.date) - new Date(b.date);
+    });
 
   const { isOpen, onClose, onToggle } = useDisclosure();
 

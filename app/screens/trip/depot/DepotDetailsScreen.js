@@ -27,7 +27,6 @@ import useDisclosure from "../../../hooks/useDisclosure";
 const DepotDetailsScreen = ({ route, theme, navigation }) => {
   const { colors } = theme;
   const { item } = route.params;
-  const [station, setStation] = useState([]);
 
   const dispatch = useDispatch();
 
@@ -39,17 +38,13 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
     onToggle: onToggleLoading,
   } = useDisclosure();
 
-  const newLocations = item.locations.filter(
-    (location) => location.status == "left" || location.status == "arrived"
-  );
-
-  useEffect(() => {
-    (async () => {
-      const gasRes = await selectTable("gas_station");
-      setStation([...gasRes.map((item) => ({ ...item, value: item._id }))]);
-    })();
-    return () => {};
-  }, []);
+  const newLocations = item.locations
+    .filter(
+      (location) => location.status == "left" || location.status == "arrived"
+    )
+    .sort((a, b) => {
+      return new Date(a.date) - new Date(b.date);
+    });
 
   const Content = ({ label, details, labelStyle, detailsStyle }) => {
     return (
@@ -211,77 +206,259 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                   />
                 )}
                 <Content label="Others" details={item?.others} />
-                <Content
-                  label="Charging"
-                  details={item?.charging}
-                  detailsStyle={{ textTransform: "capitalize" }}
-                />
+
                 <Content
                   label="Companion"
                   details={
                     typeof item?.companion === "string"
                       ? JSON.parse(item?.companion).map((item, i) => {
-                          return <Text key={i}>{item?.first_name}</Text>;
+                          return (
+                            <Text key={i}>
+                              {item?.first_name}
+                              {"\n"}
+                            </Text>
+                          );
                         })
                       : item?.companion?.map((item, i) => {
-                          return <Text key={i}>{item?.first_name}</Text>;
+                          return (
+                            <Text key={i}>
+                              {item?.first_name}
+                              {"\n"}
+                            </Text>
+                          );
                         })
                   }
                   detailsStyle={{ textTransform: "capitalize" }}
                 />
+
+                <Content
+                  label="Charging"
+                  details={item?.charging}
+                  detailsStyle={{ textTransform: "capitalize" }}
+                />
+
                 <Content
                   label="Temperature"
                   details={
                     typeof item?.temperature === "string"
                       ? JSON.parse(item?.temperature).map((item, i) => {
-                          return <Text key={i}>{item}</Text>;
+                          return (
+                            <Fragment key={i}>
+                              <Text
+                                style={{
+                                  color:
+                                    i % 2 == 0 ? colors.danger : colors.success,
+                                }}
+                              >
+                                {i == 0
+                                  ? "Left Depot: "
+                                  : i == 1
+                                  ? "Arrived Farm: "
+                                  : i == 2
+                                  ? "Left Farm: "
+                                  : i == 3 && "Arrived Depot: "}
+                              </Text>
+                              <Text>
+                                {item}
+                                {"\n"}
+                              </Text>
+                            </Fragment>
+                          );
                         })
                       : item?.temperature.map((item, i) => {
-                          return <Text key={i}>{item}</Text>;
+                          return (
+                            <Fragment key={i}>
+                              <Text
+                                style={{
+                                  color:
+                                    i % 2 == 0 ? colors.danger : colors.success,
+                                }}
+                              >
+                                {i == 0
+                                  ? "Left Depot: "
+                                  : i == 1
+                                  ? "Arrived Farm: "
+                                  : i == 2
+                                  ? "Left Farm: "
+                                  : i == 3 && "Arrived Depot: "}
+                              </Text>
+                              <Text>
+                                {item}
+                                {"\n"}
+                              </Text>
+                            </Fragment>
+                          );
                         })
                   }
                 />
-                <Content
-                  label="Tare Weight"
-                  details={
-                    typeof item?.tare_weight === "string"
-                      ? JSON.parse(item?.tare_weight).map((item, i) => {
-                          return <Text key={i}>{item}</Text>;
-                        })
-                      : item?.tare_weight.map((item, i) => {
-                          return <Text key={i}>{item}</Text>;
-                        })
-                  }
-                />
-                <Content
-                  label="Gross Weight"
-                  details={
-                    typeof item?.gross_weight === "string"
-                      ? JSON.parse(item?.gross_weight).map((item, i) => {
-                          return <Text key={i}>{item}</Text>;
-                        })
-                      : item?.gross_weight.map((item, i) => {
-                          return <Text key={i}>{item}</Text>;
-                        })
-                  }
-                />
-                <Content
-                  label="Net Weight"
-                  details={
-                    typeof item?.net_weight === "string"
-                      ? JSON.parse(item?.net_weight).map((item, i) => {
-                          return <Text key={i}>{item}</Text>;
-                        })
-                      : item?.net_weight.map((item, i) => {
-                          return <Text key={i}>{item}</Text>;
-                        })
-                  }
-                />
-                <Content label="DOA Count" details={item?.doa_count} />
+
+                {item?.trip_type === "hauling" && (
+                  <>
+                    <Content
+                      label="Tare Weight"
+                      details={
+                        typeof item?.tare_weight === "string"
+                          ? JSON.parse(item?.tare_weight).map((item, i) => {
+                              return (
+                                <Fragment key={i}>
+                                  <Text
+                                    style={{
+                                      color:
+                                        i % 2 == 0
+                                          ? colors.danger
+                                          : colors.success,
+                                    }}
+                                  >
+                                    {i == 0
+                                      ? "Left Depot: "
+                                      : i == 1
+                                      ? "Arrived Farm: "
+                                      : i == 2
+                                      ? "Left Farm: "
+                                      : i == 3 && "Arrived Depot: "}
+                                  </Text>
+                                  <Text>
+                                    {item}
+                                    {"\n"}
+                                  </Text>
+                                </Fragment>
+                              );
+                            })
+                          : item?.tare_weight.map((item, i) => {
+                              return (
+                                <Fragment key={i}>
+                                  <Text
+                                    style={{
+                                      color:
+                                        i % 2 == 0
+                                          ? colors.danger
+                                          : colors.success,
+                                    }}
+                                  >
+                                    {i == 0
+                                      ? "Left Depot: "
+                                      : i == 1
+                                      ? "Arrived Farm: "
+                                      : i == 2
+                                      ? "Left Farm: "
+                                      : i == 3 && "Arrived Depot: "}
+                                  </Text>
+                                  <Text>
+                                    {item}
+                                    {"\n"}
+                                  </Text>
+                                </Fragment>
+                              );
+                            })
+                      }
+                    />
+                    <Content
+                      label="Gross Weight"
+                      details={
+                        typeof item?.gross_weight === "string"
+                          ? JSON.parse(item?.gross_weight).map((item, i) => {
+                              return (
+                                <Fragment key={i}>
+                                  <Text
+                                    style={{
+                                      color:
+                                        i % 2 == 0
+                                          ? colors.danger
+                                          : colors.success,
+                                    }}
+                                  >
+                                    {i == 0
+                                      ? "Left Farm: "
+                                      : i == 1 && "Arrived Depot: "}
+                                  </Text>
+                                  <Text>
+                                    {item}
+                                    {"\n"}
+                                  </Text>
+                                </Fragment>
+                              );
+                            })
+                          : item?.gross_weight.map((item, i) => {
+                              return (
+                                <Fragment key={i}>
+                                  <Text
+                                    style={{
+                                      color:
+                                        i % 2 == 0
+                                          ? colors.danger
+                                          : colors.success,
+                                    }}
+                                  >
+                                    {i == 0
+                                      ? "Left Farm: "
+                                      : i == 1 && "Arrived Depot: "}
+                                  </Text>
+                                  <Text>
+                                    {item}
+                                    {"\n"}
+                                  </Text>
+                                </Fragment>
+                              );
+                            })
+                      }
+                    />
+                    <Content
+                      label="Net Weight"
+                      details={
+                        typeof item?.net_weight === "string"
+                          ? JSON.parse(item?.net_weight).map((item, i) => {
+                              return (
+                                <Fragment key={i}>
+                                  <Text
+                                    style={{
+                                      color:
+                                        i % 2 == 0
+                                          ? colors.danger
+                                          : colors.success,
+                                    }}
+                                  >
+                                    {i == 0
+                                      ? "Left Farm: "
+                                      : i == 1 && "Arrived Depot: "}
+                                  </Text>
+                                  <Text>
+                                    {item}
+                                    {"\n"}
+                                  </Text>
+                                </Fragment>
+                              );
+                            })
+                          : item?.net_weight.map((item, i) => {
+                              return (
+                                <Fragment key={i}>
+                                  <Text
+                                    style={{
+                                      color:
+                                        i % 2 == 0
+                                          ? colors.danger
+                                          : colors.success,
+                                    }}
+                                  >
+                                    {i == 0
+                                      ? "Left Farm: "
+                                      : i == 1 && "Arrived Depot: "}
+                                  </Text>
+                                  <Text>
+                                    {item}
+                                    {"\n"}
+                                  </Text>
+                                </Fragment>
+                              );
+                            })
+                      }
+                    />
+                    <Content label="DOA Count" details={item?.doa_count} />
+                  </>
+                )}
               </Card.Content>
             </Card>
 
-            {newLocations.length > 0 && (
+            {newLocations.length > 0 && item?.trip_type === "hauling" && (
               <Card style={styles.containerWrapper}>
                 <Card.Content>
                   <Text>Location Details</Text>
@@ -292,7 +469,15 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                       <Fragment key={i}>
                         <Content
                           label="Status"
-                          details={loc?.status}
+                          details={
+                            i == 0
+                              ? `${loc?.status} Depot`
+                              : i == 1
+                              ? `${loc?.status} Farm`
+                              : i == 2
+                              ? `${loc?.status} Farm`
+                              : i == 3 && `${loc?.status} Depot`
+                          }
                           detailsStyle={{
                             textTransform: "capitalize",
                             color:
