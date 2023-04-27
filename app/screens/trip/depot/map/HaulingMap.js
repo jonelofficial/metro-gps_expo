@@ -823,7 +823,7 @@ const HaulingMap = ({ theme, navigation }) => {
       {/* DONE MODAL */}
       <DoneModal
         showDoneModal={showDoneModal}
-        estimatedOdo={1}
+        estimatedOdo={estimatedOdo}
         doneLoading={doneLoading || isLoading}
         onCloseDoneModal={onCloseDoneModal}
         onSubmit={sqliteDone}
