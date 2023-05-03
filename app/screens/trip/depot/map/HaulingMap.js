@@ -371,36 +371,11 @@ const HaulingMap = ({ theme, navigation }) => {
         await reloadRoute(newObj);
         await reloadMapState();
 
-        const tripRes = await selectTable("depot_hauling");
-
-        let tare_weight = JSON.parse(tripRes[tripRes.length - 1]?.tare_weight);
-
-        let gross_weight = JSON.parse(
-          tripRes[tripRes.length - 1]?.gross_weight
-        );
-
-        let net_weight = JSON.parse(tripRes[tripRes.length - 1]?.net_weight);
-
-        let temperature = JSON.parse(tripRes[tripRes.length - 1]?.temperature);
-
-        tare_weight.push(data?.tare_weight);
-        gross_weight.push(data?.gross_weight);
-        net_weight.push(data?.net_weight);
-        temperature.push(data?.temperature);
-
         await updateToTable(
-          `UPDATE depot_hauling SET 
-          tare_weight = (?) , 
-          gross_weight = (?) , 
-          net_weight = (?) , 
-          temperature = (?) 
+          `UPDATE depot_hauling SET
+          item_count = (?)
           WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
-          [
-            JSON.stringify(tare_weight),
-            JSON.stringify(gross_weight),
-            JSON.stringify(net_weight),
-            JSON.stringify(temperature),
-          ]
+          [data?.item_count]
         );
       }
 
@@ -477,61 +452,14 @@ const HaulingMap = ({ theme, navigation }) => {
         await reloadRoute(newObj);
         await reloadMapState();
 
-        const tripRes = await selectTable("depot_hauling");
-        if (trip?.locations?.length <= 1) {
-          let tare_weight = JSON.parse(
-            tripRes[tripRes.length - 1]?.tare_weight
-          );
-
-          let temperature = JSON.parse(
-            tripRes[tripRes.length - 1]?.temperature
-          );
-
-          tare_weight.push(data?.tare_weight);
-          temperature.push(data?.temperature);
-
+        if (trip?.locations?.length > 1) {
           await updateToTable(
             `UPDATE depot_hauling SET 
-            tare_weight = (?) ,
-            temperature = (?) 
-            WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
-            [JSON.stringify(tare_weight), JSON.stringify(temperature)]
-          );
-        } else {
-          let tare_weight = JSON.parse(
-            tripRes[tripRes.length - 1]?.tare_weight
-          );
-
-          let gross_weight = JSON.parse(
-            tripRes[tripRes.length - 1]?.gross_weight
-          );
-
-          let net_weight = JSON.parse(tripRes[tripRes.length - 1]?.net_weight);
-
-          let temperature = JSON.parse(
-            tripRes[tripRes.length - 1]?.temperature
-          );
-
-          tare_weight.push(data?.tare_weight);
-          gross_weight.push(data?.gross_weight);
-          net_weight.push(data?.net_weight);
-          temperature.push(data?.temperature);
-
-          await updateToTable(
-            `UPDATE depot_hauling SET 
-            tare_weight = (?) , 
             gross_weight = (?) , 
             net_weight = (?) , 
-            doa_count = (?) , 
-            temperature = (?) 
+            doa_count = (?)  
             WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
-            [
-              JSON.stringify(tare_weight),
-              JSON.stringify(gross_weight),
-              JSON.stringify(net_weight),
-              data?.doa_count,
-              JSON.stringify(temperature),
-            ]
+            [data?.net_weight, data?.gross_weight, data?.doa_count]
           );
         }
       }
@@ -584,6 +512,7 @@ const HaulingMap = ({ theme, navigation }) => {
 
         form.append("trip_date", JSON.parse(offlineTrip[0]?.date));
         form.append("trip_type", offlineTrip[0]?.trip_type);
+        form.append("trip_category", offlineTrip[0]?.trip_category);
         form.append("destination", offlineTrip[0]?.destination);
         form.append("farm", offlineTrip[0]?.farm);
         form.append("vehicle_id", offlineTrip[0]?.vehicle_id);
@@ -601,6 +530,7 @@ const HaulingMap = ({ theme, navigation }) => {
         form.append("gross_weight", offlineTrip[0].gross_weight);
         form.append("net_weight", offlineTrip[0].net_weight);
         form.append("doa_count", offlineTrip[0].doa_count);
+        form.append("item_count", offlineTrip[0].item_count);
 
         const res = await createTrip(form);
 
@@ -757,7 +687,9 @@ const HaulingMap = ({ theme, navigation }) => {
                   }
                 }}
               >
-                Left
+                {trip?.locations?.length === 0
+                  ? "Left Depot"
+                  : trip?.locations?.length >= 1 && "Left Farm"}
               </Button>
             </View>
 
@@ -773,9 +705,15 @@ const HaulingMap = ({ theme, navigation }) => {
                   trip?.locations?.length === 0
                 }
                 loading={arrivedLoading}
-                onPress={onToggleArrivedModal}
+                onPress={() => {
+                  trip?.locations?.length == 1
+                    ? sqliteArrived()
+                    : onToggleArrivedModal();
+                }}
               >
-                Arrived
+                {trip?.locations?.length === 1
+                  ? "Arrived Farm"
+                  : trip?.locations?.length >= 2 && "Arrived Depot"}
               </Button>
             </View>
           </View>

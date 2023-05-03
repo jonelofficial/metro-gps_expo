@@ -190,7 +190,7 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                     .tz("Asia/Manila")
                     .format("MMM-DD-YY hh:mm a")}
                 />
-                <Content label="Type" details={item?.trip_type} />
+                <Content label="Category" details={item?.trip_category} />
                 <Content label="Destination" details={item?.destination} />
                 <Content label="Farm" details={item?.farm} />
                 <Content label="Odo" details={item?.odometer} />
@@ -237,228 +237,24 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                   detailsStyle={{ textTransform: "capitalize" }}
                 />
 
-                <Content
-                  label="Temperature"
-                  details={
-                    typeof item?.temperature === "string"
-                      ? JSON.parse(item?.temperature).map((item, i) => {
-                          return (
-                            <Fragment key={i}>
-                              <Text
-                                style={{
-                                  color:
-                                    i % 2 == 0 ? colors.danger : colors.success,
-                                }}
-                              >
-                                {i == 0
-                                  ? "Left Depot: "
-                                  : i == 1
-                                  ? "Arrived Farm: "
-                                  : i == 2
-                                  ? "Left Farm: "
-                                  : i == 3 && "Arrived Depot: "}
-                              </Text>
-                              <Text>
-                                {item}
-                                {"\n"}
-                              </Text>
-                            </Fragment>
-                          );
-                        })
-                      : item?.temperature.map((item, i) => {
-                          return (
-                            <Fragment key={i}>
-                              <Text
-                                style={{
-                                  color:
-                                    i % 2 == 0 ? colors.danger : colors.success,
-                                }}
-                              >
-                                {i == 0
-                                  ? "Left Depot: "
-                                  : i == 1
-                                  ? "Arrived Farm: "
-                                  : i == 2
-                                  ? "Left Farm: "
-                                  : i == 3 && "Arrived Depot: "}
-                              </Text>
-                              <Text>
-                                {item}
-                                {"\n"}
-                              </Text>
-                            </Fragment>
-                          );
-                        })
-                  }
-                />
+                <Content label="Temperature" details={item?.temperature} />
 
-                {item?.trip_type === "hauling" && (
+                {item?.trip_category === "hauling" && (
                   <>
-                    <Content
-                      label="Tare Weight"
-                      details={
-                        typeof item?.tare_weight === "string"
-                          ? JSON.parse(item?.tare_weight).map((item, i) => {
-                              return (
-                                <Fragment key={i}>
-                                  <Text
-                                    style={{
-                                      color:
-                                        i % 2 == 0
-                                          ? colors.danger
-                                          : colors.success,
-                                    }}
-                                  >
-                                    {i == 0
-                                      ? "Left Depot: "
-                                      : i == 1
-                                      ? "Arrived Farm: "
-                                      : i == 2
-                                      ? "Left Farm: "
-                                      : i == 3 && "Arrived Depot: "}
-                                  </Text>
-                                  <Text>
-                                    {item}
-                                    {"\n"}
-                                  </Text>
-                                </Fragment>
-                              );
-                            })
-                          : item?.tare_weight.map((item, i) => {
-                              return (
-                                <Fragment key={i}>
-                                  <Text
-                                    style={{
-                                      color:
-                                        i % 2 == 0
-                                          ? colors.danger
-                                          : colors.success,
-                                    }}
-                                  >
-                                    {i == 0
-                                      ? "Left Depot: "
-                                      : i == 1
-                                      ? "Arrived Farm: "
-                                      : i == 2
-                                      ? "Left Farm: "
-                                      : i == 3 && "Arrived Depot: "}
-                                  </Text>
-                                  <Text>
-                                    {item}
-                                    {"\n"}
-                                  </Text>
-                                </Fragment>
-                              );
-                            })
-                      }
-                    />
+                    <Content label="Tare Weight" details={item?.tare_weight} />
+                    <Content label="Net Weight" details={item?.net_weight} />
                     <Content
                       label="Gross Weight"
-                      details={
-                        typeof item?.gross_weight === "string"
-                          ? JSON.parse(item?.gross_weight).map((item, i) => {
-                              return (
-                                <Fragment key={i}>
-                                  <Text
-                                    style={{
-                                      color:
-                                        i % 2 == 0
-                                          ? colors.danger
-                                          : colors.success,
-                                    }}
-                                  >
-                                    {i == 0
-                                      ? "Left Farm: "
-                                      : i == 1 && "Arrived Depot: "}
-                                  </Text>
-                                  <Text>
-                                    {item}
-                                    {"\n"}
-                                  </Text>
-                                </Fragment>
-                              );
-                            })
-                          : item?.gross_weight.map((item, i) => {
-                              return (
-                                <Fragment key={i}>
-                                  <Text
-                                    style={{
-                                      color:
-                                        i % 2 == 0
-                                          ? colors.danger
-                                          : colors.success,
-                                    }}
-                                  >
-                                    {i == 0
-                                      ? "Left Farm: "
-                                      : i == 1 && "Arrived Depot: "}
-                                  </Text>
-                                  <Text>
-                                    {item}
-                                    {"\n"}
-                                  </Text>
-                                </Fragment>
-                              );
-                            })
-                      }
+                      details={item?.gross_weight}
                     />
-                    <Content
-                      label="Net Weight"
-                      details={
-                        typeof item?.net_weight === "string"
-                          ? JSON.parse(item?.net_weight).map((item, i) => {
-                              return (
-                                <Fragment key={i}>
-                                  <Text
-                                    style={{
-                                      color:
-                                        i % 2 == 0
-                                          ? colors.danger
-                                          : colors.success,
-                                    }}
-                                  >
-                                    {i == 0
-                                      ? "Left Farm: "
-                                      : i == 1 && "Arrived Depot: "}
-                                  </Text>
-                                  <Text>
-                                    {item}
-                                    {"\n"}
-                                  </Text>
-                                </Fragment>
-                              );
-                            })
-                          : item?.net_weight.map((item, i) => {
-                              return (
-                                <Fragment key={i}>
-                                  <Text
-                                    style={{
-                                      color:
-                                        i % 2 == 0
-                                          ? colors.danger
-                                          : colors.success,
-                                    }}
-                                  >
-                                    {i == 0
-                                      ? "Left Farm: "
-                                      : i == 1 && "Arrived Depot: "}
-                                  </Text>
-                                  <Text>
-                                    {item}
-                                    {"\n"}
-                                  </Text>
-                                </Fragment>
-                              );
-                            })
-                      }
-                    />
+                    <Content label="Item Count" details={item?.item_count} />
                     <Content label="DOA Count" details={item?.doa_count} />
                   </>
                 )}
               </Card.Content>
             </Card>
 
-            {newLocations.length > 0 && item?.trip_type === "hauling" && (
+            {newLocations.length > 0 && item?.trip_category === "hauling" && (
               <Card style={styles.containerWrapper}>
                 <Card.Content>
                   <Text>Location Details</Text>
@@ -566,7 +362,7 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                 navigation.navigate("Office", {
                   screen: "OfficeMap",
                   params: {
-                    trip_type: item?.trip_type,
+                    trip_category: item?.trip_category,
                   },
                 });
               }}

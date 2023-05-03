@@ -37,10 +37,11 @@ const LeftModal = ({
         </View>
         <Formik
           initialValues={{
-            tare_weight: "",
-            net_weight: "",
-            gross_weight: "",
-            temperature: "",
+            // tare_weight: "",
+            // net_weight: "",
+            // gross_weight: "",
+            // temperature: "",
+            item_count: "",
           }}
           validationSchema={leftModalSchema}
           onSubmit={onSubmit}
@@ -56,6 +57,17 @@ const LeftModal = ({
             return (
               <>
                 <TextField
+                  touched={touched}
+                  errors={errors}
+                  handleChange={handleChange}
+                  handleBlur={handleBlur}
+                  values={values}
+                  name="item_count"
+                  label="Item Count"
+                  keyboardType="numeric"
+                />
+
+                {/* <TextField
                   touched={touched}
                   errors={errors}
                   handleChange={handleChange}
@@ -97,7 +109,7 @@ const LeftModal = ({
                   name="gross_weight"
                   label="Gross Weight"
                   keyboardType="numeric"
-                />
+                /> */}
 
                 <SubmitButton
                   onPress={handleSubmit}

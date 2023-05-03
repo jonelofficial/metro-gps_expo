@@ -3,9 +3,9 @@ import HaulingMap from "./map/HaulingMap";
 import DeliveryMap from "./map/DeliveryMap";
 
 const DepotMapScreen = ({ route, navigation }) => {
-  const { trip_type } = route.params;
+  const { trip_category } = route.params;
 
-  if (trip_type === "hauling") {
+  if (trip_category === "hauling") {
     return <HaulingMap navigation={navigation} />;
   } else {
     return <DeliveryMap navigation={navigation} />;

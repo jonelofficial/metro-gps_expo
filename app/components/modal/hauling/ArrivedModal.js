@@ -73,7 +73,7 @@ const ArrivedModal = ({
           }) => {
             return (
               <>
-                <TextField
+                {/* <TextField
                   touched={touched}
                   errors={errors}
                   handleChange={handleChange}
@@ -92,7 +92,7 @@ const ArrivedModal = ({
                   name="tare_weight"
                   label="Tare Weight"
                   keyboardType="numeric"
-                />
+                /> */}
                 {trip?.locations?.length > 1 && (
                   <>
                     <TextField

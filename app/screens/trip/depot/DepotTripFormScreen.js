@@ -63,8 +63,8 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
   // TRIP TYPE
   const [tripType, setTripType] = useState([
-    { value: "hauling", label: "Hauling", id: 0 },
-    { value: "delivery", label: "Delivery", id: 1 },
+    { value: "poultry", label: "Poultry", id: 0 },
+    { value: "hogs", label: "Hogs", id: 1 },
   ]);
   const [tripTypeValue, setTripTypeValue] = useState(user?.trip_type);
 
@@ -76,9 +76,26 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
   //
 
+  // TRIP CATEGORY
+  const [tripCategory, setTripCategory] = useState([
+    { value: "hauling", label: "Hauling", id: 0 },
+    { value: "delivery", label: "Delivery", id: 1 },
+  ]);
+  const [tripCategoryValue, setTripCategoryValue] = useState(
+    user?.trip_category
+  );
+
+  const {
+    isOpen: showTripCategoryDropdown,
+    onClose: onCloseTripCategoryDropdown,
+    onToggle: onToggleTripCategoryDropdown,
+  } = useDisclosure();
+
+  //
+
   // DESTINATION HAULING
   const [destinations, setDestinations] = useState([
-    { value: "farm", label: "Farm", id: 0 },
+    { value: "test", label: "afsa", id: 0 },
   ]);
   const [destination, setDestination] = useState();
 
@@ -104,6 +121,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
     odometer_image_path: image,
     companion: companion,
     trip_type: tripTypeValue,
+    trip_category: tripCategoryValue,
     charging: value,
   });
 
@@ -111,7 +129,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
   useEffect(() => {
     // Update initial values and schema based on trip type
-    if (tripTypeValue === "hauling") {
+    if (tripCategoryValue === "hauling") {
       setFormValues({
         odometer: "",
         others: "",
@@ -122,10 +140,11 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
         companion: companion,
         charging: value,
         trip_type: tripTypeValue,
+        trip_category: tripCategoryValue,
         destination: destination,
       });
       setFormSchema(haulingFormSchema);
-    } else if (tripTypeValue === "delivery") {
+    } else if (tripCategoryValue === "delivery") {
       setFormValues({
         odometer: "",
         others: "",
@@ -135,6 +154,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
         companion: companion,
         charging: value,
         trip_type: tripTypeValue,
+        trip_category: tripCategoryValue,
         destination: deliveryDestination,
       });
       setFormSchema(deliveryFormSchema);
@@ -146,11 +166,12 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
         odometer_image_path: image,
         companion: companion,
         trip_type: tripTypeValue,
+        trip_category: tripCategoryValue,
         charging: value,
       });
       setFormSchema(depotDefaultFormSchema);
     }
-  }, [tripTypeValue]);
+  }, [tripCategoryValue]);
 
   useEffect(() => {
     BackHandler.addEventListener("hardwareBackPress", backAction);
@@ -218,10 +239,9 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
       farm,
       temperature,
       tare_weight,
-      gross_weight,
-      net_weight
+      trip_category
     )
-    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `,
       [
         user?.userId,
@@ -241,10 +261,9 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
         data?.trip_type,
         data?.destination,
         data?.farm,
-        JSON.stringify([data?.temperature]),
-        JSON.stringify([data?.tare_weight]),
-        JSON.stringify([]),
-        JSON.stringify([]),
+        data?.temperature,
+        data?.tare_weight,
+        data?.trip_category,
       ]
     );
 
@@ -254,7 +273,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
     navigation.navigate("Office", {
       screen: "OfficeMap",
       params: {
-        trip_type: data?.trip_type,
+        trip_category: data?.trip_category,
       },
     });
   };
@@ -266,6 +285,11 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   // DROPDOWN PICKER HANDLER
 
   const onTripTypeOpen = useCallback(() => {
+    onCloseDestinationsDropdown();
+    onCloseDropdown();
+  });
+
+  const onTripCategoryOpen = useCallback(() => {
     onCloseDestinationsDropdown();
     onCloseDropdown();
   });
@@ -341,9 +365,9 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
               <View style={styles.formWrapper}>
                 <Formik
                   onSubmit={
-                    tripTypeValue === "hauling"
+                    tripCategoryValue === "hauling"
                       ? onSubmitHauling
-                      : tripTypeValue === "delivery"
+                      : tripCategoryValue === "delivery"
                       ? onSubmitDelivery
                       : null
                   }
@@ -360,6 +384,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                     setFieldValue,
                     setErrors,
                     setFieldTouched,
+                    setFieldError,
                   }) => {
                     // Image validation
                     useEffect(() => {
@@ -426,28 +451,30 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                               </Errors>
                             )}
 
-                          {/* TRIP TYPE */}
-                          <Text style={styles.text}>Trip Type:</Text>
+                          {/* TRIP CATEGORY */}
+                          <Text style={styles.text}>Trip Category:</Text>
                           <DropDownPicker
                             listMode="SCROLLVIEW"
-                            open={showTripTypeDropdown}
-                            onOpen={onTripTypeOpen}
-                            value={tripTypeValue}
-                            items={tripType}
+                            open={showTripCategoryDropdown}
+                            onOpen={onTripCategoryOpen}
+                            value={tripCategoryValue}
+                            items={tripCategory}
                             onChangeValue={(value) => {
                               handleChange(value);
-                              setFieldValue("trip_type", value);
+                              setFieldValue("trip_category", value);
                             }}
-                            setOpen={onToggleTripTypeDropdown}
-                            setValue={setTripTypeValue}
-                            setItems={setTripType}
-                            placeholder="Select Trip Type"
+                            setOpen={onToggleTripCategoryDropdown}
+                            setValue={setTripCategoryValue}
+                            setItems={setTripCategory}
+                            placeholder="Select Trip Category"
                             textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
                             style={{
                               borderRadius: 15,
                               borderColor: colors.light,
                               marginBottom:
-                                touched.trip_type && errors.trip_type ? 0 : 12,
+                                touched.trip_category && errors.trip_category
+                                  ? 0
+                                  : 12,
                               zIndex: 0,
                             }}
                             dropDownContainerStyle={{
@@ -459,26 +486,72 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                             zIndexInverse={1000}
                           />
                           {/* TRIP TYPE ERROR HANDLING */}
-                          {touched?.trip_type && errors?.trip_type && (
-                            <Errors>{errors.trip_type}</Errors>
+                          {touched?.trip_category && errors?.trip_category && (
+                            <Errors>{errors.trip_category}</Errors>
+                          )}
+
+                          {/* TRIP TYPE */}
+                          {tripCategoryValue === "hauling" && (
+                            <>
+                              <Text style={styles.text}>Trip Type:</Text>
+                              <DropDownPicker
+                                listMode="SCROLLVIEW"
+                                open={showTripTypeDropdown}
+                                onOpen={onTripTypeOpen}
+                                value={tripTypeValue}
+                                items={tripType}
+                                onChangeValue={(value) => {
+                                  handleChange(value);
+                                  setFieldValue("trip_type", value);
+                                }}
+                                setOpen={onToggleTripTypeDropdown}
+                                setValue={setTripTypeValue}
+                                setItems={setTripType}
+                                placeholder="Select Trip Type"
+                                textStyle={{
+                                  fontFamily: "Khyay",
+                                  fontSize: 16,
+                                }}
+                                style={{
+                                  borderRadius: 15,
+                                  borderColor: colors.light,
+                                  marginBottom:
+                                    touched.trip_type && errors.trip_type
+                                      ? 0
+                                      : 12,
+                                  zIndex: 0,
+                                }}
+                                dropDownContainerStyle={{
+                                  borderColor: colors.light,
+                                  maxHeight: 150,
+                                  // zIndex: 99,
+                                }}
+                                zIndex={3000}
+                                zIndexInverse={1000}
+                              />
+                              {/* TRIP TYPE ERROR HANDLING */}
+                              {touched?.trip_type && errors?.trip_type && (
+                                <Errors>{errors.trip_type}</Errors>
+                              )}
+                            </>
                           )}
 
                           {/* DESTINATIONS */}
 
-                          {tripTypeValue !== undefined && (
+                          {tripCategoryValue !== undefined && (
                             <Text style={styles.text}>Destinations:</Text>
                           )}
-                          {tripTypeValue === "hauling" && (
+                          {tripCategoryValue === "hauling" && (
                             <DropDownPicker
+                              id="destination"
                               listMode="SCROLLVIEW"
                               open={showDestinationsDropdown}
                               onOpen={onDestinationOpen}
                               value={destination}
                               items={destinations}
                               onChangeValue={(value) => {
-                                handleChange(value);
-                                setFieldValue("destination", value);
                                 setFieldValue("farm", value);
+                                setFieldValue("destination", value);
                               }}
                               setOpen={onToggleDestinationsDropdown}
                               setValue={setDestination}
@@ -503,7 +576,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                               zIndexInverse={2000}
                             />
                           )}
-                          {tripTypeValue === "delivery" && (
+                          {tripCategoryValue === "delivery" && (
                             <DropDownPicker
                               listMode="SCROLLVIEW"
                               open={showDestinationsDropdown}
@@ -511,7 +584,8 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                               value={deliveryDestination}
                               items={deliveryDestinations}
                               onChangeValue={(value) => {
-                                handleChange(value);
+                                handleChange("destination");
+                                handleBlur("destination");
                                 setFieldValue("destination", value);
                                 setFieldValue("route", value);
                               }}
@@ -540,13 +614,13 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                           )}
 
                           {/* DESTINATION ERROR HANDLING */}
-                          {tripTypeValue !== undefined &&
+                          {values?.destination !== "" &&
                             errors?.destination && (
                               <Errors>{errors?.destination}</Errors>
                             )}
 
                           {/* ROUTE */}
-                          {tripTypeValue === "delivery" && (
+                          {tripCategoryValue === "delivery" && (
                             <TextField
                               touched={{ route: true }}
                               errors={errors}
@@ -560,9 +634,9 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                           )}
 
                           {/* FARM */}
-                          {tripTypeValue === "hauling" && (
+                          {tripCategoryValue === "hauling" && (
                             <TextField
-                              touched={{ farm: true }}
+                              touched={{ farm: false }}
                               errors={errors}
                               handleChange={handleChange}
                               handleBlur={handleBlur}
@@ -574,7 +648,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                           )}
 
                           {/* TARE WEIGHT */}
-                          {tripTypeValue === "hauling" && (
+                          {tripCategoryValue === "hauling" && (
                             <TextField
                               touched={{ tare_weight: true }}
                               errors={errors}
