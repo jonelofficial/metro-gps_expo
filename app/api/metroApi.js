@@ -19,7 +19,7 @@ export const metroApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Trip", "Hauling"],
+  tagTypes: ["Trip", "Hauling", "Delivery"],
   endpoints: (builder) => ({
     // T R I P S
     getAllTrips: builder.query({
@@ -52,6 +52,20 @@ export const metroApi = createApi({
       invalidatesTags: ["Hauling"],
       // provides: (result) => [{ type: "Trip", id: result.id }],
     }),
+
+    // DELIVERY
+    getAllTripsDelivery: builder.query({
+      query: (params) =>
+        `/depot/apk-trips-delivery?page=${params?.page}&limit=${params?.limit}&search=${params?.search}&searchBy=${params?.searchBy}&date=${params?.date}`,
+      providesTags: ["Delivery"],
+    }),
+    createDeliveryTrip: builder.mutation({
+      query: (payload) => ({
+        url: "/depot/trip-delivery",
+        method: "POST",
+        body: payload,
+      }),
+    }),
   }),
 });
 
@@ -60,4 +74,6 @@ export const {
   useCreateTripMutation,
   useGetAllTripsHaulingQuery,
   useCreateHaulingTripMutation,
+  useGetAllTripsDeliveryQuery,
+  useCreateDeliveryTripMutation,
 } = metroApi;

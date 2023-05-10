@@ -94,3 +94,9 @@ export const deliveryFormSchema = Yup.object().shape({
   charging: Yup.string().required().label("Charging"),
   others: Yup.string().label("Others"),
 });
+
+export const arrivedDeliveryModalSchema = Yup.object().shape({
+  crates_dropped: Yup.number().required().label("Crates Dropped"),
+  crates_collected: Yup.number().required().label("Crates Collected"),
+  crates_borrowed: Yup.number().required().label("Crates Borrowed"),
+});

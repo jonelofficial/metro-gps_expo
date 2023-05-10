@@ -61,7 +61,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
     return false;
   };
 
-  // TRIP TYPE
+  // TRIP TYPE - HAULING
   const [tripType, setTripType] = useState([
     { value: "poultry", label: "Poultry", id: 0 },
     { value: "hogs", label: "Hogs", id: 1 },
@@ -72,6 +72,21 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
     isOpen: showTripTypeDropdown,
     onClose: onCloseTripTypeDropdown,
     onToggle: onToggleTripTypeDropdown,
+  } = useDisclosure();
+
+  // TRIP TYPE - DELIVERY
+  const [tripTypeDelivery, setTripTypeDelivery] = useState([
+    { value: "delivery", label: "Delivery", id: 0 },
+    { value: "service", label: "Service", id: 1 },
+  ]);
+  const [tripTypeDeliveryValue, setTripTypeDeliveryValue] = useState(
+    user?.trip_type
+  );
+
+  const {
+    isOpen: showTripTypeDeliveryDropdown,
+    onClose: onCloseTripTypeDeliveryDropdown,
+    onToggle: onToggleTripTypeDeliveryDropdown,
   } = useDisclosure();
 
   //
@@ -278,8 +293,63 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
     });
   };
 
-  const onSubmitDelivery = (data) => {
-    console.log(data);
+  const onSubmitDelivery = async (data, { resetForm }) => {
+    onToggleLoadingBtn();
+    Keyboard.dismiss();
+
+    await insertToTable(
+      `
+    INSERT INTO depot_delivery (
+      user_id,
+      vehicle_id,
+      odometer,
+      image,
+      companion,
+      others,
+      locations,
+      gas,
+      date,
+      charging,
+      trip_type,
+      destination,
+      route,
+      temperature,
+      trip_category
+    )
+    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    `,
+      [
+        user?.userId,
+        vehicle_id._id,
+        data.odometer,
+        JSON.stringify({
+          name: new Date() + "_odometer",
+          uri: data.odometer_image_path?.uri || null,
+          type: "image/jpg",
+        }),
+        JSON.stringify(companion),
+        data.others,
+        JSON.stringify([]),
+        JSON.stringify([]),
+        JSON.stringify(moment(Date.now()).tz("Asia/Manila")),
+        data?.charging,
+        data?.trip_type,
+        data?.destination,
+        data?.route,
+        data?.temperature,
+        data?.trip_category,
+      ]
+    );
+
+    resetForm();
+    dispatch(removeImage());
+    onCloseLoadingBtn();
+    navigation.navigate("Office", {
+      screen: "OfficeMap",
+      params: {
+        trip_category: data?.trip_category,
+      },
+    });
   };
 
   // DROPDOWN PICKER HANDLER
@@ -536,6 +606,51 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                             </>
                           )}
 
+                          {tripCategoryValue === "delivery" && (
+                            <>
+                              <Text style={styles.text}>Trip Type:</Text>
+                              <DropDownPicker
+                                listMode="SCROLLVIEW"
+                                open={showTripTypeDeliveryDropdown}
+                                onOpen={onTripTypeOpen}
+                                value={tripTypeDeliveryValue}
+                                items={tripTypeDelivery}
+                                onChangeValue={(value) => {
+                                  handleChange(value);
+                                  setFieldValue("trip_type", value);
+                                }}
+                                setOpen={onToggleTripTypeDeliveryDropdown}
+                                setValue={setTripTypeDeliveryValue}
+                                setItems={setTripTypeDelivery}
+                                placeholder="Select Trip Type"
+                                textStyle={{
+                                  fontFamily: "Khyay",
+                                  fontSize: 16,
+                                }}
+                                style={{
+                                  borderRadius: 15,
+                                  borderColor: colors.light,
+                                  marginBottom:
+                                    touched.trip_type && errors.trip_type
+                                      ? 0
+                                      : 12,
+                                  zIndex: 0,
+                                }}
+                                dropDownContainerStyle={{
+                                  borderColor: colors.light,
+                                  maxHeight: 150,
+                                  // zIndex: 99,
+                                }}
+                                zIndex={3000}
+                                zIndexInverse={1000}
+                              />
+                              {/* TRIP TYPE ERROR HANDLING */}
+                              {touched?.trip_type && errors?.trip_type && (
+                                <Errors>{errors.trip_type}</Errors>
+                              )}
+                            </>
+                          )}
+
                           {/* DESTINATIONS */}
 
                           {tripCategoryValue !== undefined && (
@@ -578,16 +693,15 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                           )}
                           {tripCategoryValue === "delivery" && (
                             <DropDownPicker
+                              id="destination"
                               listMode="SCROLLVIEW"
                               open={showDestinationsDropdown}
                               onOpen={onDestinationOpen}
                               value={deliveryDestination}
                               items={deliveryDestinations}
                               onChangeValue={(value) => {
-                                handleChange("destination");
-                                handleBlur("destination");
-                                setFieldValue("destination", value);
                                 setFieldValue("route", value);
+                                setFieldValue("destination", value);
                               }}
                               setOpen={onToggleDestinationsDropdown}
                               setValue={setDeliveryDestination}
@@ -622,7 +736,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                           {/* ROUTE */}
                           {tripCategoryValue === "delivery" && (
                             <TextField
-                              touched={{ route: true }}
+                              touched={{ route: false }}
                               errors={errors}
                               handleChange={handleChange}
                               handleBlur={handleBlur}

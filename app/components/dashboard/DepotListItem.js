@@ -3,7 +3,7 @@ import { getPathLength } from "geolib";
 import moment from "moment-timezone";
 import React, { useEffect } from "react";
 import { TouchableOpacity, View } from "react-native";
-import { Button, Text, withTheme } from "react-native-paper";
+import { Badge, Button, Text, withTheme } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { useCreateHaulingTripMutation } from "../../api/metroApi";
 import { validatorStatus } from "../../redux-toolkit/counter/vaidatorSlice";
@@ -159,21 +159,43 @@ const DepotListItem = ({
               sync
             </Button>
           ) : (
-            <View
-              style={{
-                padding: 7,
-                marginRight: 10,
-                borderWidth: 1,
-                borderRadius: 5,
-                borderColor: item?.offline ? colors.white : colors.success,
-                minWidth: 65,
-              }}
-            >
-              <Text
-                style={{ color: item?.offline ? colors.white : colors.success }}
+            <View style={{ flexDirection: "row" }}>
+              <View
+                style={{
+                  marginRight: 10,
+                  justifyContent: "center",
+                }}
               >
-                {`#${item._id.slice(20)}`}
-              </Text>
+                <Badge
+                  size={25}
+                  style={{
+                    backgroundColor:
+                      item?.trip_category === "hauling"
+                        ? colors.accent
+                        : colors.primary,
+                  }}
+                >
+                  {item?.trip_category === "hauling" ? "H" : "D"}
+                </Badge>
+              </View>
+              <View
+                style={{
+                  padding: 7,
+                  marginRight: 10,
+                  borderWidth: 1,
+                  borderRadius: 5,
+                  borderColor: item?.offline ? colors.white : colors.success,
+                  minWidth: 65,
+                }}
+              >
+                <Text
+                  style={{
+                    color: item?.offline ? colors.white : colors.success,
+                  }}
+                >
+                  {`#${item._id.slice(20)}`}
+                </Text>
+              </View>
             </View>
           )}
         </View>
