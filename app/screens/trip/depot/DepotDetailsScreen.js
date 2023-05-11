@@ -131,7 +131,10 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
               navigation.goBack();
             }}
           />
-          <Appbar.Content title={item?.user_id?.trip_template} />
+          <Appbar.Content
+            titleStyle={{ textTransform: "capitalize" }}
+            title={`${item?.user_id?.trip_template} ${item?.trip_category}`}
+          />
         </Appbar.Header>
         <View style={styles.container}>
           <ScrollView>
@@ -274,6 +277,52 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                               ? `${loc?.status} Farm`
                               : i == 3 && `${loc?.status} Depot`
                           }
+                          detailsStyle={{
+                            textTransform: "capitalize",
+                            color:
+                              loc?.status === "left"
+                                ? colors.danger
+                                : colors.success,
+                          }}
+                        />
+                        <Content
+                          label="Date"
+                          details={
+                            loc?.date &&
+                            moment(loc.date)
+                              .tz("Asia/Manila")
+                              .format("MMM-DD-YY hh:mm a")
+                          }
+                        />
+                        <Content
+                          label="Address"
+                          details={`${loc?.address[0]?.name || "(No Name)"}  ${
+                            loc?.address[0]?.district || "(No District)"
+                          } ${loc?.address[0]?.city || "(No City)"}  ${
+                            loc?.address[0]?.subregion || "(No Subregion)"
+                          }`}
+                        />
+
+                        {newLocations.length !== i + 1 && <MapDivider />}
+                      </Fragment>
+                    );
+                  })}
+                </Card.Content>
+              </Card>
+            )}
+
+            {newLocations.length > 0 && item?.trip_category === "delivery" && (
+              <Card style={styles.containerWrapper}>
+                <Card.Content>
+                  <Text>Location Details</Text>
+                  <Line />
+
+                  {newLocations?.map((loc, i) => {
+                    return (
+                      <Fragment key={i}>
+                        <Content
+                          label="Status"
+                          details={loc.status}
                           detailsStyle={{
                             textTransform: "capitalize",
                             color:

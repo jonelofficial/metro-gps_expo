@@ -482,8 +482,28 @@ const HaulingMap = ({ theme, navigation }) => {
       Keyboard.dismiss();
       startGasLoading();
 
+      const gasObj = {
+        gas_station_id: data.gas_station_id,
+        gas_station_name: data.gas_station_name,
+        odometer: data.odometer,
+        liter: data.liter,
+        amount: data.amount,
+        lat: location?.coords?.latitude,
+        long: location?.coords?.longitude,
+      };
+
+      const tripRes = await selectTable("depot_hauling");
+      let gas = JSON.parse(tripRes[tripRes.length - 1]?.gas);
+      gas.push(gasObj);
+
+      await updateToTable(
+        "UPDATE depot_hauling SET gas = (?) WHERE id = (SELECT MAX(id) FROM depot_hauling)",
+        [JSON.stringify(gas)]
+      );
+
       stopGasLoading();
       onCloseGasModal();
+      startLoader();
     } catch (error) {
       showAlert(`ERROR SQLTIE GAS PROCESS`, "danger");
     }

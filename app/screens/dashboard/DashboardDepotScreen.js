@@ -18,7 +18,10 @@ import {
   withTheme,
 } from "react-native-paper";
 import { useSelector } from "react-redux";
-import { useGetAllTripsHaulingQuery } from "../../api/metroApi";
+import {
+  useGetAllTripsDeliveryQuery,
+  useGetAllTripsHaulingQuery,
+} from "../../api/metroApi";
 import Screen from "../../components/Screen";
 import useParams from "../../hooks/useParams";
 import { Ionicons } from "@expo/vector-icons";
@@ -32,6 +35,7 @@ import SyncingAnimation from "../../components/loading/SyncingAnimation";
 import * as Notifications from "expo-notifications";
 import useToast from "../../hooks/useToast";
 import DepotListItem from "../../components/dashboard/DepotListItem";
+import DropDownPicker from "react-native-dropdown-picker";
 
 const DashboardDepotScreen = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -42,10 +46,12 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
 
   // FOR INTERNET STATUS
   const net = useSelector((state) => state.net.value);
+
   // STATE
   const [noData, setNoData] = useState(false);
   const [offSet, setOffSet] = useState(0);
   const [offlineLoading, setOfflineLoading] = useState(true);
+
   // SCROLL
   const [prevScrollPos, setPrevScrollPos] = useState(0);
   // FOR USER DETAILS
@@ -68,20 +74,40 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
     onClose: onLogoutClose,
   } = useDisclosure();
 
+  // FOR DROPDOWN
+  const {
+    isOpen: showDropdown,
+    onToggle: onToggleDropdown,
+    onClose: onCloseDropdown,
+  } = useDisclosure();
+
+  const [dropdownValue, setDropdownValue] = useState("hauling");
+  const [dropdownItems, setDropdownItems] = useState([
+    { label: "Depot", value: "depot", disabled: true },
+    { label: "Hauling", value: "hauling", parent: "depot" },
+    { label: "Delivery", value: "delivery", parent: "depot" },
+  ]);
+
   // FOR RTK
   const { reset, setState, state } = useParams();
 
   // STATE FOR RTK
+  const opt1 = {
+    page: state.page,
+    limit: state.limit,
+    searchBy: state.searchBy,
+    date: state.date,
+  };
+
+  const opt2 = {
+    refetchOnMountOrArgChange: true,
+    skip: !net,
+  };
+
   const { data, isLoading, isFetching, error, isError } =
-    useGetAllTripsHaulingQuery(
-      {
-        page: state.page,
-        limit: state.limit,
-        searchBy: state.searchBy,
-        date: state.date,
-      },
-      { refetchOnMountOrArgChange: true, skip: !net }
-    );
+    dropdownValue === "hauling"
+      ? useGetAllTripsHaulingQuery(opt1, opt2)
+      : useGetAllTripsDeliveryQuery(opt1, opt2);
 
   useEffect(() => {
     Notifications.setNotificationHandler({
@@ -554,7 +580,40 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <Text style={{ textAlign: "center" }}>Are you sure to logout?</Text>
+          <Text>Select trip to show:</Text>
+
+          {/* DROPDOWN */}
+          <View>
+            <DropDownPicker
+              open={showDropdown}
+              value={dropdownValue}
+              items={dropdownItems}
+              setOpen={onToggleDropdown}
+              setValue={setDropdownValue}
+              setItems={setDropdownItems}
+              onChangeValue={onLogoutClose}
+              placeholder="Select department"
+              textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
+              style={{
+                borderRadius: 20,
+                // borderColor: colors.light,
+                borderColor: "transparent",
+                marginBottom: 12,
+
+                elevation: 2,
+              }}
+              dropDownContainerStyle={{
+                borderColor: colors.notActive,
+                // backgroundColor: "#eeeeee",
+
+                maxHeight: 150,
+                borderRadius: 0,
+              }}
+              selectedItemLabelStyle={{ color: colors.primary }}
+              listParentContainerStyle={{ backgroundColor: colors.notActive }}
+              listParentLabelStyle={{ color: colors.light }}
+            />
+          </View>
 
           <Divider style={{ height: 15, backgroundColor: "transparent" }} />
           <Button

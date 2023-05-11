@@ -9,7 +9,14 @@ import {
   selectTable,
   updateToTable,
 } from "../../../../utility/sqlite";
-import { Alert, Keyboard, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  AppState,
+  BackHandler,
+  Keyboard,
+  StyleSheet,
+  View,
+} from "react-native";
 import { useStopwatch } from "react-timer-hook";
 import useDisclosure from "../../../../hooks/useDisclosure";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,6 +32,7 @@ import GasModal from "../../../../components/map/GasModal";
 import ArrivedDeliveryModal from "../../../../components/modal/delivery/ArrivedDeliveryModal";
 import moment from "moment-timezone";
 import AutoSuccessAnimation from "../../../../components/loading/AutoSuccessAnimation";
+import { validatorStatus } from "../../../../redux-toolkit/counter/vaidatorSlice";
 
 const DeliveryMap = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -43,7 +51,10 @@ const DeliveryMap = ({ theme, navigation }) => {
   const { showAlert } = useToast();
 
   // LOCATION
-  const { location, showMap, requestPremissions } = taskManager();
+  const { location, showMap, requestPremissions } = taskManager(
+    (newObj) => reloadRoute(newObj),
+    onBackground
+  );
 
   const { handleArrived, handleInterval, handleLeft } = useLocations();
 
@@ -122,10 +133,77 @@ const DeliveryMap = ({ theme, navigation }) => {
   useEffect(() => {
     (async () => {
       await deleteFromTable("route");
+      await reloadMapState();
+      await getRoute();
     })();
 
-    return () => {};
+    // HANDLE APP STATE
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    // HANDLE TRIP INTERVAL
+    const loc = setInterval(() => {
+      (async () => {
+        const intervalRes = await handleInterval();
+        if (intervalRes) {
+          const newObj = {
+            ...intervalRes,
+            date: moment(Date.now()).tz("Asia/Manila"),
+          };
+
+          reloadRoute();
+        }
+      })();
+    }, 600000);
+
+    return async () => {
+      clearInterval(loc);
+      await updateRoute();
+      deleteFromTable("route");
+      subscription.remove();
+    };
   }, []);
+
+  // PATH OR POINTS AND TOTAL KM
+  useEffect(() => {
+    (async () => {
+      if (location && !location?.coords?.speed <= 0 && !syncingTrip) {
+        setPoints((currentValue) => [
+          ...currentValue,
+          {
+            latitude: location?.coords?.latitude,
+            longitude: location?.coords?.longitude,
+          },
+
+          insertToTable("INSERT INTO route (points) values (?)", [
+            JSON.stringify({
+              latitude: location?.coords?.latitude,
+              longitude: location?.coords?.longitude,
+            }),
+          ]),
+        ]);
+      }
+
+      // COMPUTE TOTAL KM
+      const meter = getPathLength(points);
+      const km = meter / 1000;
+      setTotalKm(km.toFixed(1));
+    })();
+    return () => {
+      null;
+    };
+  }, [location]);
+
+  // HANDLE BACK
+  useEffect(() => {
+    BackHandler.addEventListener("hardwareBackPress", backAction);
+
+    return () => {
+      BackHandler.removeEventListener("hardwareBackPress", backAction);
+    };
+  }, [trip]);
 
   const backAction = () => {
     Alert.alert("Hold on!", "Are you sure you want to go back?", [
@@ -245,7 +323,7 @@ const DeliveryMap = ({ theme, navigation }) => {
     const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
 
     const newLocations = locPoint.filter(
-      (location) => location.status == "left" || locations.status == "arrived"
+      (location) => location.status == "left" || location.status == "arrived"
     );
 
     newLocations?.length % 2 !== 0 && start(new Date());
@@ -285,6 +363,7 @@ const DeliveryMap = ({ theme, navigation }) => {
       stopLefLoading();
       startLoader();
     } catch (error) {
+      console.log("SQLITE LEFT: ", error);
       stopLefLoading();
       showAlert(
         "Left not process. Please try again or reload app if still not processing",
@@ -293,11 +372,144 @@ const DeliveryMap = ({ theme, navigation }) => {
     }
   };
 
-  const sqliteArrived = async () => {};
+  const sqliteArrived = async () => {
+    try {
+      Keyboard.dismiss();
+      startArrivedLoading();
+      pause();
 
-  const handleGasSubmit = async () => {};
+      const arrivedRes = await Promise.race([
+        handleArrived(location),
+        new Promise((resolve, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 6000)
+        ),
+      ]);
 
-  const sqliteDone = async () => {};
+      if (arrivedRes) {
+        const newObj = {
+          ...arrivedRes,
+          date: moment(Date.now()).tz("Asia/Manila"),
+        };
+
+        await reloadRoute(newObj);
+        await reloadMapState();
+      }
+
+      stopArrivedLoading();
+      startLoader();
+    } catch (error) {
+      console.log("SQLITE ARRIVED: ", error);
+      stopArrivedLoading();
+      showAlert(
+        "Arrived not process. Please try again or reload app if still not processing",
+        "danger"
+      );
+    }
+  };
+
+  const handleGasSubmit = async (data) => {
+    try {
+      Keyboard.dismiss();
+      startGasLoading();
+
+      const gasObj = {
+        gas_station_id: data.gas_station_id,
+        gas_station_name: data.gas_station_name,
+        odometer: data.odometer,
+        liter: data.liter,
+        amount: data.amount,
+        lat: location?.coords?.latitude,
+        long: location?.coords?.longitude,
+      };
+
+      const tripRes = await selectTable("depot_delivery");
+      let gas = JSON.parse(tripRes[tripRes.length - 1]?.gas);
+      gas.push(gasObj);
+
+      await updateToTable(
+        "UPDATE depot_delivery SET gas = (?) WHERE id = (SELECT MAX(id) FROM depot_delivery)",
+        [JSON.stringify(gas)]
+      );
+
+      stopGasLoading();
+      onCloseGasModal();
+      startLoader();
+    } catch (error) {
+      console.log("SQLITE GAS", error);
+      showAlert(`ERROR SQLTIE GAS PROCESS`, "danger");
+    }
+  };
+
+  const sqliteDone = async (data) => {
+    try {
+      Keyboard.dismiss();
+      startDoneLoading();
+
+      const routeRes = await selectTable("route");
+      const mapPoints = [...routeRes.map((item) => JSON.parse(item?.points))];
+
+      await updateToTable(
+        "UPDATE depot_delivery SET odometer_done = (?), points = (?)  WHERE id = (SELECT MAX(id) FROM depot_delivery)",
+        [data.odometer_done, JSON.stringify(mapPoints)]
+      );
+
+      if (net) {
+        const offlineTrip = await selectTable(
+          "depot_delivery WHERE id = (SELECT MAX(id) FROM depot_delivery)"
+        );
+
+        const img = JSON.parse(offlineTrip[0]?.image);
+        const form = new FormData();
+
+        form.append("trip_date", JSON.parse(offlineTrip[0]?.date));
+        form.append("trip_type", offlineTrip[0]?.trip_type);
+        form.append("trip_category", offlineTrip[0]?.trip_category);
+        form.append("destination", offlineTrip[0]?.destination);
+        form.append("route", offlineTrip[0]?.route);
+        form.append("vehicle_id", offlineTrip[0]?.vehicle_id);
+        form.append("locations", offlineTrip[0]?.locations);
+        form.append("diesels", offlineTrip[0]?.gas);
+        form.append("odometer", JSON.parse(offlineTrip[0]?.odometer));
+        form.append("odometer_done", JSON.parse(data?.odometer_done));
+        img?.uri !== null && form.append("image", img);
+        form.append("others", offlineTrip[0].others);
+        form.append("charging", offlineTrip[0].charging);
+        form.append("companion", offlineTrip[0].companion);
+        form.append("points", JSON.stringify(mapPoints));
+        form.append("temperature", offlineTrip[0].temperature);
+        form.append("crates_dropped", offlineTrip[0].crates_dropped);
+        form.append("crates_collected", offlineTrip[0].crates_collected);
+        form.append("crates_borrowed", offlineTrip[0].crates_borrowed);
+
+        const res = await createTrip(form);
+
+        if (res?.data) {
+          // Remove offline trip to sqlite database and state
+          await deleteFromTable(
+            `depot_delivery WHERE id = (SELECT MAX(id) FROM depot_delivery)`
+          );
+        } else {
+          showAlert(res?.error?.error, "warning");
+        }
+      }
+
+      dispatch(validatorStatus(true));
+      stopDoneLoading();
+
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "Dashboard",
+            params: { screen: "DashboardStack" },
+          },
+        ],
+      });
+    } catch (error) {
+      console.log("SQLITE DONE: ", error);
+      showAlert(`ERROR SQLTIE DONE PROCESS`, "danger");
+    }
+  };
 
   const styles = StyleSheet.create({
     firstContainer: {
@@ -368,7 +580,7 @@ const DeliveryMap = ({ theme, navigation }) => {
 
   if (!showMap) {
     return (
-      <View>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>Allow permission for locations</Text>
         <Button onPress={requestPremissions}>Request Permission</Button>
       </View>
@@ -414,7 +626,7 @@ const DeliveryMap = ({ theme, navigation }) => {
                     trip?.locations?.length > 0)
                 }
                 loading={leftLoading}
-                onPress={() => console.log("left")}
+                onPress={sqliteLeft}
               >
                 Left
               </Button>
@@ -432,7 +644,7 @@ const DeliveryMap = ({ theme, navigation }) => {
                   trip?.locations?.length === 0
                 }
                 loading={arrivedLoading}
-                onPress={() => console.log("arrived")}
+                onPress={sqliteArrived}
               >
                 Arrived
               </Button>
@@ -454,7 +666,7 @@ const DeliveryMap = ({ theme, navigation }) => {
               style={{ borderRadius: 10 }}
               disabled={arrivedLoading || leftLoading}
               loading={true}
-              onPress={() => console.log("gas")}
+              onPress={onToggleGasModal}
             />
           </View>
 
@@ -472,7 +684,7 @@ const DeliveryMap = ({ theme, navigation }) => {
                 leftLoading ||
                 doneLoading
               }
-              onPress={() => console.log("done")}
+              onPress={onToggleDoneModal}
             >
               Done
             </Button>
