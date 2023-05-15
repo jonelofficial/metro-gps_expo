@@ -6,7 +6,8 @@ const runSQLite = () => {
   useEffect(() => {
     (async () => {
       // await dropTable("user");
-      // await dropTable("offline_trip");
+      // await dropTable("depot_hauling");
+      // await dropTable("depot_delivery");
 
       // const res = await showTable();
       // console.log("T A B L E: ", res);
@@ -48,7 +49,6 @@ const runSQLite = () => {
       trip_type TEXT,
       trip_category TEXT,
       destination TEXT,
-      farm TEXT,
       temperature LONGTEXT,
       tare_weight LONGTEXT,
       gross_weight LONGTEXT,
@@ -75,7 +75,6 @@ const runSQLite = () => {
       trip_type TEXT,
       trip_category TEXT,
       destination TEXT,
-      route TEXT,
       temperature LONGTEXT,
       crates_dropped LONGTEXT,
       crates_collected LONGTEXT,

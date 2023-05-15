@@ -48,7 +48,6 @@ export const depotDefaultFormSchema = Yup.object().shape({
   odometer: Yup.number().required().label("Odometer"),
   odometer_image_path: Yup.object().required().label("Odometer Picture"),
   trip_category: Yup.string().required().label("Trip Category"),
-  temperature: Yup.string().required().label("Temperature"),
   charging: Yup.string().required().label("Charging"),
   others: Yup.string().label("Others"),
 });
@@ -58,11 +57,9 @@ export const haulingFormSchema = Yup.object().shape({
   odometer: Yup.number().required().label("Odometer"),
   odometer_image_path: Yup.object().required().label("Odometer Picture"),
   trip_category: Yup.string().required().label("Trip Category"),
-  trip_type: Yup.string().required().label("Trip Type"),
-  destination: Yup.string().required().label("Destination"),
-  farm: Yup.string().required("Select destination to autofill").label("Farm"),
-  temperature: Yup.string().required().label("Temperature"),
-  tare_weight: Yup.string().required().label("Tare Weight"),
+  trip_type: Yup.string().nullable().required().label("Trip Type"),
+  destination: Yup.string().nullable().required().label("Destination"),
+  tare_weight: Yup.number().required().label("Tare Weight"),
   charging: Yup.string().required().label("Charging"),
   others: Yup.string().label("Others"),
 });
@@ -73,13 +70,13 @@ export const arrivedModalSchema = Yup.object().shape({
 });
 
 export const arrivedModalFullSchema = Yup.object().shape({
-  net_weight: Yup.number().required().label("Net Weight"),
+  net_weight: Yup.number().label("Net Weight"),
   gross_weight: Yup.number().required().label("Gross Weight"),
   doa_count: Yup.number().required().label("DOA Count"),
 });
 
 export const leftModalSchema = Yup.object().shape({
-  item_count: Yup.number().required().label("Gross Weight"),
+  item_count: Yup.number().required().label("Item Count"),
 });
 
 // DEPOT DELIVERY
@@ -87,9 +84,8 @@ export const deliveryFormSchema = Yup.object().shape({
   odometer: Yup.number().required().label("Odometer"),
   odometer_image_path: Yup.object().required().label("Odometer Picture"),
   trip_category: Yup.string().required().label("Trip Category"),
-  trip_type: Yup.string().required().label("Trip Type"),
-  destination: Yup.string().required().label("Destination"),
-  route: Yup.string().required("Select destination to autofill").label("Route"),
+  trip_type: Yup.string().nullable().required().label("Trip Type"),
+  destination: Yup.string().nullable().required().label("Destination"),
   temperature: Yup.string().required().label("Temperature"),
   charging: Yup.string().required().label("Charging"),
   others: Yup.string().label("Others"),

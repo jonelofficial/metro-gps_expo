@@ -64,7 +64,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   // TRIP TYPE - HAULING
   const [tripType, setTripType] = useState([
     { value: "poultry", label: "Poultry", id: 0 },
-    { value: "hogs", label: "Hogs", id: 1 },
+    { value: "swine", label: "Swine", id: 1 },
   ]);
   const [tripTypeValue, setTripTypeValue] = useState(user?.trip_type);
 
@@ -149,8 +149,6 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
         odometer: "",
         others: "",
         tare_weight: "",
-        farm: "",
-        temperature: "",
         odometer_image_path: image,
         companion: companion,
         charging: value,
@@ -163,7 +161,6 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
       setFormValues({
         odometer: "",
         others: "",
-        route: "",
         temperature: "",
         odometer_image_path: image,
         companion: companion,
@@ -235,7 +232,6 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   const onSubmitHauling = async (data, { resetForm }) => {
     onToggleLoadingBtn();
     Keyboard.dismiss();
-
     await insertToTable(
       `
     INSERT INTO depot_hauling (
@@ -251,12 +247,10 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
       charging,
       trip_type,
       destination,
-      farm,
-      temperature,
       tare_weight,
       trip_category
     )
-    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `,
       [
         user?.userId,
@@ -275,13 +269,10 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
         data?.charging,
         data?.trip_type,
         data?.destination,
-        data?.farm,
-        data?.temperature,
         data?.tare_weight,
         data?.trip_category,
       ]
     );
-
     resetForm();
     dispatch(removeImage());
     onCloseLoadingBtn();
@@ -312,11 +303,10 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
       charging,
       trip_type,
       destination,
-      route,
       temperature,
       trip_category
     )
-    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `,
       [
         user?.userId,
@@ -335,7 +325,6 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
         data?.charging,
         data?.trip_type,
         data?.destination,
-        data?.route,
         data?.temperature,
         data?.trip_category,
       ]
@@ -453,8 +442,6 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                     touched,
                     setFieldValue,
                     setErrors,
-                    setFieldTouched,
-                    setFieldError,
                   }) => {
                     // Image validation
                     useEffect(() => {
@@ -530,8 +517,9 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                             value={tripCategoryValue}
                             items={tripCategory}
                             onChangeValue={(value) => {
-                              handleChange(value);
                               setFieldValue("trip_category", value);
+                              setFieldValue("trip_type", null);
+                              setFieldValue("destination", null);
                             }}
                             setOpen={onToggleTripCategoryDropdown}
                             setValue={setTripCategoryValue}
@@ -571,7 +559,6 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                                 value={tripTypeValue}
                                 items={tripType}
                                 onChangeValue={(value) => {
-                                  handleChange(value);
                                   setFieldValue("trip_type", value);
                                 }}
                                 setOpen={onToggleTripTypeDropdown}
@@ -616,7 +603,6 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                                 value={tripTypeDeliveryValue}
                                 items={tripTypeDelivery}
                                 onChangeValue={(value) => {
-                                  handleChange(value);
                                   setFieldValue("trip_type", value);
                                 }}
                                 setOpen={onToggleTripTypeDeliveryDropdown}
@@ -665,7 +651,6 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                               value={destination}
                               items={destinations}
                               onChangeValue={(value) => {
-                                setFieldValue("farm", value);
                                 setFieldValue("destination", value);
                               }}
                               setOpen={onToggleDestinationsDropdown}
@@ -700,7 +685,6 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                               value={deliveryDestination}
                               items={deliveryDestinations}
                               onChangeValue={(value) => {
-                                setFieldValue("route", value);
                                 setFieldValue("destination", value);
                               }}
                               setOpen={onToggleDestinationsDropdown}
@@ -733,34 +717,6 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                               <Errors>{errors?.destination}</Errors>
                             )}
 
-                          {/* ROUTE */}
-                          {tripCategoryValue === "delivery" && (
-                            <TextField
-                              touched={{ route: false }}
-                              errors={errors}
-                              handleChange={handleChange}
-                              handleBlur={handleBlur}
-                              values={values}
-                              name="route"
-                              label="Route (Autofill)"
-                              editable={false}
-                            />
-                          )}
-
-                          {/* FARM */}
-                          {tripCategoryValue === "hauling" && (
-                            <TextField
-                              touched={{ farm: false }}
-                              errors={errors}
-                              handleChange={handleChange}
-                              handleBlur={handleBlur}
-                              values={values}
-                              name="farm"
-                              label="Farm (Autofill)"
-                              editable={false}
-                            />
-                          )}
-
                           {/* TARE WEIGHT */}
                           {tripCategoryValue === "hauling" && (
                             <TextField
@@ -776,16 +732,18 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                           )}
 
                           {/* TEMPERATURE */}
-                          <TextField
-                            touched={touched}
-                            errors={errors}
-                            handleChange={handleChange}
-                            handleBlur={handleBlur}
-                            values={values}
-                            name="temperature"
-                            label="Temperature"
-                            keyboardType="numeric"
-                          />
+                          {tripCategoryValue === "delivery" && (
+                            <TextField
+                              touched={touched}
+                              errors={errors}
+                              handleChange={handleChange}
+                              handleBlur={handleBlur}
+                              values={values}
+                              name="temperature"
+                              label="Temperature"
+                              keyboardType="numeric"
+                            />
+                          )}
 
                           {/* CHARGING */}
                           <Text style={styles.text}>Charging:</Text>

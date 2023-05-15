@@ -195,9 +195,18 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                 />
                 <Content label="Category" details={item?.trip_category} />
                 <Content label="Destination" details={item?.destination} />
-                <Content label="Farm" details={item?.farm} />
-                <Content label="Odo" details={item?.odometer} />
-                <Content label="Odo Done" details={item?.odometer_done} />
+                <Content
+                  label="Odo"
+                  details={item?.odometer
+                    ?.toString()
+                    ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                />
+                <Content
+                  label="Odo Done"
+                  details={item?.odometer_done
+                    ?.toString()
+                    ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                />
                 {item?.odometer_image_path && (
                   <Content
                     label="Odo Image"
@@ -244,14 +253,36 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
 
                 {item?.trip_category === "hauling" && (
                   <>
-                    <Content label="Tare Weight" details={item?.tare_weight} />
-                    <Content label="Net Weight" details={item?.net_weight} />
+                    <Content
+                      label="Tare Weight"
+                      details={item?.tare_weight
+                        ?.toString()
+                        ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    />
+                    <Content
+                      label="Net Weight"
+                      details={item?.net_weight
+                        ?.toString()
+                        ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    />
                     <Content
                       label="Gross Weight"
-                      details={item?.gross_weight}
+                      details={item?.gross_weight
+                        ?.toString()
+                        ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                     />
-                    <Content label="Item Count" details={item?.item_count} />
-                    <Content label="DOA Count" details={item?.doa_count} />
+                    <Content
+                      label="Item Count"
+                      details={item?.item_count
+                        ?.toString()
+                        ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    />
+                    <Content
+                      label="DOA Count"
+                      details={item?.doa_count
+                        ?.toString()
+                        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    />
                   </>
                 )}
               </Card.Content>

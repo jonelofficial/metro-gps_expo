@@ -459,7 +459,7 @@ const HaulingMap = ({ theme, navigation }) => {
             net_weight = (?) , 
             doa_count = (?)  
             WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
-            [data?.net_weight, data?.gross_weight, data?.doa_count]
+            [data?.gross_weight, data?.net_weight, data?.doa_count]
           );
         }
       }
@@ -534,7 +534,6 @@ const HaulingMap = ({ theme, navigation }) => {
         form.append("trip_type", offlineTrip[0]?.trip_type);
         form.append("trip_category", offlineTrip[0]?.trip_category);
         form.append("destination", offlineTrip[0]?.destination);
-        form.append("farm", offlineTrip[0]?.farm);
         form.append("vehicle_id", offlineTrip[0]?.vehicle_id);
         form.append("locations", offlineTrip[0]?.locations);
         form.append("diesels", offlineTrip[0]?.gas);
@@ -545,7 +544,6 @@ const HaulingMap = ({ theme, navigation }) => {
         form.append("charging", offlineTrip[0].charging);
         form.append("companion", offlineTrip[0].companion);
         form.append("points", JSON.stringify(mapPoints));
-        form.append("temperature", offlineTrip[0].temperature);
         form.append("tare_weight", offlineTrip[0].tare_weight);
         form.append("gross_weight", offlineTrip[0].gross_weight);
         form.append("net_weight", offlineTrip[0].net_weight);

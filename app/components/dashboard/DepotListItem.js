@@ -46,7 +46,8 @@ const DepotListItem = ({
   }, [item]);
 
   // Getting KM
-  const km = item.points?.length > 0 && getPathLength(item.points) / 1000;
+  // const km = item.points?.length > 0 && getPathLength(item.points) / 1000;
+  const km = item?.odometer_done - item?.odometer;
 
   // Getting TIME
   const startDate = dayjs(newLocations[0]?.date);
@@ -207,7 +208,12 @@ const DepotListItem = ({
               newLocations.length === 0 ||
               isNaN(item?.odometer_done)
                 ? "CLICK TO RESUME TRIP"
-                : (km && `${km.toFixed(1)} km`) || "0 m"}
+                : (km &&
+                    `${km
+                      ?.toFixed(1)
+                      ?.toString()
+                      ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} km`) ||
+                  "0 m"}
             </Text>
           </View>
 

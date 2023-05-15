@@ -73,26 +73,6 @@ const ArrivedModal = ({
           }) => {
             return (
               <>
-                {/* <TextField
-                  touched={touched}
-                  errors={errors}
-                  handleChange={handleChange}
-                  handleBlur={handleBlur}
-                  values={values}
-                  name="temperature"
-                  label="Temperature"
-                  keyboardType="numeric"
-                />
-                <TextField
-                  touched={touched}
-                  errors={errors}
-                  handleChange={handleChange}
-                  handleBlur={handleBlur}
-                  values={values}
-                  name="tare_weight"
-                  label="Tare Weight"
-                  keyboardType="numeric"
-                /> */}
                 {trip?.locations?.length > 1 && (
                   <>
                     <TextField
@@ -101,8 +81,8 @@ const ArrivedModal = ({
                       handleChange={handleChange}
                       handleBlur={handleBlur}
                       values={values}
-                      name="net_weight"
-                      label="Net Weight"
+                      name="gross_weight"
+                      label="Gross Weight"
                       keyboardType="numeric"
                     />
                     <TextField
@@ -111,8 +91,8 @@ const ArrivedModal = ({
                       handleChange={handleChange}
                       handleBlur={handleBlur}
                       values={values}
-                      name="gross_weight"
-                      label="Gross Weight"
+                      name="net_weight"
+                      label="Net Weight (Optional)"
                       keyboardType="numeric"
                     />
                     <TextField
