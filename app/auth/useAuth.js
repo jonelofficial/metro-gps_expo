@@ -154,6 +154,133 @@ const useAuth = () => {
     }
   };
 
+  const getTripCategory = async (token) => {
+    try {
+      const response = await fetch(
+        `${process.env.BASEURL}/api/data/trip-category?page=1&limit=0`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const tripCategory = await response.json();
+      if (tripCategory.data) {
+        let categoryCount;
+        categoryCount = tripCategory.data.length;
+        const data = await selectTable("trip_category");
+        if (data.length === 0) {
+          await tripCategory.data.map(async (item) => {
+            await insertToTable(
+              "INSERT INTO trip_category (category, trip_template) values (?,?)",
+              [item.category, item.trip_template]
+            );
+          });
+        } else if (categoryCount !== data.length) {
+          await deleteFromTable("trip_category");
+          await tripCategory.data.map(async (item) => {
+            await insertToTable(
+              "INSERT INTO trip_category (category, trip_template) values (?,?)",
+              [item.category, item.trip_template]
+            );
+          });
+        }
+
+        // End
+      }
+    } catch (error) {
+      console.log("GET TRIP CATEGORY API ERROR: ", error);
+    }
+  };
+
+  const getTripType = async (token) => {
+    try {
+      const response = await fetch(
+        `${process.env.BASEURL}/api/data/trip-type?page=1&limit=0`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const tripType = await response.json();
+      if (tripType.data) {
+        let typeCount;
+        typeCount = tripType.data.length;
+        const data = await selectTable("trip_type");
+        if (data.length === 0) {
+          await tripType.data.map(async (item) => {
+            await insertToTable(
+              "INSERT INTO trip_type (type, trip_category, trip_template) values (?,?,?)",
+              [item.type, item.trip_category, item.trip_template]
+            );
+          });
+        } else if (typeCount !== data.length) {
+          await deleteFromTable("trip_category");
+          await tripType.data.map(async (item) => {
+            await insertToTable(
+              "INSERT INTO trip_type (type, trip_category, trip_template) values (?,?,?)",
+              [item.type, item.trip_category, item.trip_template]
+            );
+          });
+        }
+
+        // End
+      }
+    } catch (error) {
+      console.log("GET TRIP TYPE API ERROR: ", error);
+    }
+  };
+
+  const getDestination = async (token) => {
+    try {
+      const response = await fetch(
+        `${process.env.BASEURL}/api/data/destinations?page=1&limit=0`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const destinations = await response.json();
+      if (destinations.data) {
+        let destinationCount;
+        destinationCount = destinations.data.length;
+        const data = await selectTable("destination");
+        if (data.length === 0) {
+          await destinations.data.map(async (item) => {
+            await insertToTable(
+              "INSERT INTO destination (destination, trip_type, trip_category, trip_template) values (?,?,?,?)",
+              [
+                item.destination,
+                item.trip_type,
+                item.trip_category,
+                item.trip_template,
+              ]
+            );
+          });
+        } else if (destinationCount !== data.length) {
+          await deleteFromTable("destination");
+          await destinations.data.map(async (item) => {
+            await insertToTable(
+              "INSERT INTO destination (destination, trip_type, trip_category, trip_template) values (?,?,?,?)",
+              [
+                item.destination,
+                item.trip_type,
+                item.trip_category,
+                item.trip_template,
+              ]
+            );
+          });
+        }
+
+        // End
+      }
+    } catch (error) {
+      console.log("GET DESTINATION API ERROR: ", error);
+    }
+  };
+
   const login = async (values) => {
     Keyboard.dismiss();
     onToggle();
@@ -178,6 +305,9 @@ const useAuth = () => {
         await getDepartment();
         await getVehicles(data.token);
         await getGasStation(data.token);
+        await getTripCategory(data.token);
+        await getTripType(data.token);
+        await getDestination(data.token);
         storeToken(data.token);
         storeUser(jwtDecode(data.token));
         dispatch(addToken(data));

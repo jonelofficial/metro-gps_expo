@@ -171,12 +171,12 @@ const DepotListItem = ({
                   size={25}
                   style={{
                     backgroundColor:
-                      item?.trip_category === "hauling"
+                      item?.trip_category.toLowerCase() === "hauling"
                         ? colors.accent
                         : colors.primary,
                   }}
                 >
-                  {item?.trip_category === "hauling" ? "H" : "D"}
+                  {item?.trip_category.toLowerCase() === "hauling" ? "H" : "D"}
                 </Badge>
               </View>
               <View

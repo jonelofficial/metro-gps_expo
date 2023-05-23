@@ -1,20 +1,27 @@
 import React, { useEffect } from "react";
-import { createTable, dropTable, showTable } from "../utility/sqlite";
+import { createTable, showTable } from "../utility/sqlite";
 import * as SQLite from "expo-sqlite";
 
 const runSQLite = () => {
   useEffect(() => {
     (async () => {
-      // await dropTable("user");
-      // await dropTable("depot_hauling");
-      // await dropTable("depot_delivery");
+      // const db = SQLite.openDatabase("mydb.db");
 
       // const res = await showTable();
       // console.log("T A B L E: ", res);
 
-      // const db = SQLite.openDatabase("mydb.db");
-
-      // console.log(db);
+      await createTable(
+        "trip_category",
+        `id integer primary key not null, category TEXT, trip_template TEXT`
+      );
+      await createTable(
+        "trip_type",
+        `id integer primary key not null, type TEXT, trip_category TEXT, trip_template TEXT`
+      );
+      await createTable(
+        "destination",
+        `id integer primary key not null, destination TEXT, trip_type TEXT, trip_category TEXT, trip_template TEXT`
+      );
 
       await createTable(
         "offline_trip",

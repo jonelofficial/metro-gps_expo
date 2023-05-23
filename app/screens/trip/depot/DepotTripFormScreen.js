@@ -62,10 +62,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   };
 
   // TRIP TYPE - HAULING
-  const [tripType, setTripType] = useState([
-    { value: "poultry", label: "Poultry", id: 0 },
-    { value: "swine", label: "Swine", id: 1 },
-  ]);
+  const [tripType, setTripType] = useState([]);
   const [tripTypeValue, setTripTypeValue] = useState(user?.trip_type);
 
   const {
@@ -75,10 +72,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   } = useDisclosure();
 
   // TRIP TYPE - DELIVERY
-  const [tripTypeDelivery, setTripTypeDelivery] = useState([
-    { value: "delivery", label: "Delivery", id: 0 },
-    { value: "service", label: "Service", id: 1 },
-  ]);
+  const [tripTypeDelivery, setTripTypeDelivery] = useState([]);
   const [tripTypeDeliveryValue, setTripTypeDeliveryValue] = useState(
     user?.trip_type
   );
@@ -92,10 +86,8 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   //
 
   // TRIP CATEGORY
-  const [tripCategory, setTripCategory] = useState([
-    { value: "hauling", label: "Hauling", id: 0 },
-    { value: "delivery", label: "Delivery", id: 1 },
-  ]);
+
+  const [tripCategory, setTripCategory] = useState([]);
   const [tripCategoryValue, setTripCategoryValue] = useState(
     user?.trip_category
   );
@@ -108,10 +100,10 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
   //
 
+  const [destinationInitial, setDestinationInitial] = useState([]);
+
   // DESTINATION HAULING
-  const [destinations, setDestinations] = useState([
-    { value: "test", label: "afsa", id: 0 },
-  ]);
+  const [destinations, setDestinations] = useState([]);
   const [destination, setDestination] = useState();
 
   const {
@@ -143,8 +135,74 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   const [formSchema, setFormSchema] = useState(depotDefaultFormSchema);
 
   useEffect(() => {
+    (async () => {
+      const filterData = (data) => {
+        return data.filter((obj) => obj.trip_template === "Depot");
+      };
+
+      setDestinationInitial(filterData(await selectTable("destination")));
+      const tripType = await selectTable("trip_type");
+      const tripCategory = await selectTable("trip_category");
+
+      // TRIP CATETGORY
+
+      const categoryFilteredData = filterData(tripCategory);
+
+      setTripCategory([
+        ...categoryFilteredData.map((obj) => {
+          return { value: obj.category, label: obj.category };
+        }),
+      ]);
+
+      // TRIP TYPE
+
+      const haulingTypeFilteredData = filterData(tripType).filter(
+        (obj) => obj.trip_category === "Hauling"
+      );
+
+      setTripType([
+        ...haulingTypeFilteredData.map((obj) => {
+          return { value: obj.type, label: obj.type };
+        }),
+      ]);
+
+      const deliveryTypeFilteredData = filterData(tripType).filter(
+        (obj) => obj.trip_category === "Delivery"
+      );
+
+      setTripTypeDelivery([
+        ...deliveryTypeFilteredData.map((obj) => {
+          return { value: obj.type, label: obj.type };
+        }),
+      ]);
+    })();
+  }, []);
+
+  useEffect(() => {
+    const destinationHaulingFilteredData = destinationInitial.filter(
+      (obj) => obj.trip_type === tripTypeValue
+    );
+    setDestinations([
+      ...destinationHaulingFilteredData.map((obj) => {
+        return { value: obj.destination, label: obj.destination };
+      }),
+    ]);
+  }, [tripTypeValue]);
+
+  useEffect(() => {
+    const destinationDeliveryFilteredData = destinationInitial.filter(
+      (obj) => obj.trip_type === tripTypeValue
+    );
+    setDeliveryDestinations([
+      ...destinationDeliveryFilteredData.map((obj) => {
+        return { value: obj.destination, label: obj.destination };
+      }),
+    ]);
+  }, [tripTypeDeliveryValue]);
+
+  useEffect(() => {
     // Update initial values and schema based on trip type
-    if (tripCategoryValue === "hauling") {
+    if (tripCategoryValue?.toLowerCase() === "hauling") {
       setFormValues({
         odometer: "",
         others: "",
@@ -157,7 +215,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
         destination: destination,
       });
       setFormSchema(haulingFormSchema);
-    } else if (tripCategoryValue === "delivery") {
+    } else if (tripCategoryValue?.toLowerCase() === "delivery") {
       setFormValues({
         odometer: "",
         others: "",
@@ -424,9 +482,9 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
               <View style={styles.formWrapper}>
                 <Formik
                   onSubmit={
-                    tripCategoryValue === "hauling"
+                    tripCategoryValue?.toLowerCase() === "hauling"
                       ? onSubmitHauling
-                      : tripCategoryValue === "delivery"
+                      : tripCategoryValue?.toLowerCase() === "delivery"
                       ? onSubmitDelivery
                       : null
                   }
@@ -510,46 +568,50 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
                           {/* TRIP CATEGORY */}
                           <Text style={styles.text}>Trip Category:</Text>
-                          <DropDownPicker
-                            listMode="SCROLLVIEW"
-                            open={showTripCategoryDropdown}
-                            onOpen={onTripCategoryOpen}
-                            value={tripCategoryValue}
-                            items={tripCategory}
-                            onChangeValue={(value) => {
-                              setFieldValue("trip_category", value);
-                              setFieldValue("trip_type", null);
-                              setFieldValue("destination", null);
-                            }}
-                            setOpen={onToggleTripCategoryDropdown}
-                            setValue={setTripCategoryValue}
-                            setItems={setTripCategory}
-                            placeholder="Select Trip Category"
-                            textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
-                            style={{
-                              borderRadius: 15,
-                              borderColor: colors.light,
-                              marginBottom:
-                                touched.trip_category && errors.trip_category
-                                  ? 0
-                                  : 12,
-                              zIndex: 0,
-                            }}
-                            dropDownContainerStyle={{
-                              borderColor: colors.light,
-                              maxHeight: 150,
-                              // zIndex: 99,
-                            }}
-                            zIndex={3000}
-                            zIndexInverse={1000}
-                          />
+                          {tripCategory?.length !== 0 ? (
+                            <DropDownPicker
+                              listMode="SCROLLVIEW"
+                              open={showTripCategoryDropdown}
+                              onOpen={onTripCategoryOpen}
+                              value={tripCategoryValue}
+                              items={tripCategory}
+                              onChangeValue={(value) => {
+                                setFieldValue("trip_category", value);
+                                setFieldValue("trip_type", null);
+                                setFieldValue("destination", null);
+                              }}
+                              setOpen={onToggleTripCategoryDropdown}
+                              setValue={setTripCategoryValue}
+                              setItems={setTripCategory}
+                              placeholder="Select Trip Category"
+                              textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
+                              style={{
+                                borderRadius: 15,
+                                borderColor: colors.light,
+                                marginBottom:
+                                  touched.trip_category && errors.trip_category
+                                    ? 0
+                                    : 12,
+                                zIndex: 0,
+                              }}
+                              dropDownContainerStyle={{
+                                borderColor: colors.light,
+                                maxHeight: 150,
+                                // zIndex: 99,
+                              }}
+                              zIndex={3000}
+                              zIndexInverse={1000}
+                            />
+                          ) : (
+                            <Text style={styles.text}>Loading...</Text>
+                          )}
                           {/* TRIP TYPE ERROR HANDLING */}
                           {touched?.trip_category && errors?.trip_category && (
                             <Errors>{errors.trip_category}</Errors>
                           )}
 
                           {/* TRIP TYPE */}
-                          {tripCategoryValue === "hauling" && (
+                          {tripCategoryValue?.toLowerCase() === "hauling" && (
                             <>
                               <Text style={styles.text}>Trip Type:</Text>
                               <DropDownPicker
@@ -593,7 +655,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                             </>
                           )}
 
-                          {tripCategoryValue === "delivery" && (
+                          {tripCategoryValue?.toLowerCase() === "delivery" && (
                             <>
                               <Text style={styles.text}>Trip Type:</Text>
                               <DropDownPicker
@@ -642,7 +704,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                           {tripCategoryValue !== undefined && (
                             <Text style={styles.text}>Destinations:</Text>
                           )}
-                          {tripCategoryValue === "hauling" && (
+                          {tripCategoryValue?.toLowerCase() === "hauling" && (
                             <DropDownPicker
                               id="destination"
                               listMode="SCROLLVIEW"
@@ -676,7 +738,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                               zIndexInverse={2000}
                             />
                           )}
-                          {tripCategoryValue === "delivery" && (
+                          {tripCategoryValue?.toLowerCase() === "delivery" && (
                             <DropDownPicker
                               id="destination"
                               listMode="SCROLLVIEW"
@@ -718,7 +780,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                             )}
 
                           {/* TARE WEIGHT */}
-                          {tripCategoryValue === "hauling" && (
+                          {tripCategoryValue?.toLowerCase() === "hauling" && (
                             <TextField
                               touched={{ tare_weight: true }}
                               errors={errors}
@@ -732,7 +794,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                           )}
 
                           {/* TEMPERATURE */}
-                          {tripCategoryValue === "delivery" && (
+                          {tripCategoryValue?.toLowerCase() === "delivery" && (
                             <TextField
                               touched={touched}
                               errors={errors}

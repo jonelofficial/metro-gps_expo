@@ -251,7 +251,7 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
 
                 <Content label="Temperature" details={item?.temperature} />
 
-                {item?.trip_category === "hauling" && (
+                {item?.trip_category.toLowerCase() === "hauling" && (
                   <>
                     <Content
                       label="Tare Weight"
@@ -288,105 +288,111 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
               </Card.Content>
             </Card>
 
-            {newLocations.length > 0 && item?.trip_category === "hauling" && (
-              <Card style={styles.containerWrapper}>
-                <Card.Content>
-                  <Text>Location Details</Text>
-                  <Line />
+            {newLocations.length > 0 &&
+              item?.trip_category.toLowerCase() === "hauling" && (
+                <Card style={styles.containerWrapper}>
+                  <Card.Content>
+                    <Text>Location Details</Text>
+                    <Line />
 
-                  {newLocations?.map((loc, i) => {
-                    return (
-                      <Fragment key={i}>
-                        <Content
-                          label="Status"
-                          details={
-                            i == 0
-                              ? `${loc?.status} Depot`
-                              : i == 1
-                              ? `${loc?.status} Farm`
-                              : i == 2
-                              ? `${loc?.status} Farm`
-                              : i == 3 && `${loc?.status} Depot`
-                          }
-                          detailsStyle={{
-                            textTransform: "capitalize",
-                            color:
-                              loc?.status === "left"
-                                ? colors.danger
-                                : colors.success,
-                          }}
-                        />
-                        <Content
-                          label="Date"
-                          details={
-                            loc?.date &&
-                            moment(loc.date)
-                              .tz("Asia/Manila")
-                              .format("MMM-DD-YY hh:mm a")
-                          }
-                        />
-                        <Content
-                          label="Address"
-                          details={`${loc?.address[0]?.name || "(No Name)"}  ${
-                            loc?.address[0]?.district || "(No District)"
-                          } ${loc?.address[0]?.city || "(No City)"}  ${
-                            loc?.address[0]?.subregion || "(No Subregion)"
-                          }`}
-                        />
+                    {newLocations?.map((loc, i) => {
+                      return (
+                        <Fragment key={i}>
+                          <Content
+                            label="Status"
+                            details={
+                              i == 0
+                                ? `${loc?.status} Depot`
+                                : i == 1
+                                ? `${loc?.status} Farm`
+                                : i == 2
+                                ? `${loc?.status} Farm`
+                                : i == 3 && `${loc?.status} Depot`
+                            }
+                            detailsStyle={{
+                              textTransform: "capitalize",
+                              color:
+                                loc?.status === "left"
+                                  ? colors.danger
+                                  : colors.success,
+                            }}
+                          />
+                          <Content
+                            label="Date"
+                            details={
+                              loc?.date &&
+                              moment(loc.date)
+                                .tz("Asia/Manila")
+                                .format("MMM-DD-YY hh:mm a")
+                            }
+                          />
+                          <Content
+                            label="Address"
+                            details={`${
+                              loc?.address[0]?.name || "(No Name)"
+                            }  ${
+                              loc?.address[0]?.district || "(No District)"
+                            } ${loc?.address[0]?.city || "(No City)"}  ${
+                              loc?.address[0]?.subregion || "(No Subregion)"
+                            }`}
+                          />
 
-                        {newLocations.length !== i + 1 && <MapDivider />}
-                      </Fragment>
-                    );
-                  })}
-                </Card.Content>
-              </Card>
-            )}
+                          {newLocations.length !== i + 1 && <MapDivider />}
+                        </Fragment>
+                      );
+                    })}
+                  </Card.Content>
+                </Card>
+              )}
 
-            {newLocations.length > 0 && item?.trip_category === "delivery" && (
-              <Card style={styles.containerWrapper}>
-                <Card.Content>
-                  <Text>Location Details</Text>
-                  <Line />
+            {newLocations.length > 0 &&
+              item?.trip_category.toLowerCase() === "delivery" && (
+                <Card style={styles.containerWrapper}>
+                  <Card.Content>
+                    <Text>Location Details</Text>
+                    <Line />
 
-                  {newLocations?.map((loc, i) => {
-                    return (
-                      <Fragment key={i}>
-                        <Content
-                          label="Status"
-                          details={loc.status}
-                          detailsStyle={{
-                            textTransform: "capitalize",
-                            color:
-                              loc?.status === "left"
-                                ? colors.danger
-                                : colors.success,
-                          }}
-                        />
-                        <Content
-                          label="Date"
-                          details={
-                            loc?.date &&
-                            moment(loc.date)
-                              .tz("Asia/Manila")
-                              .format("MMM-DD-YY hh:mm a")
-                          }
-                        />
-                        <Content
-                          label="Address"
-                          details={`${loc?.address[0]?.name || "(No Name)"}  ${
-                            loc?.address[0]?.district || "(No District)"
-                          } ${loc?.address[0]?.city || "(No City)"}  ${
-                            loc?.address[0]?.subregion || "(No Subregion)"
-                          }`}
-                        />
+                    {newLocations?.map((loc, i) => {
+                      return (
+                        <Fragment key={i}>
+                          <Content
+                            label="Status"
+                            details={loc.status}
+                            detailsStyle={{
+                              textTransform: "capitalize",
+                              color:
+                                loc?.status === "left"
+                                  ? colors.danger
+                                  : colors.success,
+                            }}
+                          />
+                          <Content
+                            label="Date"
+                            details={
+                              loc?.date &&
+                              moment(loc.date)
+                                .tz("Asia/Manila")
+                                .format("MMM-DD-YY hh:mm a")
+                            }
+                          />
+                          <Content
+                            label="Address"
+                            details={`${
+                              loc?.address[0]?.name || "(No Name)"
+                            }  ${
+                              loc?.address[0]?.district || "(No District)"
+                            } ${loc?.address[0]?.city || "(No City)"}  ${
+                              loc?.address[0]?.subregion || "(No Subregion)"
+                            }`}
+                          />
 
-                        {newLocations.length !== i + 1 && <MapDivider />}
-                      </Fragment>
-                    );
-                  })}
-                </Card.Content>
-              </Card>
-            )}
+                          {newLocations.length !== i + 1 && <MapDivider />}
+                        </Fragment>
+                      );
+                    })}
+                  </Card.Content>
+                </Card>
+              )}
 
             {item?.diesels.length > 0 && (
               <Card style={styles.containerWrapper}>
