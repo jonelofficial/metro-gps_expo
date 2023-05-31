@@ -20,7 +20,7 @@ const DashboardNavigator = () => {
       <Stack.Screen
         name="DashboardStack"
         component={
-          user?.trip_template === "Service Vehicle"
+          user?.trip_template === "Service Group"
             ? DashboardScreen
             : user?.trip_template === "Depot"
             ? DashboardDepotScreen
