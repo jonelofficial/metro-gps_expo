@@ -2,7 +2,7 @@
   "expo": {
     "name": "Metro GPS",
     "slug": "metro-gps",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "orientation": "portrait",
     "icon": "./app/assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -14,11 +14,16 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["location", "fetch"],
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ],
         "NSLocationWhenInUseUsageDescription": "This app needs access to your location while it is in use to provide you with location-based services.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location while it is in use to provide you with location-based services.",
         "NSLocationAlwaysUsageDescription": "This app needs access to your location while it is in use to provide you with location-based services."
@@ -31,7 +36,10 @@
       },
       "config": {},
       "package": "com.rdfmis.metrogps",
-      "permissions": ["ACCESS_BACKGROUND_LOCATION"]
+      "permissions": [
+        "ACCESS_BACKGROUND_LOCATION"
+      ],
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"
