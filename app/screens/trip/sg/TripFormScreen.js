@@ -26,6 +26,7 @@ import {
 import moment from "moment-timezone";
 import { insertToTable, selectTable } from "../../../utility/sqlite";
 import DropDownPicker from "react-native-dropdown-picker";
+import PrivacyPolicyComponent from "../../../components/PrivacyPolicyComponent";
 
 const TripFormScreen = ({ theme, route, navigation }) => {
   const { colors } = theme;
@@ -64,6 +65,8 @@ const TripFormScreen = ({ theme, route, navigation }) => {
       dispatch(removeCompanion());
     };
   }, []);
+
+  const chexboxState = useDisclosure();
 
   const {
     isOpen: showDropdown,
@@ -352,6 +355,11 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                         multiline={true}
                         numberOfLines={3}
                       />
+
+                      <PrivacyPolicyComponent
+                        navigation={navigation}
+                        checkboxState={chexboxState}
+                      />
                     </View>
 
                     <View>
@@ -359,6 +367,12 @@ const TripFormScreen = ({ theme, route, navigation }) => {
                         onPress={handleSubmit}
                         title="Drive"
                         isLoading={showLoadingBtn}
+                        style={{
+                          backgroundColor: !chexboxState.isOpen
+                            ? colors.notActive
+                            : colors.primary,
+                        }}
+                        disabled={!chexboxState.isOpen}
                       />
                     </View>
                   </>

@@ -6,6 +6,7 @@ import DepotDetailsScreen from "../../screens/trip/depot/DepotDetailsScreen";
 import LiveDetailsScreen from "../../screens/trip/live/LiveDetailsScreen";
 import DashboardNavigator from "./dashboard/DashboardNavigator";
 import TripNavigator from "./trip/TripNavigator";
+import PrivacyPolicy from "../../screens/PrivacyPolicy";
 import { useSelector } from "react-redux";
 
 const Stack = createNativeStackNavigator();
@@ -33,6 +34,11 @@ const AppNavigator = () => {
         options={{ animation: "slide_from_right" }}
       />
       <Stack.Screen name="Office" component={TripNavigator} />
+      <Stack.Screen
+        name="PrivacyPolicy"
+        component={PrivacyPolicy}
+        options={{ animation: "slide_from_right" }}
+      />
     </Stack.Navigator>
   );
 };
