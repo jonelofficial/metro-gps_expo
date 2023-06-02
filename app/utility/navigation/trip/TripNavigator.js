@@ -22,7 +22,7 @@ const TripNavigator = () => {
       <Stack.Screen
         name="OfficeTripForm"
         component={
-          user?.trip_template === "Service Group"
+          user?.trip_template === "Service Vehicle"
             ? TripFormScreen
             : user?.trip_template === "Depot"
             ? DepotTripFormScreen
@@ -32,7 +32,7 @@ const TripNavigator = () => {
       <Stack.Screen
         name="OfficeMap"
         component={
-          user?.trip_template === "Service Group"
+          user?.trip_template === "Service Vehicle"
             ? OfficeMapScreen
             : user?.trip_template === "Depot"
             ? DepotMapScreen

@@ -25,7 +25,7 @@ const AppNavigator = () => {
       <Stack.Screen
         name="TripDetails"
         component={
-          user?.trip_template === "Service Group"
+          user?.trip_template === "Service Vehicle"
             ? TripDetailsScreen
             : user?.trip_template === "Depot"
             ? DepotDetailsScreen

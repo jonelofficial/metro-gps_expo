@@ -1,6 +1,6 @@
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Text, withTheme } from "react-native-paper";
+import { Divider, Text, withTheme } from "react-native-paper";
 import Screen from "../components/Screen";
 import { Image } from "react-native";
 
@@ -15,9 +15,8 @@ const PrivacyPolicy = ({ theme }) => {
     <Screen>
       <ScrollView style={{ padding: 16, flex: 1 }}>
         <View style={styles.textWrapper}>
-          <Text style={{ fontSize: 32, fontWeight: "bold" }}>
-            Privacy Policy
-          </Text>
+          <Text style={{ fontSize: 32 }}>Privacy Policy</Text>
+          <Divider style={{ height: 4, backgroundColor: colors.primary }} />
         </View>
         <View style={styles.textWrapper}>
           <Text style={styles.text}>
@@ -30,7 +29,6 @@ const PrivacyPolicy = ({ theme }) => {
             following details regarding the use of location data:
           </Text>
         </View>
-
         <View style={[styles.textWrapper, { paddingLeft: 16 }]}>
           <Text style={styles.text}>
             1. Accurate Reports: Our app utilizes your location data to generate
@@ -38,7 +36,40 @@ const PrivacyPolicy = ({ theme }) => {
             analyze various aspects of our operations.
           </Text>
         </View>
-
+        <View style={[styles.textWrapper, { paddingLeft: 16 }]}>
+          <Text style={styles.text}>
+            2. Foreground Location: Access to your device's location while the
+            app is in the foreground allows us to provide real-time updates and
+            deliver location-specific information relevant to your tasks and
+            operations.
+          </Text>
+        </View>
+        <View style={[styles.textWrapper, { paddingLeft: 16 }]}>
+          <Text style={styles.text}>
+            3. Background Location: In certain cases, our app may require access
+            to your device's location even when the app is running in the
+            background. This allows us to continue monitoring your location for
+            the purpose of accurate reporting and ensuring seamless
+            functionality.
+          </Text>
+        </View>
+        <View style={[styles.textWrapper, { paddingLeft: 16 }]}>
+          <Text style={styles.text}>
+            4. QR Code Scanning: Our app utilizes the camera to scan QR codes,
+            allowing you to start transactions quickly and conveniently. This
+            feature streamlines the process and ensures accurate information
+            transfer.
+          </Text>
+        </View>
+        <View style={[styles.textWrapper, { paddingLeft: 16 }]}>
+          <Text style={styles.text}>
+            5. Odometer Image Upload: To facilitate accurate reporting and
+            analysis, our app allows you to capture images of the odometer using
+            your device's camera. These images are then securely uploaded to our
+            servers, enabling us to gather precise data for operational
+            purposes.
+          </Text>
+        </View>
         <View style={styles.textWrapper}>
           <Text style={styles.text}>
             We understand the importance of data privacy and want to assure you
@@ -47,7 +78,6 @@ const PrivacyPolicy = ({ theme }) => {
             the confidentiality and security of your personal data.
           </Text>
         </View>
-
         <View style={styles.textWrapper}>
           <Text style={styles.text}>
             If you have any concerns or questions regarding the use of location
@@ -60,7 +90,6 @@ const PrivacyPolicy = ({ theme }) => {
             inquiries you may have.
           </Text>
         </View>
-
         <View style={styles.textWrapper}>
           <Text style={styles.text}>
             Please note that granting access to location services is essential
@@ -69,7 +98,6 @@ const PrivacyPolicy = ({ theme }) => {
             of our app may be limited or unavailable.
           </Text>
         </View>
-
         <View style={styles.textWrapper}>
           <Text style={styles.text}>
             Thank you for using Metro GPS for company purposes. We appreciate
@@ -77,7 +105,6 @@ const PrivacyPolicy = ({ theme }) => {
             security remain our top priorities.
           </Text>
         </View>
-
         <View
           style={[
             styles.textWrapper,
