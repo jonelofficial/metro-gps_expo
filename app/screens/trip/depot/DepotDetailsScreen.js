@@ -301,13 +301,9 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                           <Content
                             label="Status"
                             details={
-                              i == 0
+                              i == 0 || newLocations.length - 1 === i
                                 ? `${loc?.status} Depot`
-                                : i == 1
-                                ? `${loc?.status} Farm`
-                                : i == 2
-                                ? `${loc?.status} Farm`
-                                : i == 3 && `${loc?.status} Depot`
+                                : `${loc?.status} Farm`
                             }
                             detailsStyle={{
                               textTransform: "capitalize",

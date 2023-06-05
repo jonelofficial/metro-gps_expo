@@ -191,7 +191,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
   useEffect(() => {
     const destinationDeliveryFilteredData = destinationInitial.filter(
-      (obj) => obj.trip_type === tripTypeValue
+      (obj) => obj.trip_type === tripTypeDeliveryValue
     );
     setDeliveryDestinations([
       ...destinationDeliveryFilteredData.map((obj) => {

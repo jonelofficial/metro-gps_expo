@@ -44,6 +44,8 @@ const HaulingMap = ({ theme, navigation }) => {
   const [points, setPoints] = useState([]);
   const [syncingTrip, setSyncingTrip] = useState(true);
   const [onBackground, setOnBackground] = useState(false);
+  const [itemCount, setItemCount] = useState();
+  const [destinationState, setDestinationState] = useState();
 
   const dispatch = useDispatch();
   const [createTrip, { isLoading }] = useCreateHaulingTripMutation();
@@ -332,6 +334,8 @@ const HaulingMap = ({ theme, navigation }) => {
   const reloadMapState = async () => {
     const tripRes = await selectTable("depot_hauling");
 
+    setItemCount(tripRes[tripRes.length - 1]?.item_count);
+
     const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
 
     const newLocations = locPoint.filter(
@@ -347,7 +351,7 @@ const HaulingMap = ({ theme, navigation }) => {
     }
   };
 
-  const handleLeftButton = async (data) => {
+  const handleLeftButton = async (data, { resetForm }) => {
     try {
       Keyboard.dismiss();
       startLeftLoading();
@@ -371,14 +375,26 @@ const HaulingMap = ({ theme, navigation }) => {
         await reloadRoute(newObj);
         await reloadMapState();
 
-        await updateToTable(
-          `UPDATE depot_hauling SET
-          item_count = (?)
-          WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
-          [data?.item_count]
-        );
+        if (data?.item_count) {
+          setItemCount(data?.item_count);
+          await updateToTable(
+            `UPDATE depot_hauling SET
+            item_count = (?)
+            WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
+            [data?.item_count]
+          );
+        } else {
+          await updateToTable(
+            `UPDATE depot_hauling SET
+            destination = (?)
+            WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
+            [data?.destination]
+          );
+        }
       }
 
+      setDestinationState(null);
+      resetForm();
       stopLefLoading();
       onCloseLeftModal();
       startLoader();
@@ -619,7 +635,7 @@ const HaulingMap = ({ theme, navigation }) => {
         ? colors.notActive
         : trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
         ? colors.notActive
-        : trip?.locations?.length > 3
+        : trip?.locations?.length > 3 && itemCount
         ? colors.notActive
         : colors.danger,
     },
@@ -694,7 +710,7 @@ const HaulingMap = ({ theme, navigation }) => {
                   arrivedLoading ||
                   (trip?.locations?.length % 2 !== 0 &&
                     trip?.locations?.length > 0) ||
-                  trip?.locations?.length > 3
+                  (trip?.locations?.length > 3 && itemCount)
                 }
                 loading={leftLoading}
                 onPress={async () => {
@@ -724,14 +740,14 @@ const HaulingMap = ({ theme, navigation }) => {
                 }
                 loading={arrivedLoading}
                 onPress={() => {
-                  trip?.locations?.length == 1
-                    ? sqliteArrived()
-                    : onToggleArrivedModal();
+                  !itemCount ? sqliteArrived() : onToggleArrivedModal();
                 }}
               >
                 {trip?.locations?.length === 1
                   ? "Arrived Farm"
-                  : trip?.locations?.length >= 2 && "Arrived Depot"}
+                  : trip?.locations?.length >= 2 && itemCount
+                  ? "Arrived Depot"
+                  : "Arrived Farm"}
               </Button>
             </View>
           </View>
@@ -799,6 +815,7 @@ const HaulingMap = ({ theme, navigation }) => {
         onCloseLeftModal={onCloseLeftModal}
         showLeftModal={showLeftModal}
         onSubmit={handleLeftButton}
+        destinationState={{ destinationState, setDestinationState }}
       />
 
       {/* ARRIVED MODAL */}

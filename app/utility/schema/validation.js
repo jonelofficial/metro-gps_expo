@@ -78,6 +78,9 @@ export const arrivedModalFullSchema = Yup.object().shape({
 export const leftModalSchema = Yup.object().shape({
   item_count: Yup.number().required().label("Item Count"),
 });
+export const leftModalChangeDestinationSchema = Yup.object().shape({
+  destination: Yup.string().nullable().required().label("Destination"),
+});
 
 // DEPOT DELIVERY
 export const deliveryFormSchema = Yup.object().shape({

@@ -198,92 +198,94 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
   const handleOfflineTrip = async () => {
     setOfflineLoading(true);
 
-    const res = await selectTable("depot_hauling");
-    if (res?.length > 0) {
-      validator ? handleNotSyncNotif() : handleUnfinishedTrip();
+    if (dropdownValue === "hauling") {
+      const res = await selectTable("depot_hauling");
+      if (res?.length > 0) {
+        validator ? handleNotSyncNotif() : handleUnfinishedTrip();
 
-      await res.map((item) => {
-        if (user?.userId !== item?.user_id) {
-          return null;
-        }
-        setTrip((prevState) => [
-          {
-            _id: item.id,
-            vehicle_id: item.vehicle_id,
-            companion: JSON.parse(item?.companion),
-            diesels: JSON.parse(item?.gas),
-            locations: JSON.parse(item?.locations),
-            odometer: JSON.parse(item?.odometer),
-            odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
-            points: JSON.parse(item?.points),
-            image: JSON.parse(item?.image),
-            user_id: {
-              _id: user?.userId,
-              trip_template: user?.trip_template,
+        await res.map((item) => {
+          if (user?.userId !== item?.user_id) {
+            return null;
+          }
+          setTrip((prevState) => [
+            {
+              _id: item.id,
+              vehicle_id: item.vehicle_id,
+              companion: JSON.parse(item?.companion),
+              diesels: JSON.parse(item?.gas),
+              locations: JSON.parse(item?.locations),
+              odometer: JSON.parse(item?.odometer),
+              odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+              points: JSON.parse(item?.points),
+              image: JSON.parse(item?.image),
+              user_id: {
+                _id: user?.userId,
+                trip_template: user?.trip_template,
+              },
+              trip_date: JSON.parse(item?.date),
+              others: item?.others,
+              offline: true,
+              charging: item?.charging,
+
+              trip_type: item?.trip_type,
+              trip_category: item?.trip_category,
+              destination: item?.destination,
+              farm: item?.farm,
+              temperature: item?.temperature,
+              tare_weight: item?.tare_weight,
+              gross_weight: item?.gross_weight,
+              net_weight: item?.net_weight,
+              item_count: item?.item_count,
+              doa_count: item?.doa_count,
             },
-            trip_date: JSON.parse(item?.date),
-            others: item?.others,
-            offline: true,
-            charging: item?.charging,
+            ...prevState,
+          ]);
+          setTotalCount((prevState) => prevState + 1);
+        });
+      }
+    } else {
+      const resDelivery = await selectTable("depot_delivery");
+      if (resDelivery?.length > 0) {
+        validator ? handleNotSyncNotif() : handleUnfinishedTrip();
 
-            trip_type: item?.trip_type,
-            trip_category: item?.trip_category,
-            destination: item?.destination,
-            farm: item?.farm,
-            temperature: item?.temperature,
-            tare_weight: item?.tare_weight,
-            gross_weight: item?.gross_weight,
-            net_weight: item?.net_weight,
-            item_count: item?.item_count,
-            doa_count: item?.doa_count,
-          },
-          ...prevState,
-        ]);
-        setTotalCount((prevState) => prevState + 1);
-      });
-    }
+        await resDelivery.map((item) => {
+          if (user?.userId !== item?.user_id) {
+            return null;
+          }
+          setTrip((prevState) => [
+            {
+              _id: item.id,
+              vehicle_id: item.vehicle_id,
+              companion: JSON.parse(item?.companion),
+              diesels: JSON.parse(item?.gas),
+              locations: JSON.parse(item?.locations),
+              odometer: JSON.parse(item?.odometer),
+              odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+              points: JSON.parse(item?.points),
+              image: JSON.parse(item?.image),
+              user_id: {
+                _id: user?.userId,
+                trip_template: user?.trip_template,
+              },
+              trip_date: JSON.parse(item?.date),
+              others: item?.others,
+              offline: true,
+              charging: item?.charging,
 
-    const resDelivery = await selectTable("depot_delivery");
-    if (resDelivery?.length > 0) {
-      validator ? handleNotSyncNotif() : handleUnfinishedTrip();
-
-      await resDelivery.map((item) => {
-        if (user?.userId !== item?.user_id) {
-          return null;
-        }
-        setTrip((prevState) => [
-          {
-            _id: item.id,
-            vehicle_id: item.vehicle_id,
-            companion: JSON.parse(item?.companion),
-            diesels: JSON.parse(item?.gas),
-            locations: JSON.parse(item?.locations),
-            odometer: JSON.parse(item?.odometer),
-            odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
-            points: JSON.parse(item?.points),
-            image: JSON.parse(item?.image),
-            user_id: {
-              _id: user?.userId,
-              trip_template: user?.trip_template,
+              trip_type: item?.trip_type,
+              trip_category: item?.trip_category,
+              destination: item?.destination,
+              route: item?.route,
+              temperature: item?.temperature,
+              crates_dropped: item?.crates_dropped,
+              crates_collected: item?.crates_collected,
+              crates_borrowed: item?.crates_borrowed,
             },
-            trip_date: JSON.parse(item?.date),
-            others: item?.others,
-            offline: true,
-            charging: item?.charging,
-
-            trip_type: item?.trip_type,
-            trip_category: item?.trip_category,
-            destination: item?.destination,
-            route: item?.route,
-            temperature: item?.temperature,
-            crates_dropped: item?.crates_dropped,
-            crates_collected: item?.crates_collected,
-            crates_borrowed: item?.crates_borrowed,
-          },
-          ...prevState,
-        ]);
-        setTotalCount((prevState) => prevState + 1);
-      });
+            ...prevState,
+          ]);
+          setTotalCount((prevState) => prevState + 1);
+        });
+      }
     }
 
     setOfflineLoading(false);
