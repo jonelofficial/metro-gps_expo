@@ -32,6 +32,7 @@ import {
 import AppCamera from "../../../components/AppCamera";
 import Scanner from "../../../components/Scanner";
 import moment from "moment-timezone";
+import PrivacyPolicyComponent from "../../../components/PrivacyPolicyComponent";
 
 const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   const { colors } = theme;
@@ -99,6 +100,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   } = useDisclosure();
 
   //
+  const chexboxState = useDisclosure();
 
   const [destinationInitial, setDestinationInitial] = useState([]);
 
@@ -888,12 +890,23 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                             multiline={true}
                             numberOfLines={3}
                           />
+
+                          <PrivacyPolicyComponent
+                            navigation={navigation}
+                            checkboxState={chexboxState}
+                          />
                         </View>
 
                         <SubmitButton
                           onPress={handleSubmit}
                           title="Drive"
                           isLoading={showLoadingBtn}
+                          style={{
+                            backgroundColor: !chexboxState.isOpen
+                              ? colors.notActive
+                              : colors.primary,
+                          }}
+                          disabled={!chexboxState.isOpen}
                         />
                       </>
                     );

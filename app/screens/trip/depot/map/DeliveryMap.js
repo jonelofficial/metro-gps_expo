@@ -43,6 +43,8 @@ const DeliveryMap = ({ theme, navigation }) => {
   const [points, setPoints] = useState([]);
   const [syncingTrip, setSyncingTrip] = useState(true);
   const [onBackground, setOnBackground] = useState(false);
+  const [doneDelivery, setDoneDelivery] = useState(false);
+  const [lastLeft, setLastLeft] = useState(false);
 
   const dispatch = useDispatch();
   const [createTrip, { isLoading }] = useCreateDeliveryTripMutation();
@@ -128,6 +130,13 @@ const DeliveryMap = ({ theme, navigation }) => {
     onToggle: onToggleDoneModal,
   } = useDisclosure();
 
+  // LAST DELIVERY
+  const {
+    isOpen: lastDelivery,
+    onClose: onCloseLastDelivery,
+    onToggle: onToggleLastDelivery,
+  } = useDisclosure();
+
   // FOR UNMOUNTING
 
   useEffect(() => {
@@ -135,6 +144,14 @@ const DeliveryMap = ({ theme, navigation }) => {
       await deleteFromTable("route");
       await reloadMapState();
       await getRoute();
+      const delivery = await selectTable(
+        "depot_delivery WHERE id = (SELECT MAX(id) FROM depot_delivery)"
+      );
+
+      const arr = JSON.parse(delivery[delivery.length - 1].crates_transaction);
+      // arr.push({ test: "Tette" });
+      console.log([...arr, { test: "Tette" }]);
+      console.log("THIS IS STRINGIFY: ", JSON.stringify(arr));
     })();
 
     // HANDLE APP STATE
@@ -322,6 +339,9 @@ const DeliveryMap = ({ theme, navigation }) => {
 
     const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
 
+    setDoneDelivery(JSON.parse(tripRes[tripRes.length - 1]?.last_store));
+    setLastLeft(JSON.parse(tripRes[tripRes.length - 1]?.last_left));
+
     const newLocations = locPoint.filter(
       (location) => location.status == "left" || location.status == "arrived"
     );
@@ -356,6 +376,13 @@ const DeliveryMap = ({ theme, navigation }) => {
           date: moment(Date.now()).tz("Asia/Manila"),
         };
 
+        if (doneDelivery) {
+          await updateToTable(
+            "UPDATE depot_delivery SET last_left = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+            [JSON.stringify(doneDelivery)]
+          );
+        }
+
         await reloadRoute(newObj);
         await reloadMapState();
       }
@@ -372,7 +399,7 @@ const DeliveryMap = ({ theme, navigation }) => {
     }
   };
 
-  const sqliteArrived = async () => {
+  const sqliteArrived = async (data) => {
     try {
       Keyboard.dismiss();
       startArrivedLoading();
@@ -391,11 +418,46 @@ const DeliveryMap = ({ theme, navigation }) => {
           date: moment(Date.now()).tz("Asia/Manila"),
         };
 
+        const delivery = await selectTable(
+          "depot_delivery WHERE id = (SELECT MAX(id) FROM depot_delivery)"
+        );
+
+        const cratesTransaction = JSON.parse(
+          delivery[delivery.length - 1].crates_transaction
+        );
+
+        if (!cratesTransaction && !doneDelivery) {
+          const newCratesTransaction = [data];
+          console.log("on 1");
+          await updateToTable(
+            "UPDATE depot_delivery SET crates_transaction = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+            [JSON.stringify(newCratesTransaction)]
+          );
+        } else if (!doneDelivery && !lastDelivery) {
+          cratesTransaction.push(data);
+          console.log("on 2");
+
+          await updateToTable(
+            "UPDATE depot_delivery SET crates_transaction = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+            [JSON.stringify(cratesTransaction)]
+          );
+        }
+
+        if (lastDelivery && !doneDelivery) {
+          console.log("on 3");
+          cratesTransaction.push(data);
+          await updateToTable(
+            "UPDATE depot_delivery SET last_store = (?), crates_transaction = (?)  WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+            [JSON.stringify(lastDelivery), JSON.stringify(cratesTransaction)]
+          );
+        }
+
         await reloadRoute(newObj);
         await reloadMapState();
       }
 
       stopArrivedLoading();
+      onCloseArrivedModal();
       startLoader();
     } catch (error) {
       console.log("SQLITE ARRIVED: ", error);
@@ -551,6 +613,8 @@ const DeliveryMap = ({ theme, navigation }) => {
         ? colors.notActive
         : trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
         ? colors.notActive
+        : lastLeft
+        ? colors.notActive
         : colors.danger,
     },
     arrivedButton: {
@@ -573,6 +637,8 @@ const DeliveryMap = ({ theme, navigation }) => {
           : arrivedLoading
           ? colors.notActive
           : doneLoading
+          ? colors.notActive
+          : trip?.locations?.length % 2 === 0 && !lastLeft
           ? colors.notActive
           : colors.dark,
     },
@@ -623,12 +689,13 @@ const DeliveryMap = ({ theme, navigation }) => {
                   leftLoading ||
                   arrivedLoading ||
                   (trip?.locations?.length % 2 !== 0 &&
-                    trip?.locations?.length > 0)
+                    trip?.locations?.length > 0) ||
+                  lastLeft
                 }
                 loading={leftLoading}
                 onPress={sqliteLeft}
               >
-                Left
+                {trip?.locations?.length === 0 ? "Left Depot" : " Left Store"}
               </Button>
             </View>
 
@@ -644,9 +711,9 @@ const DeliveryMap = ({ theme, navigation }) => {
                   trip?.locations?.length === 0
                 }
                 loading={arrivedLoading}
-                onPress={sqliteArrived}
+                onPress={doneDelivery ? sqliteArrived : onToggleArrivedModal}
               >
-                Arrived
+                {doneDelivery ? "Arrived Depot" : "Arrived Store"}
               </Button>
             </View>
           </View>
@@ -682,7 +749,8 @@ const DeliveryMap = ({ theme, navigation }) => {
                 trip?.locations?.length === 0 ||
                 arrivedLoading ||
                 leftLoading ||
-                doneLoading
+                doneLoading ||
+                (trip?.locations?.length % 2 === 0 && !lastLeft)
               }
               onPress={onToggleDoneModal}
             >
@@ -715,6 +783,7 @@ const DeliveryMap = ({ theme, navigation }) => {
         onCloseArrivedModal={onCloseArrivedModal}
         showArrivedModal={showArrivedModal}
         onSubmit={sqliteArrived}
+        checkboxState={{ lastDelivery, onToggleLastDelivery }}
       />
     </>
   );

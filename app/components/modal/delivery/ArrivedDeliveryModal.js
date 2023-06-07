@@ -1,6 +1,6 @@
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
-import { Modal, Portal } from "react-native-paper";
+import { Checkbox, Modal, Portal, Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
 import TextField from "../../form/TextField";
@@ -12,7 +12,9 @@ const ArrivedDeliveryModal = ({
   onCloseArrivedModal,
   arrivedLoading,
   onSubmit,
+  checkboxState,
 }) => {
+  const { lastDelivery, onToggleLastDelivery } = checkboxState;
   return (
     <Portal>
       <Modal
@@ -86,6 +88,33 @@ const ArrivedDeliveryModal = ({
                   label="Crates Borrowed"
                   keyboardType="numeric"
                 />
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 14,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: "10%",
+                    }}
+                  >
+                    <Checkbox
+                      status={lastDelivery ? "checked" : "unchecked"}
+                      onPress={onToggleLastDelivery}
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      textAlign: "justify",
+                      fontSize: 14,
+                    }}
+                  >
+                    Last delivery store.
+                  </Text>
+                </View>
 
                 <SubmitButton
                   onPress={handleSubmit}

@@ -44,7 +44,7 @@ const HaulingMap = ({ theme, navigation }) => {
   const [points, setPoints] = useState([]);
   const [syncingTrip, setSyncingTrip] = useState(true);
   const [onBackground, setOnBackground] = useState(false);
-  const [itemCount, setItemCount] = useState();
+  const [itemCount, setItemCount] = useState("");
   const [destinationState, setDestinationState] = useState();
 
   const dispatch = useDispatch();
@@ -349,6 +349,10 @@ const HaulingMap = ({ theme, navigation }) => {
         locations: [...newLocations],
       });
     }
+
+    console.log(tripRes[tripRes.length - 1]?.item_count);
+    console.log(newLocations.length);
+    console.log(Boolean(tripRes[tripRes.length - 1]?.item_count));
   };
 
   const handleLeftButton = async (data, { resetForm }) => {
@@ -660,6 +664,12 @@ const HaulingMap = ({ theme, navigation }) => {
           ? colors.notActive
           : doneLoading
           ? colors.notActive
+          : Boolean(!itemCount)
+          ? colors.notActive
+          : Boolean(!itemCount) && trip?.locations?.length % 2 === 0
+          ? colors.notActive
+          : trip?.locations?.length % 2 !== 0
+          ? colors.notActive
           : colors.dark,
     },
   });
@@ -710,7 +720,7 @@ const HaulingMap = ({ theme, navigation }) => {
                   arrivedLoading ||
                   (trip?.locations?.length % 2 !== 0 &&
                     trip?.locations?.length > 0) ||
-                  (trip?.locations?.length > 3 && itemCount)
+                  (trip?.locations?.length > 3 && Boolean(itemCount))
                 }
                 loading={leftLoading}
                 onPress={async () => {
@@ -778,11 +788,13 @@ const HaulingMap = ({ theme, navigation }) => {
               style={styles.doneButton}
               labelStyle={styles.buttonLabelStyle}
               disabled={
-                (trip?.locations?.length < 4 && trip?.locations?.length > 0) ||
                 trip?.locations?.length === 0 ||
                 arrivedLoading ||
                 leftLoading ||
-                doneLoading
+                doneLoading ||
+                Boolean(!itemCount) ||
+                (Boolean(!itemCount) && trip?.locations?.length % 2 === 0) ||
+                trip?.locations?.length % 2 !== 0
               }
               onPress={onToggleDoneModal}
             >
