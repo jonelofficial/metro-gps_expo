@@ -67,8 +67,8 @@ const DepotListItem = ({
     const form = new FormData();
     form.append("trip_date", item.trip_date);
     form.append("trip_type", item.trip_type);
+    form.append("trip_category", item.trip_category);
     form.append("destination", item.destination);
-    form.append("farm", item.farm);
     form.append("vehicle_id", item.vehicle_id);
     form.append("locations", JSON.stringify(item.locations));
     form.append("diesels", JSON.stringify(item.diesels));
@@ -79,11 +79,11 @@ const DepotListItem = ({
     form.append("charging", item.charging);
     form.append("companion", JSON.stringify(item.companion));
     form.append("points", JSON.stringify(item.points));
-    form.append("temperature", item.temperature);
     form.append("tare_weight", item.tare_weight);
     form.append("gross_weight", item.gross_weight);
     form.append("net_weight", item.net_weight);
     form.append("doa_count", item.doa_count);
+    form.append("item_count", item.item_count);
 
     const res = await createTrip(form);
     if (res?.data) {

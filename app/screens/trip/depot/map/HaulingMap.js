@@ -349,10 +349,6 @@ const HaulingMap = ({ theme, navigation }) => {
         locations: [...newLocations],
       });
     }
-
-    console.log(tripRes[tripRes.length - 1]?.item_count);
-    console.log(newLocations.length);
-    console.log(Boolean(tripRes[tripRes.length - 1]?.item_count));
   };
 
   const handleLeftButton = async (data, { resetForm }) => {
