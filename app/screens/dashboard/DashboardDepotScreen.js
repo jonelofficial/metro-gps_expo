@@ -277,9 +277,7 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
               destination: item?.destination,
               route: item?.route,
               temperature: item?.temperature,
-              crates_dropped: item?.crates_dropped,
-              crates_collected: item?.crates_collected,
-              crates_borrowed: item?.crates_borrowed,
+              crates_transaction: item?.crates_transaction,
             },
             ...prevState,
           ]);

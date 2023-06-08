@@ -65,6 +65,7 @@ export const metroApi = createApi({
         method: "POST",
         body: payload,
       }),
+      invalidatesTags: ["Delivery"],
     }),
   }),
 });

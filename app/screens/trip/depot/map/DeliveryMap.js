@@ -147,11 +147,6 @@ const DeliveryMap = ({ theme, navigation }) => {
       const delivery = await selectTable(
         "depot_delivery WHERE id = (SELECT MAX(id) FROM depot_delivery)"
       );
-
-      const arr = JSON.parse(delivery[delivery.length - 1].crates_transaction);
-      // arr.push({ test: "Tette" });
-      console.log([...arr, { test: "Tette" }]);
-      console.log("THIS IS STRINGIFY: ", JSON.stringify(arr));
     })();
 
     // HANDLE APP STATE
@@ -428,14 +423,12 @@ const DeliveryMap = ({ theme, navigation }) => {
 
         if (!cratesTransaction && !doneDelivery) {
           const newCratesTransaction = [data];
-          console.log("on 1");
           await updateToTable(
             "UPDATE depot_delivery SET crates_transaction = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
             [JSON.stringify(newCratesTransaction)]
           );
         } else if (!doneDelivery && !lastDelivery) {
           cratesTransaction.push(data);
-          console.log("on 2");
 
           await updateToTable(
             "UPDATE depot_delivery SET crates_transaction = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
@@ -443,12 +436,17 @@ const DeliveryMap = ({ theme, navigation }) => {
           );
         }
 
-        if (lastDelivery && !doneDelivery) {
-          console.log("on 3");
+        if (cratesTransaction && lastDelivery && !doneDelivery) {
           cratesTransaction.push(data);
           await updateToTable(
             "UPDATE depot_delivery SET last_store = (?), crates_transaction = (?)  WHERE id = (SELECT MAX (id) FROM depot_delivery)",
             [JSON.stringify(lastDelivery), JSON.stringify(cratesTransaction)]
+          );
+        } else if (!cratesTransaction && lastDelivery && !doneDelivery) {
+          const newCratesTransaction = [data];
+          await updateToTable(
+            "UPDATE depot_delivery SET last_store = (?), crates_transaction = (?)  WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+            [JSON.stringify(lastDelivery), JSON.stringify(newCratesTransaction)]
           );
         }
 
@@ -539,9 +537,7 @@ const DeliveryMap = ({ theme, navigation }) => {
         form.append("companion", offlineTrip[0].companion);
         form.append("points", JSON.stringify(mapPoints));
         form.append("temperature", offlineTrip[0].temperature);
-        form.append("crates_dropped", offlineTrip[0].crates_dropped);
-        form.append("crates_collected", offlineTrip[0].crates_collected);
-        form.append("crates_borrowed", offlineTrip[0].crates_borrowed);
+        form.append("crates_transaction", offlineTrip[0].crates_transaction);
 
         const res = await createTrip(form);
 

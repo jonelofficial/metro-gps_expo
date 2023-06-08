@@ -1,11 +1,13 @@
 import dayjs from "dayjs";
-import { getPathLength } from "geolib";
 import moment from "moment-timezone";
 import React, { useEffect } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { Badge, Button, Text, withTheme } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
-import { useCreateHaulingTripMutation } from "../../api/metroApi";
+import {
+  useCreateDeliveryTripMutation,
+  useCreateHaulingTripMutation,
+} from "../../api/metroApi";
 import { validatorStatus } from "../../redux-toolkit/counter/vaidatorSlice";
 import { deleteFromTable } from "../../utility/sqlite";
 import useToast from "../../hooks/useToast";
@@ -26,7 +28,10 @@ const DepotListItem = ({
   const net = useSelector((state) => state.net.value);
   const { showAlert } = useToast();
 
-  const [createTrip, { isLoading }] = useCreateHaulingTripMutation();
+  const [createTrip, { isLoading }] =
+    item.trip_category.toLowerCase() === "delivery"
+      ? useCreateDeliveryTripMutation()
+      : useCreateHaulingTripMutation();
 
   const newLocations = item.locations.filter(
     (location) => location.status == "left" || location.status == "arrived"
@@ -65,30 +70,55 @@ const DepotListItem = ({
     // start sync loading
     setSyncing(true);
     const form = new FormData();
-    form.append("trip_date", item.trip_date);
-    form.append("trip_type", item.trip_type);
-    form.append("trip_category", item.trip_category);
-    form.append("destination", item.destination);
-    form.append("vehicle_id", item.vehicle_id);
-    form.append("locations", JSON.stringify(item.locations));
-    form.append("diesels", JSON.stringify(item.diesels));
-    form.append("odometer", item.odometer);
-    form.append("odometer_done", item.odometer_done);
-    item?.image.uri !== null && form.append("image", item.image);
-    form.append("others", item.others);
-    form.append("charging", item.charging);
-    form.append("companion", JSON.stringify(item.companion));
-    form.append("points", JSON.stringify(item.points));
-    form.append("tare_weight", item.tare_weight);
-    form.append("gross_weight", item.gross_weight);
-    form.append("net_weight", item.net_weight);
-    form.append("doa_count", item.doa_count);
-    form.append("item_count", item.item_count);
+    if (item.trip_category.toLowerCase() === "delivery") {
+      form.append("trip_date", item?.trip_date);
+      form.append("trip_type", item?.trip_type);
+      form.append("trip_category", item?.trip_category);
+      form.append("destination", item?.destination);
+      form.append("route", item?.route);
+      form.append("vehicle_id", item?.vehicle_id);
+      form.append("locations", JSON.stringify(item?.locations));
+      form.append("diesels", JSON.stringify(item?.diesels));
+      form.append("odometer", item?.odometer);
+      form.append("odometer_done", item?.odometer_done);
+      item?.image?.uri !== null && form.append("image", item.image);
+      form.append("others", item.others);
+      form.append("charging", item.charging);
+      form.append("companion", JSON.stringify(item.companion));
+      form.append("points", JSON.stringify(item.points));
+      form.append("temperature", item.temperature);
+      form.append(
+        "crates_transaction",
+        JSON.stringify(item.crates_transaction)
+      );
+    } else {
+      form.append("trip_date", item.trip_date);
+      form.append("trip_type", item.trip_type);
+      form.append("trip_category", item.trip_category);
+      form.append("destination", item.destination);
+      form.append("vehicle_id", item.vehicle_id);
+      form.append("locations", JSON.stringify(item.locations));
+      form.append("diesels", JSON.stringify(item.diesels));
+      form.append("odometer", item.odometer);
+      form.append("odometer_done", item.odometer_done);
+      item?.image.uri !== null && form.append("image", item.image);
+      form.append("others", item.others);
+      form.append("charging", item.charging);
+      form.append("companion", JSON.stringify(item.companion));
+      form.append("points", JSON.stringify(item.points));
+      form.append("tare_weight", item.tare_weight);
+      form.append("gross_weight", item.gross_weight);
+      form.append("net_weight", item.net_weight);
+      form.append("doa_count", item.doa_count);
+      form.append("item_count", item.item_count);
+    }
 
     const res = await createTrip(form);
     if (res?.data) {
       // Remove offline trip to sqlite database and state
-      await deleteFromTable(`depot_hauling WHERE id=${item._id}`);
+      item.trip_category.toLowerCase() === "delivery"
+        ? await deleteFromTable(`depot_delivery WHERE id=${item._id}`)
+        : await deleteFromTable(`depot_hauling WHERE id=${item._id}`);
       setTrip((prevState) => [
         ...prevState.filter((obj) => obj._id !== item._id),
       ]);
@@ -99,7 +129,9 @@ const DepotListItem = ({
       }
     } else {
       if (res?.error?.data?.error) {
-        await deleteFromTable(`depot_hauling WHERE id=${item._id}`);
+        item.trip_category.toLowerCase() === "delivery"
+          ? await deleteFromTable(`depot_delivery WHERE id=${item._id}`)
+          : await deleteFromTable(`depot_hauling WHERE id=${item._id}`);
         setTrip((prevState) => [
           ...prevState.filter((obj) => obj._id !== item._id),
         ]);
