@@ -277,7 +277,7 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
               destination: item?.destination,
               route: item?.route,
               temperature: item?.temperature,
-              crates_transaction: item?.crates_transaction,
+              crates_transaction: JSON.parse(item?.crates_transaction),
             },
             ...prevState,
           ]);

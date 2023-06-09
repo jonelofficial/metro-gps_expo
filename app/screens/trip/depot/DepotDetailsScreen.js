@@ -69,7 +69,6 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
       </View>
     );
   };
-
   const Line = () => {
     return (
       <Divider
@@ -353,7 +352,11 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                         <Fragment key={i}>
                           <Content
                             label="Status"
-                            details={loc.status}
+                            details={
+                              i == 0 || newLocations.length - 1 === i
+                                ? `${loc?.status} Depot`
+                                : `${loc?.status} Store`
+                            }
                             detailsStyle={{
                               textTransform: "capitalize",
                               color:
@@ -381,6 +384,33 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                               loc?.address[0]?.subregion || "(No Subregion)"
                             }`}
                           />
+
+                          {loc?.status === "arrived" &&
+                            newLocations.length !== i + 1 && (
+                              <>
+                                <Content
+                                  label="Crates"
+                                  details={`Dropped: ${
+                                    item?.crates_transaction[Math.floor(i / 2)]
+                                      ?.crates_dropped
+                                  }`}
+                                />
+                                <Content
+                                  label=""
+                                  details={`Collected: ${
+                                    item?.crates_transaction[Math.floor(i / 2)]
+                                      ?.crates_collected
+                                  }`}
+                                />
+                                <Content
+                                  label=""
+                                  details={`Borrowed: ${
+                                    item?.crates_transaction[Math.floor(i / 2)]
+                                      ?.crates_borrowed
+                                  }`}
+                                />
+                              </>
+                            )}
 
                           {newLocations.length !== i + 1 && <MapDivider />}
                         </Fragment>
