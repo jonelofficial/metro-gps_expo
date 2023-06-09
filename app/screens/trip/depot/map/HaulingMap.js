@@ -34,6 +34,7 @@ import * as Notifications from "expo-notifications";
 import moment from "moment-timezone";
 import { validatorStatus } from "../../../../redux-toolkit/counter/vaidatorSlice";
 import { useCreateHaulingTripMutation } from "../../../../api/metroApi";
+import { setDepotTripCateogry } from "../../../../redux-toolkit/counter/depotTripCategorySlice";
 
 const HaulingMap = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -578,6 +579,7 @@ const HaulingMap = ({ theme, navigation }) => {
         }
       }
 
+      dispatch(setDepotTripCateogry("hauling"));
       dispatch(validatorStatus(true));
       stopDoneLoading();
 

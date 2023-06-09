@@ -33,6 +33,7 @@ import ArrivedDeliveryModal from "../../../../components/modal/delivery/ArrivedD
 import moment from "moment-timezone";
 import AutoSuccessAnimation from "../../../../components/loading/AutoSuccessAnimation";
 import { validatorStatus } from "../../../../redux-toolkit/counter/vaidatorSlice";
+import { setDepotTripCateogry } from "../../../../redux-toolkit/counter/depotTripCategorySlice";
 
 const DeliveryMap = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -551,6 +552,7 @@ const DeliveryMap = ({ theme, navigation }) => {
         }
       }
 
+      dispatch(setDepotTripCateogry("delivery"));
       dispatch(validatorStatus(true));
       stopDoneLoading();
 

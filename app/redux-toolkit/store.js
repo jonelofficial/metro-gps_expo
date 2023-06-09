@@ -6,6 +6,7 @@ import imageReducer from "../redux-toolkit/counter/imageSlice";
 import companionReducer from "../redux-toolkit/counter/companionSlice";
 import snackbarReducer from "./counter/snackbarSlice";
 import validatorReducer from "./counter/vaidatorSlice";
+import depotTripCategoryReducer from "./counter/depotTripCategorySlice";
 
 // middleware: (getDefaultMiddleware) =>
 // getDefaultMiddleware().concat(metroApi.middleware),
@@ -26,6 +27,7 @@ export const store = configureStore({
     companion: companionReducer,
     snackbar: snackbarReducer,
     validator: validatorReducer,
+    depotTripCategory: depotTripCategoryReducer,
     [metroApi.reducerPath]: metroApi.reducer,
   },
   middleware,

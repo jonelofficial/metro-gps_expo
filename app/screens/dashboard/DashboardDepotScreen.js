@@ -57,6 +57,9 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
   // FOR USER DETAILS
   const user = useSelector((state) => state.token.userDetails);
   const validator = useSelector((state) => state.validator.value);
+  const depotTripCategory = useSelector(
+    (state) => state.depotTripCategory.value
+  );
 
   // FOR TRIP
   const [trip, setTrip] = useState([]);
@@ -81,7 +84,7 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
     onClose: onCloseDropdown,
   } = useDisclosure();
 
-  const [dropdownValue, setDropdownValue] = useState("hauling");
+  const [dropdownValue, setDropdownValue] = useState(depotTripCategory);
   const [dropdownItems, setDropdownItems] = useState([
     { label: "Depot", value: "depot", disabled: true },
     { label: "Hauling", value: "hauling", parent: "depot" },
