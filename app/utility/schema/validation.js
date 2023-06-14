@@ -42,6 +42,10 @@ export const gasModalSchema = Yup.object().shape({
     .label("Amount"),
 });
 
+export const destinationSchema = Yup.object().shape({
+  destination: Yup.string().required().label("Destination is required"),
+});
+
 // DEFAULT HAULING
 
 export const depotDefaultFormSchema = Yup.object().shape({

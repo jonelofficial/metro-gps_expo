@@ -36,7 +36,7 @@ import SuccessAnimation from "../../../components/loading/SuccessAnimation";
 import { useCreateTripMutation } from "../../../api/metroApi";
 import useToast from "../../../hooks/useToast";
 import { validatorStatus } from "../../../redux-toolkit/counter/vaidatorSlice";
-import * as TaskManager from "expo-task-manager";
+import DestinationModal from "../../../components/modal/DestinationModal";
 
 const OfficeMapScreen = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -72,6 +72,14 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     isOpen: showLoader,
     onClose: stopLoader,
     onToggle: startLoader,
+  } = useDisclosure();
+
+  // DESTINATION DISCLOSSURE
+
+  const {
+    isOpen: isOpenDestination,
+    onClose: onCloseDestination,
+    onToggle: onToggleDestination,
   } = useDisclosure();
 
   // BUTTON LOADER
@@ -352,7 +360,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
   // SQLITE FUNCTION
 
-  const sqliteLeft = async () => {
+  const sqliteLeft = async (data, { resetForm }) => {
     try {
       startLeftLoading();
       start(new Date());
@@ -368,12 +376,15 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         const newObj = {
           ...leftRes,
           date: moment(Date.now()).tz("Asia/Manila"),
+          destination: data?.destination,
         };
 
         await reloadRoute(newObj);
         await reloadMapState();
       }
 
+      resetForm();
+      onCloseDestination();
       stopLefLoading();
       handleSuccess();
     } catch (error) {
@@ -387,7 +398,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     }
   };
 
-  const sqliteArrived = async () => {
+  const sqliteArrived = async (data, { resetForm }) => {
     try {
       startArrivedLoading();
       pause();
@@ -403,12 +414,15 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         const newObj = {
           ...arrivedRes,
           date: moment(Date.now()).tz("Asia/Manila"),
+          destination: data?.destination,
         };
 
         await reloadRoute(newObj);
         await reloadMapState();
       }
 
+      resetForm();
+      onCloseDestination();
       stopArrivedLoading();
       handleSuccess();
     } catch (error) {
@@ -603,7 +617,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
                     trip?.locations.length > 0)
                 }
                 loading={leftLoading}
-                onPress={sqliteLeft}
+                onPress={onToggleDestination}
               >
                 Left
               </Button>
@@ -627,7 +641,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
                   trip?.locations.length === 0
                 }
                 loading={arrivedLoading}
-                onPress={sqliteArrived}
+                onPress={onToggleDestination}
               >
                 Arrived
               </Button>
@@ -687,6 +701,14 @@ const OfficeMapScreen = ({ theme, navigation }) => {
           </View>
         </View>
       </Screen>
+
+      {/* DESTINATION MODAL */}
+      <DestinationModal
+        isOpenDestination={isOpenDestination}
+        onCloseDestination={onCloseDestination}
+        loading={arrivedLoading || leftLoading}
+        onSubmit={trip?.locations.length % 2 === 0 ? sqliteLeft : sqliteArrived}
+      />
 
       {/* DONE MODAL */}
       <DoneModal
