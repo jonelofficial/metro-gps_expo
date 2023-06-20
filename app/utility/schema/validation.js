@@ -46,6 +46,13 @@ export const destinationSchema = Yup.object().shape({
   destination: Yup.string().required().label("Destination is required"),
 });
 
+export const destinationOthersSchema = Yup.object().shape({
+  destination: Yup.string().required().label("Destination is required"),
+  destination_name: Yup.string()
+    .required()
+    .label("Destination Name is required"),
+});
+
 // DEFAULT HAULING
 
 export const depotDefaultFormSchema = Yup.object().shape({

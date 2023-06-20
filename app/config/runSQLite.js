@@ -24,6 +24,11 @@ const runSQLite = () => {
       );
 
       await createTable(
+        "sg_destination",
+        `id integer primary key not null, term_code TEXT, loc_code TEXT, location TEXT`
+      );
+
+      await createTable(
         "offline_trip",
         `id integer primary key not null, 
         date TEXT, user_id TEXT, 

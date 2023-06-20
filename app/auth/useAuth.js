@@ -28,6 +28,41 @@ const useAuth = () => {
   } = useStorage();
   const dispatch = useDispatch();
 
+  const getSgDestinations = async () => {
+    try {
+      const res = await fetch(process.env.SG_DESTINATION);
+      const sgDestination = await res.json();
+
+      const uniqueArray = sgDestination.records.reduce((acc, value) => {
+        if (!acc.some((obj) => obj.location === value.location)) {
+          acc.push(value);
+        }
+        return acc;
+      }, []);
+
+      const data = await selectTable("sg_destination");
+
+      if (data.length === 0) {
+        await uniqueArray.map(async ({ termCode, locCode, location }) => {
+          await insertToTable(
+            "INSERT INTO sg_destination (term_code, loc_code, location) values (?, ?, ?)",
+            [termCode, locCode, location]
+          );
+        });
+      } else if (uniqueArray.length !== data.length) {
+        await deleteFromTable("sg_destination");
+        await uniqueArray.map(async ({ termCode, locCode, location }) => {
+          await insertToTable(
+            "INSERT INTO sg_destination (term_code, loc_code, location) values (?, ?, ?)",
+            [termCode, locCode, location]
+          );
+        });
+      }
+    } catch (error) {
+      console.log("GET SG DESTINATIONS API ERROR: ", error);
+    }
+  };
+
   const getDepartment = async () => {
     try {
       const response = await fetch(process.env.CEDAR_URL, {
@@ -302,6 +337,7 @@ const useAuth = () => {
           "INSERT INTO user (username, password, token) values (?,?,?)",
           [values.username, values.password, data.token]
         );
+        await getSgDestinations();
         await getDepartment();
         await getVehicles(data.token);
         await getGasStation(data.token);

@@ -154,6 +154,8 @@ const GasModal = ({
                     {errors.gas_station_id}
                   </Text>
                 )}
+
+                {/* THIS IS FOR OTHERS */}
                 {value === "507f191e810c19729de860ea" && (
                   <TextField
                     touched={touched}

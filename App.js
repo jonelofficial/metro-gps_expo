@@ -7,6 +7,7 @@ import {
 import { Provider as StoreProvider } from "react-redux";
 import { store } from "./app/redux-toolkit/store";
 import AppScreen from "./app/screens/AppScreen";
+import { AutocompleteDropdownContextProvider } from "react-native-autocomplete-dropdown";
 
 export default function App() {
   const [loaded] = useFonts({
@@ -36,10 +37,12 @@ export default function App() {
     fonts: configureFonts({ config: { fontFamily: "Khyay", fontSize: 16 } }),
   };
   return (
-    <StoreProvider store={store}>
-      <PaperProvider theme={theme}>
-        <AppScreen />
-      </PaperProvider>
-    </StoreProvider>
+    <AutocompleteDropdownContextProvider>
+      <StoreProvider store={store}>
+        <PaperProvider theme={theme}>
+          <AppScreen />
+        </PaperProvider>
+      </StoreProvider>
+    </AutocompleteDropdownContextProvider>
   );
 }
