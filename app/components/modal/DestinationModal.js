@@ -117,7 +117,10 @@ const DestinationModal = ({
                   }}
                   dataSet={destinations}
                   loading={loadingDestination}
-                  containerStyle={{ marginBottom: 16 }}
+                  containerStyle={{
+                    marginBottom:
+                      touched?.destination && errors?.destination ? 5 : 16,
+                  }}
                   inputContainerStyle={{
                     backgroundColor: colors.white,
                     borderRadius: 15,

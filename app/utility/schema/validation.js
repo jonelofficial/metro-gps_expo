@@ -43,11 +43,17 @@ export const gasModalSchema = Yup.object().shape({
 });
 
 export const destinationSchema = Yup.object().shape({
-  destination: Yup.string().required().label("Destination is required"),
+  destination: Yup.string()
+    .nullable()
+    .required()
+    .label("Destination is required"),
 });
 
 export const destinationOthersSchema = Yup.object().shape({
-  destination: Yup.string().required().label("Destination is required"),
+  destination: Yup.string()
+    .nullable()
+    .required()
+    .label("Destination is required"),
   destination_name: Yup.string()
     .required()
     .label("Destination Name is required"),
