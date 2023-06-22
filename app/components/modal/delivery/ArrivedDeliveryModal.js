@@ -1,11 +1,20 @@
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
-import { Checkbox, Modal, Portal, Text } from "react-native-paper";
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  Modal,
+  Portal,
+  Text,
+  withTheme,
+} from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
 import TextField from "../../form/TextField";
 import SubmitButton from "../../form/SubmitButton";
 import { arrivedDeliveryModalSchema } from "../../../utility/schema/validation";
+import useDisclosure from "../../../hooks/useDisclosure";
 
 const ArrivedDeliveryModal = ({
   showArrivedModal,
@@ -13,8 +22,12 @@ const ArrivedDeliveryModal = ({
   arrivedLoading,
   onSubmit,
   checkboxState,
+  theme,
 }) => {
+  const { colors } = theme;
   const { lastDelivery, onToggleLastDelivery } = checkboxState;
+
+  const { isOpen, onClose, onToggle } = useDisclosure();
   return (
     <Portal>
       <Modal
@@ -103,7 +116,7 @@ const ArrivedDeliveryModal = ({
                   >
                     <Checkbox
                       status={lastDelivery ? "checked" : "unchecked"}
-                      onPress={onToggleLastDelivery}
+                      onPress={!lastDelivery ? onToggle : onToggleLastDelivery}
                     />
                   </View>
                   <Text
@@ -127,8 +140,30 @@ const ArrivedDeliveryModal = ({
           }}
         </Formik>
       </Modal>
+
+      <Dialog visible={isOpen} onDismiss={onClose}>
+        <Dialog.Title>Hold on!</Dialog.Title>
+        <Dialog.Content>
+          <Text variant="bodyMedium">
+            Are you sure that this will be the last delivery?
+          </Text>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={onClose} labelStyle={{ color: colors.danger }}>
+            Cancel
+          </Button>
+          <Button
+            onPress={() => {
+              onToggleLastDelivery();
+              onClose();
+            }}
+          >
+            Yes
+          </Button>
+        </Dialog.Actions>
+      </Dialog>
     </Portal>
   );
 };
 
-export default ArrivedDeliveryModal;
+export default withTheme(ArrivedDeliveryModal);
