@@ -18,6 +18,7 @@ const ArrivedModal = ({
   arrivedLoading,
   onSubmit,
   trip,
+  tareWeight,
 }) => {
   const [formSchema, setFormSchema] = useState(arrivedModalSchema);
 
@@ -54,10 +55,8 @@ const ArrivedModal = ({
 
         <Formik
           initialValues={{
-            tare_weight: "",
             net_weight: "",
             gross_weight: "",
-            temperature: "",
             doa_count: "",
           }}
           validationSchema={formSchema}
@@ -70,7 +69,18 @@ const ArrivedModal = ({
             values,
             errors,
             touched,
+            setFieldValue,
           }) => {
+            useEffect(() => {
+              if (values?.gross_weight > 0) {
+                const value = values?.gross_weight - tareWeight;
+                setFieldValue("net_weight", `${value.toFixed(1)}`);
+              }
+              return () => {
+                null;
+              };
+            }, [values?.gross_weight]);
+
             return (
               <>
                 {trip?.locations?.length > 1 && (
@@ -85,6 +95,19 @@ const ArrivedModal = ({
                       label="Gross Weight"
                       keyboardType="numeric"
                     />
+                    {values?.gross_weight !== "" &&
+                      values?.gross_weight <= tareWeight && (
+                        <Text
+                          style={{
+                            color: "red",
+                            fontSize: 14,
+                            padding: 5,
+                            marginTop: -10,
+                          }}
+                        >
+                          Gross weight should not be less than the tare weight
+                        </Text>
+                      )}
                     <TextField
                       touched={touched}
                       errors={errors}
@@ -92,8 +115,9 @@ const ArrivedModal = ({
                       handleBlur={handleBlur}
                       values={values}
                       name="net_weight"
-                      label="Net Weight (Optional)"
+                      label="Net Weight (Auto-fill)"
                       keyboardType="numeric"
+                      disabled={true}
                     />
                     <TextField
                       touched={touched}
@@ -111,7 +135,11 @@ const ArrivedModal = ({
                   onPress={handleSubmit}
                   title="Proceed"
                   isLoading={arrivedLoading}
-                  disabled={arrivedLoading}
+                  disabled={
+                    arrivedLoading ||
+                    (values?.gross_weight !== "" &&
+                      values?.gross_weight <= tareWeight)
+                  }
                 />
               </>
             );

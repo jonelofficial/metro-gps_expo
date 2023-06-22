@@ -47,6 +47,7 @@ const HaulingMap = ({ theme, navigation }) => {
   const [onBackground, setOnBackground] = useState(false);
   const [itemCount, setItemCount] = useState("");
   const [destinationState, setDestinationState] = useState();
+  const [tareWeight, setTareWeight] = useState(0);
 
   const dispatch = useDispatch();
   const [createTrip, { isLoading }] = useCreateHaulingTripMutation();
@@ -336,6 +337,7 @@ const HaulingMap = ({ theme, navigation }) => {
     const tripRes = await selectTable("depot_hauling");
 
     setItemCount(tripRes[tripRes.length - 1]?.item_count);
+    setTareWeight(tripRes[tripRes.length - 1]?.tare_weight);
 
     const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
 
@@ -835,6 +837,7 @@ const HaulingMap = ({ theme, navigation }) => {
         showArrivedModal={showArrivedModal}
         onSubmit={sqliteArrived}
         trip={trip}
+        tareWeight={tareWeight}
       />
     </>
   );
