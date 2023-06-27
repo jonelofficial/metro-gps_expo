@@ -373,6 +373,7 @@ const HaulingMap = ({ theme, navigation }) => {
         const newObj = {
           ...leftRes,
           date: moment(Date.now()).tz("Asia/Manila"),
+          destination: data?.destination,
         };
 
         await reloadRoute(newObj);

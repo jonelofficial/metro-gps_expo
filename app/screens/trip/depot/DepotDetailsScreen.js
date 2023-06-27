@@ -260,15 +260,15 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                         ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                     />
                     <Content
-                      label="Net Weight"
-                      details={item?.net_weight
+                      label="Gross Weight"
+                      details={item?.gross_weight
                         ?.toFixed(1)
                         ?.toString()
                         ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                     />
                     <Content
-                      label="Gross Weight"
-                      details={item?.gross_weight
+                      label="Net Weight"
+                      details={item?.net_weight
                         ?.toFixed(1)
                         ?.toString()
                         ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
