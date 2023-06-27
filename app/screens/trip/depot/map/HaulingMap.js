@@ -48,6 +48,7 @@ const HaulingMap = ({ theme, navigation }) => {
   const [itemCount, setItemCount] = useState("");
   const [destinationState, setDestinationState] = useState();
   const [tareWeight, setTareWeight] = useState(0);
+  const [destination, setDestination] = useState();
 
   const dispatch = useDispatch();
   const [createTrip, { isLoading }] = useCreateHaulingTripMutation();
@@ -338,6 +339,7 @@ const HaulingMap = ({ theme, navigation }) => {
 
     setItemCount(tripRes[tripRes.length - 1]?.item_count);
     setTareWeight(tripRes[tripRes.length - 1]?.tare_weight);
+    setDestination(tripRes[tripRes.length - 1]?.destination);
 
     const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
 
@@ -373,7 +375,7 @@ const HaulingMap = ({ theme, navigation }) => {
         const newObj = {
           ...leftRes,
           date: moment(Date.now()).tz("Asia/Manila"),
-          destination: data?.destination,
+          destination: destination,
         };
 
         await reloadRoute(newObj);
@@ -388,6 +390,7 @@ const HaulingMap = ({ theme, navigation }) => {
             [data?.item_count]
           );
         } else {
+          setDestination(data?.destination);
           await updateToTable(
             `UPDATE depot_hauling SET
             destination = (?)
@@ -431,6 +434,7 @@ const HaulingMap = ({ theme, navigation }) => {
         const newObj = {
           ...leftRes,
           date: moment(Date.now()).tz("Asia/Manila"),
+          destination: "Depot",
         };
 
         await reloadRoute(newObj);
@@ -467,6 +471,8 @@ const HaulingMap = ({ theme, navigation }) => {
         const newObj = {
           ...arrivedRes,
           date: moment(Date.now()).tz("Asia/Manila"),
+          destination:
+            trip?.locations?.length >= 2 && itemCount ? "Depot" : destination,
         };
 
         await reloadRoute(newObj);
