@@ -412,6 +412,7 @@ const DeliveryMap = ({ theme, navigation }) => {
         const newObj = {
           ...arrivedRes,
           date: moment(Date.now()).tz("Asia/Manila"),
+          destination: data.destination,
         };
 
         const delivery = await selectTable(

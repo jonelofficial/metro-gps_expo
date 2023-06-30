@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import {
   Button,
@@ -14,6 +14,9 @@ import { Formik } from "formik";
 import TextField from "../../form/TextField";
 import SubmitButton from "../../form/SubmitButton";
 import { arrivedDeliveryModalSchema } from "../../../utility/schema/validation";
+import { selectTable } from "../../../utility/sqlite";
+import { AutocompleteDropdown } from "react-native-autocomplete-dropdown";
+import { useRef } from "react";
 import useDisclosure from "../../../hooks/useDisclosure";
 
 const ArrivedDeliveryModal = ({
@@ -26,13 +29,47 @@ const ArrivedDeliveryModal = ({
 }) => {
   const { colors } = theme;
   const { lastDelivery, onToggleLastDelivery } = checkboxState;
-
   const { isOpen, onClose, onToggle } = useDisclosure();
+
+  const [loadingDestination, setLoadingDestination] = useState(true);
+  const [destination, setDestination] = useState(null);
+  const [destinations, setDestinations] = useState([]);
+  const dropdownController = useRef(null);
+  const searchRef = useRef(null);
+
+  const handleCloseDropdown = () => {
+    if (dropdownController.current) {
+      dropdownController.current.close();
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      const sgDestination = await selectTable("sg_destination");
+
+      await sgDestination.map(({ location, id }) => {
+        setDestinations((prevState) => [
+          ...prevState,
+          { id: id, title: location },
+        ]);
+      });
+
+      setLoadingDestination(false);
+    })();
+
+    return () => {
+      null;
+    };
+  }, []);
+
   return (
     <Portal>
       <Modal
         visible={showArrivedModal}
-        onDismiss={onCloseArrivedModal}
+        onDismiss={() => {
+          onCloseArrivedModal();
+          handleCloseDropdown();
+        }}
         contentContainerStyle={{
           backgroundColor: "white",
           padding: 20,
@@ -46,7 +83,12 @@ const ArrivedDeliveryModal = ({
             marginBottom: 8,
           }}
         >
-          <TouchableOpacity onPress={onCloseArrivedModal}>
+          <TouchableOpacity
+            onPress={() => {
+              onCloseArrivedModal();
+              handleCloseDropdown();
+            }}
+          >
             <Ionicons name="ios-close-outline" size={30} />
           </TouchableOpacity>
         </View>
@@ -55,6 +97,7 @@ const ArrivedDeliveryModal = ({
             crates_dropped: "",
             crates_collected: "",
             crates_borrowed: "",
+            destination: destination,
           }}
           validationSchema={arrivedDeliveryModalSchema}
           onSubmit={onSubmit}
@@ -66,9 +109,53 @@ const ArrivedDeliveryModal = ({
             values,
             errors,
             touched,
+            setFieldValue,
           }) => {
             return (
               <>
+                <AutocompleteDropdown
+                  ref={searchRef}
+                  controller={(controller) => {
+                    dropdownController.current = controller;
+                  }}
+                  closeOnBlur={true}
+                  onSelectItem={(value) => {
+                    if (value) {
+                      setFieldValue("destination", value?.title);
+                      setDestination(value);
+                    }
+                  }}
+                  dataSet={destinations}
+                  loading={loadingDestination}
+                  containerStyle={{
+                    marginBottom:
+                      touched?.destination && errors?.destination ? 5 : 16,
+                  }}
+                  inputContainerStyle={{
+                    backgroundColor: colors.white,
+                    borderRadius: 15,
+                    borderColor: colors.light,
+                    borderWidth: 1,
+                  }}
+                  inputHeight={50}
+                  textInputProps={{
+                    placeholder: "Destination",
+                    autoCorrect: false,
+                    autoCapitalize: "none",
+                    style: {
+                      fontFamily: "Khyay",
+                      borderRadius: 25,
+                      paddingLeft: 18,
+                      fontSize: 16,
+                    },
+                  }}
+                />
+                {/* TRIP TYPE ERROR HANDLING */}
+                {touched?.destination && errors?.destination && (
+                  <Text style={{ color: "red", fontSize: 14, padding: 5 }}>
+                    {errors.destination}
+                  </Text>
+                )}
                 <TextField
                   touched={touched}
                   errors={errors}
@@ -149,7 +236,7 @@ const ArrivedDeliveryModal = ({
           </Text>
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={onClose} labelStyle={{ color: colors.danger }}>
+          <Button onPress={onClose} labelStyle={{ color: colors.light }}>
             Cancel
           </Button>
           <Button

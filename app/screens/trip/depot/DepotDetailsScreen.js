@@ -417,6 +417,13 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                               </>
                             )}
 
+                          {loc?.destination && (
+                            <Content
+                              label="Destination"
+                              details={loc?.destination}
+                            />
+                          )}
+
                           {newLocations.length !== i + 1 && <MapDivider />}
                         </Fragment>
                       );
