@@ -336,6 +336,12 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                               loc?.address[0]?.subregion || "(No Subregion)"
                             }`}
                           />
+                          {loc?.destination && (
+                            <Content
+                              label="Destination"
+                              details={loc?.destination}
+                            />
+                          )}
 
                           {newLocations.length !== i + 1 && <MapDivider />}
                         </Fragment>

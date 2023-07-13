@@ -375,6 +375,10 @@ const HaulingMap = ({ theme, navigation }) => {
         const newObj = {
           ...leftRes,
           date: moment(Date.now()).tz("Asia/Manila"),
+          // destination:
+          //   data?.destination === "Others"
+          //     ? data.destination_name
+          //     : data?.destination,
           destination: destination,
         };
 
@@ -390,12 +394,20 @@ const HaulingMap = ({ theme, navigation }) => {
             [data?.item_count]
           );
         } else {
-          setDestination(data?.destination);
+          setDestination(
+            data?.destination === "Others"
+              ? data.destination_name
+              : data?.destination
+          );
           await updateToTable(
             `UPDATE depot_hauling SET
             destination = (?)
             WHERE id = (SELECT MAX(id) FROM depot_hauling)`,
-            [data?.destination]
+            [
+              data?.destination === "Others"
+                ? data.destination_name
+                : data?.destination,
+            ]
           );
         }
       }

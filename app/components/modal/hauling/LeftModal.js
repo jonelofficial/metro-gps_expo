@@ -1,5 +1,5 @@
 import { Formik } from "formik";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { Modal, Portal, withTheme } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,11 +7,13 @@ import TextField from "../../form/TextField";
 import SubmitButton from "../../form/SubmitButton";
 import {
   leftModalChangeDestinationSchema,
+  leftModalOthersSchema,
   leftModalSchema,
 } from "../../../utility/schema/validation";
 import { selectTable } from "../../../utility/sqlite";
 import DropDownPicker from "react-native-dropdown-picker";
 import useDisclosure from "../../../hooks/useDisclosure";
+import { AutocompleteDropdown } from "react-native-autocomplete-dropdown";
 
 const LeftModal = ({
   showLeftModal,
@@ -27,6 +29,8 @@ const LeftModal = ({
     destinationState;
 
   const [destinations, setDestinations] = useState([]);
+  const [loadingDestination, setLoadingDestination] = useState(true);
+
   // const [destination, setDestination] = useState();
 
   const {
@@ -34,6 +38,9 @@ const LeftModal = ({
     onClose: onCloseDestinationsDropdown,
     onToggle: onToggleDestinationsDropdown,
   } = useDisclosure();
+
+  const dropdownController = useRef(null);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -45,11 +52,18 @@ const LeftModal = ({
           obj.trip_category === res[res?.length - 1].trip_category &&
           obj.trip_type === res[res?.length - 1].trip_type
       );
+      destinations.push({ destination: "Others" });
+      // setDestinations([
+      //   ...destinations.map((obj) => {
+      //     return { value: obj.destination, label: obj.destination };
+      //   }),
+      // ]);
       setDestinations([
-        ...destinations.map((obj) => {
-          return { value: obj.destination, label: obj.destination };
+        ...destinations.map((obj, i) => {
+          return { id: i, title: obj.destination };
         }),
       ]);
+      setLoadingDestination(false);
     })();
   }, []);
 
@@ -87,9 +101,14 @@ const LeftModal = ({
           initialValues={{
             item_count: "",
             destination: destination,
+            destination_name: "",
           }}
           validationSchema={
-            destination ? leftModalChangeDestinationSchema : leftModalSchema
+            destination?.title === "Others"
+              ? leftModalOthersSchema
+              : destination && destination?.title !== "Others"
+              ? leftModalChangeDestinationSchema
+              : leftModalSchema
           }
           onSubmit={onSubmit}
         >
@@ -104,7 +123,7 @@ const LeftModal = ({
           }) => {
             return (
               <>
-                <DropDownPicker
+                {/* <DropDownPicker
                   id="destination"
                   listMode="SCROLLVIEW"
                   open={showDestinationsDropdown}
@@ -140,7 +159,57 @@ const LeftModal = ({
                   }}
                   zIndex={2000}
                   zIndexInverse={2000}
+                /> */}
+
+                <AutocompleteDropdown
+                  ref={searchRef}
+                  controller={(controller) => {
+                    dropdownController.current = controller;
+                  }}
+                  closeOnBlur={true}
+                  onSelectItem={(value) => {
+                    if (value) {
+                      setFieldValue("destination", value?.title);
+                      setDestination(value);
+                    }
+                  }}
+                  dataSet={destinations}
+                  loading={loadingDestination}
+                  containerStyle={{
+                    marginBottom:
+                      touched?.destination && errors?.destination ? 5 : 16,
+                  }}
+                  inputContainerStyle={{
+                    backgroundColor: colors.white,
+                    borderRadius: 15,
+                    borderColor: colors.light,
+                    borderWidth: 1,
+                  }}
+                  inputHeight={50}
+                  textInputProps={{
+                    placeholder: "Destination",
+                    autoCorrect: false,
+                    autoCapitalize: "none",
+                    style: {
+                      fontFamily: "Khyay",
+                      borderRadius: 25,
+                      paddingLeft: 18,
+                      fontSize: 16,
+                    },
+                  }}
                 />
+                {destination?.title === "Others" && (
+                  <TextField
+                    touched={touched}
+                    errors={errors}
+                    handleChange={handleChange}
+                    handleBlur={handleBlur}
+                    values={values}
+                    name="destination_name"
+                    label="Destination Name"
+                  />
+                )}
+
                 {!destination && (
                   <TextField
                     touched={touched}

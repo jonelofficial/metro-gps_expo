@@ -98,6 +98,12 @@ export const leftModalSchema = Yup.object().shape({
 export const leftModalChangeDestinationSchema = Yup.object().shape({
   destination: Yup.string().nullable().required().label("Destination"),
 });
+export const leftModalOthersSchema = Yup.object().shape({
+  destination: Yup.string().nullable().required().label("Destination"),
+  destination_name: Yup.string()
+    .required()
+    .label("Destination Name is required"),
+});
 
 // DEPOT DELIVERY
 export const deliveryFormSchema = Yup.object().shape({
