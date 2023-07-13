@@ -13,7 +13,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
 import TextField from "../../form/TextField";
 import SubmitButton from "../../form/SubmitButton";
-import { arrivedDeliveryModalSchema } from "../../../utility/schema/validation";
+import {
+  arrivedDeliveryModalOthersSchema,
+  arrivedDeliveryModalSchema,
+} from "../../../utility/schema/validation";
 import { selectTable } from "../../../utility/sqlite";
 import { AutocompleteDropdown } from "react-native-autocomplete-dropdown";
 import { useRef } from "react";
@@ -69,6 +72,7 @@ const ArrivedDeliveryModal = ({
         onDismiss={() => {
           onCloseArrivedModal();
           handleCloseDropdown();
+          setDestination(null);
         }}
         contentContainerStyle={{
           backgroundColor: "white",
@@ -87,6 +91,7 @@ const ArrivedDeliveryModal = ({
             onPress={() => {
               onCloseArrivedModal();
               handleCloseDropdown();
+              setDestination(null);
             }}
           >
             <Ionicons name="ios-close-outline" size={30} />
@@ -98,9 +103,17 @@ const ArrivedDeliveryModal = ({
             crates_collected: "",
             crates_borrowed: "",
             destination: destination,
+            destination_name: "",
           }}
-          validationSchema={arrivedDeliveryModalSchema}
-          onSubmit={onSubmit}
+          validationSchema={
+            destination?.title === "OTHER LOCATION"
+              ? arrivedDeliveryModalOthersSchema
+              : arrivedDeliveryModalSchema
+          }
+          onSubmit={async (data) => {
+            await onSubmit(data);
+            setDestination(null);
+          }}
         >
           {({
             handleBlur,
@@ -155,6 +168,18 @@ const ArrivedDeliveryModal = ({
                   <Text style={{ color: "red", fontSize: 14, padding: 5 }}>
                     {errors.destination}
                   </Text>
+                )}
+
+                {destination?.title === "OTHER LOCATION" && (
+                  <TextField
+                    touched={touched}
+                    errors={errors}
+                    handleChange={handleChange}
+                    handleBlur={handleBlur}
+                    values={values}
+                    name="destination_name"
+                    label="Destination Name"
+                  />
                 )}
                 <TextField
                   touched={touched}

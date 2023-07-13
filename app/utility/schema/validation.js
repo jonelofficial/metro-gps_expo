@@ -123,3 +123,13 @@ export const arrivedDeliveryModalSchema = Yup.object().shape({
   crates_borrowed: Yup.number().required().label("Crates Borrowed"),
   destination: Yup.string().nullable().required().label("Destination"),
 });
+
+export const arrivedDeliveryModalOthersSchema = Yup.object().shape({
+  crates_dropped: Yup.number().required().label("Crates Dropped"),
+  crates_collected: Yup.number().required().label("Crates Collected"),
+  crates_borrowed: Yup.number().required().label("Crates Borrowed"),
+  destination: Yup.string().nullable().required().label("Destination"),
+  destination_name: Yup.string()
+    .required()
+    .label("Destination Name is required"),
+});
