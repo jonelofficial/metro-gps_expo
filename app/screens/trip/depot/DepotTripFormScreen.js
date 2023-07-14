@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   BackHandler,
   FlatList,
@@ -33,14 +33,20 @@ import AppCamera from "../../../components/AppCamera";
 import Scanner from "../../../components/Scanner";
 import moment from "moment-timezone";
 import PrivacyPolicyComponent from "../../../components/PrivacyPolicyComponent";
+import { AutocompleteDropdown } from "react-native-autocomplete-dropdown";
 
 const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   const { colors } = theme;
   const { vehicle_id } = navigationRoute.params;
+
   const image = useSelector((state) => state.image.value);
   const companion = useSelector((state) => state.companion.value);
   const user = useSelector((state) => state.token.userDetails);
   const dispatch = useDispatch();
+
+  // DESTINATION AUTOCOMPLETE
+  const dropdownController = useRef(null);
+  const searchRef = useRef(null);
 
   // CHARGING
   const [departments, setDepartments] = useState([]);
@@ -116,9 +122,10 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
   // DESTINATION DELIVERY
 
-  const [deliveryDestinations, setDeliveryDestinations] = useState([
-    { value: "route", label: "Route", id: 0 },
-  ]);
+  // const [deliveryDestinations, setDeliveryDestinations] = useState([
+  //   { value: "route", label: "Route", id: 0 },
+  // ]);
+  const [deliveryDestinations, setDeliveryDestinations] = useState([]);
   const [deliveryDestination, setDeliveryDestination] = useState();
 
   //
@@ -184,9 +191,14 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
     const destinationHaulingFilteredData = destinationInitial.filter(
       (obj) => obj.trip_type === tripTypeValue
     );
+    // setDestinations([
+    //   ...destinationHaulingFilteredData.map((obj) => {
+    //     return { value: obj.destination, label: obj.destination };
+    //   }),
+    // ]);
     setDestinations([
-      ...destinationHaulingFilteredData.map((obj) => {
-        return { value: obj.destination, label: obj.destination };
+      ...destinationHaulingFilteredData.map((obj, i) => {
+        return { id: i, title: obj.destination };
       }),
     ]);
   }, [tripTypeValue]);
@@ -195,9 +207,14 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
     const destinationDeliveryFilteredData = destinationInitial.filter(
       (obj) => obj.trip_type === tripTypeDeliveryValue
     );
+    // setDeliveryDestinations([
+    //   ...destinationDeliveryFilteredData.map((obj) => {
+    //     return { value: obj.destination, label: obj.destination };
+    //   }),
+    // ]);
     setDeliveryDestinations([
-      ...destinationDeliveryFilteredData.map((obj) => {
-        return { value: obj.destination, label: obj.destination };
+      ...destinationDeliveryFilteredData.map((obj, i) => {
+        return { id: i, title: obj.destination };
       }),
     ]);
   }, [tripTypeDeliveryValue]);
@@ -707,71 +724,145 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                             <Text style={styles.text}>Destinations:</Text>
                           )}
                           {tripCategoryValue?.toLowerCase() === "hauling" && (
-                            <DropDownPicker
-                              id="destination"
-                              listMode="SCROLLVIEW"
-                              open={showDestinationsDropdown}
-                              onOpen={onDestinationOpen}
-                              value={destination}
-                              items={destinations}
-                              onChangeValue={(value) => {
-                                setFieldValue("destination", value);
+                            // <DropDownPicker
+                            //   id="destination"
+                            //   listMode="SCROLLVIEW"
+                            //   open={showDestinationsDropdown}
+                            //   onOpen={onDestinationOpen}
+                            //   value={destination}
+                            //   items={destinations}
+                            //   onChangeValue={(value) => {
+                            //     setFieldValue("destination", value);
+                            //   }}
+                            //   setOpen={onToggleDestinationsDropdown}
+                            //   setValue={setDestination}
+                            //   setItems={setDestinations}
+                            //   placeholder="Select Destination"
+                            //   textStyle={{
+                            //     fontFamily: "Khyay",
+                            //     fontSize: 16,
+                            //   }}
+                            //   style={{
+                            //     borderRadius: 15,
+                            //     borderColor: colors.light,
+                            //     marginBottom: errors.destination ? 0 : 12,
+                            //     zIndex: 0,
+                            //   }}
+                            //   dropDownContainerStyle={{
+                            //     borderColor: colors.light,
+                            //     maxHeight: 150,
+                            //     // zIndex: 99,
+                            //   }}
+                            //   zIndex={2000}
+                            //   zIndexInverse={2000}
+                            // />
+                            <AutocompleteDropdown
+                              ref={searchRef}
+                              controller={(controller) => {
+                                dropdownController.current = controller;
                               }}
-                              setOpen={onToggleDestinationsDropdown}
-                              setValue={setDestination}
-                              setItems={setDestinations}
-                              placeholder="Select Destination"
-                              textStyle={{
-                                fontFamily: "Khyay",
-                                fontSize: 16,
+                              closeOnBlur={true}
+                              onSelectItem={(value) => {
+                                if (value) {
+                                  setFieldValue("destination", value?.title);
+                                }
                               }}
-                              style={{
+                              dataSet={destinations}
+                              containerStyle={{
+                                marginBottom:
+                                  touched?.destination && errors?.destination
+                                    ? 5
+                                    : 16,
+                              }}
+                              inputContainerStyle={{
+                                backgroundColor: colors.white,
                                 borderRadius: 15,
                                 borderColor: colors.light,
-                                marginBottom: errors.destination ? 0 : 12,
-                                zIndex: 0,
+                                borderWidth: 1,
                               }}
-                              dropDownContainerStyle={{
-                                borderColor: colors.light,
-                                maxHeight: 150,
-                                // zIndex: 99,
+                              inputHeight={50}
+                              textInputProps={{
+                                placeholder: "Destination",
+                                autoCorrect: false,
+                                autoCapitalize: "none",
+                                style: {
+                                  fontFamily: "Khyay",
+                                  borderRadius: 25,
+                                  paddingLeft: 18,
+                                  fontSize: 16,
+                                },
                               }}
-                              zIndex={2000}
-                              zIndexInverse={2000}
                             />
                           )}
                           {tripCategoryValue?.toLowerCase() === "delivery" && (
-                            <DropDownPicker
-                              id="destination"
-                              listMode="SCROLLVIEW"
-                              open={showDestinationsDropdown}
-                              onOpen={onDestinationOpen}
-                              value={deliveryDestination}
-                              items={deliveryDestinations}
-                              onChangeValue={(value) => {
-                                setFieldValue("destination", value);
+                            // <DropDownPicker
+                            //   id="destination"
+                            //   listMode="SCROLLVIEW"
+                            //   open={showDestinationsDropdown}
+                            //   onOpen={onDestinationOpen}
+                            //   value={deliveryDestination}
+                            //   items={deliveryDestinations}
+                            //   onChangeValue={(value) => {
+                            //     setFieldValue("destination", value);
+                            //   }}
+                            //   setOpen={onToggleDestinationsDropdown}
+                            //   setValue={setDeliveryDestination}
+                            //   setItems={setDeliveryDestinations}
+                            //   placeholder="Select Destination"
+                            //   textStyle={{
+                            //     fontFamily: "Khyay",
+                            //     fontSize: 16,
+                            //   }}
+                            //   style={{
+                            //     borderRadius: 15,
+                            //     borderColor: colors.light,
+                            //     marginBottom: errors.destination ? 0 : 12,
+                            //     zIndex: 0,
+                            //   }}
+                            //   dropDownContainerStyle={{
+                            //     borderColor: colors.light,
+                            //     maxHeight: 150,
+                            //     // zIndex: 99,
+                            //   }}
+                            //   zIndex={2000}
+                            //   zIndexInverse={2000}
+                            // />
+                            <AutocompleteDropdown
+                              ref={searchRef}
+                              controller={(controller) => {
+                                dropdownController.current = controller;
                               }}
-                              setOpen={onToggleDestinationsDropdown}
-                              setValue={setDeliveryDestination}
-                              setItems={setDeliveryDestinations}
-                              placeholder="Select Destination"
-                              textStyle={{
-                                fontFamily: "Khyay",
-                                fontSize: 16,
+                              closeOnBlur={true}
+                              onSelectItem={(value) => {
+                                if (value) {
+                                  setFieldValue("destination", value?.title);
+                                }
                               }}
-                              style={{
+                              dataSet={deliveryDestinations}
+                              containerStyle={{
+                                marginBottom:
+                                  touched?.destination && errors?.destination
+                                    ? 5
+                                    : 16,
+                              }}
+                              inputContainerStyle={{
+                                backgroundColor: colors.white,
                                 borderRadius: 15,
                                 borderColor: colors.light,
-                                marginBottom: errors.destination ? 0 : 12,
-                                zIndex: 0,
+                                borderWidth: 1,
                               }}
-                              dropDownContainerStyle={{
-                                borderColor: colors.light,
-                                maxHeight: 150,
-                                // zIndex: 99,
+                              inputHeight={50}
+                              textInputProps={{
+                                placeholder: "Destination",
+                                autoCorrect: false,
+                                autoCapitalize: "none",
+                                style: {
+                                  fontFamily: "Khyay",
+                                  borderRadius: 25,
+                                  paddingLeft: 18,
+                                  fontSize: 16,
+                                },
                               }}
-                              zIndex={2000}
-                              zIndexInverse={2000}
                             />
                           )}
 
