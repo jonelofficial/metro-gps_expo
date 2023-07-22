@@ -70,9 +70,9 @@ const ArrivedDeliveryModal = ({
       <Modal
         visible={showArrivedModal}
         onDismiss={() => {
-          onCloseArrivedModal();
-          handleCloseDropdown();
-          setDestination(null);
+          // onCloseArrivedModal();
+          // handleCloseDropdown();
+          // setDestination(null);
         }}
         contentContainerStyle={{
           backgroundColor: "white",
@@ -112,6 +112,7 @@ const ArrivedDeliveryModal = ({
           }
           onSubmit={async (data) => {
             await onSubmit(data);
+            handleCloseDropdown();
             setDestination(null);
           }}
         >
@@ -131,7 +132,8 @@ const ArrivedDeliveryModal = ({
                   controller={(controller) => {
                     dropdownController.current = controller;
                   }}
-                  closeOnBlur={true}
+                  clearOnFocus={false}
+                  // onBlur={handleCloseDropdown}
                   onSelectItem={(value) => {
                     if (value) {
                       setFieldValue("destination", value?.title);

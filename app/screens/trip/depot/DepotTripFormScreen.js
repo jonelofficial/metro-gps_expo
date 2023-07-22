@@ -48,6 +48,12 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   const dropdownController = useRef(null);
   const searchRef = useRef(null);
 
+  const handleCloseDropdown = () => {
+    if (dropdownController.current) {
+      dropdownController.current.close();
+    }
+  };
+
   // CHARGING
   const [departments, setDepartments] = useState([]);
   const [value, setValue] = useState(user?.department);
@@ -308,7 +314,9 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
   const onSubmitHauling = async (data, { resetForm }) => {
     onToggleLoadingBtn();
+    handleCloseDropdown();
     Keyboard.dismiss();
+
     await insertToTable(
       `
     INSERT INTO depot_hauling (
@@ -363,6 +371,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
   const onSubmitDelivery = async (data, { resetForm }) => {
     onToggleLoadingBtn();
+    handleCloseDropdown();
     Keyboard.dismiss();
 
     await insertToTable(
@@ -761,7 +770,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                               controller={(controller) => {
                                 dropdownController.current = controller;
                               }}
-                              closeOnBlur={true}
+                              clearOnFocus={false}
                               onSelectItem={(value) => {
                                 if (value) {
                                   setFieldValue("destination", value?.title);
@@ -832,7 +841,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                               controller={(controller) => {
                                 dropdownController.current = controller;
                               }}
-                              closeOnBlur={true}
+                              clearOnFocus={false}
                               onSelectItem={(value) => {
                                 if (value) {
                                   setFieldValue("destination", value?.title);

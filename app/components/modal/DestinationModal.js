@@ -55,8 +55,8 @@ const DestinationModal = ({
       <Modal
         visible={isOpenDestination}
         onDismiss={() => {
-          onCloseDestination();
-          handleCloseDropdown();
+          // onCloseDestination();
+          // handleCloseDropdown();
         }}
         contentContainerStyle={{
           backgroundColor: "white",
@@ -89,6 +89,7 @@ const DestinationModal = ({
           }
           onSubmit={async (data, e) => {
             await onSubmit(data, e);
+            handleCloseDropdown();
             setDestination(null);
           }}
         >
@@ -108,7 +109,7 @@ const DestinationModal = ({
                   controller={(controller) => {
                     dropdownController.current = controller;
                   }}
-                  closeOnBlur={true}
+                  clearOnFocus={false}
                   onSelectItem={(value) => {
                     if (value) {
                       setFieldValue("destination", value?.title);

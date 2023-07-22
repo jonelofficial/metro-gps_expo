@@ -42,6 +42,12 @@ const LeftModal = ({
   const dropdownController = useRef(null);
   const searchRef = useRef(null);
 
+  const handleCloseDropdown = () => {
+    if (dropdownController.current) {
+      dropdownController.current.close();
+    }
+  };
+
   useEffect(() => {
     (async () => {
       const res = await selectTable("depot_hauling");
@@ -110,7 +116,11 @@ const LeftModal = ({
               ? leftModalChangeDestinationSchema
               : leftModalSchema
           }
-          onSubmit={onSubmit}
+          onSubmit={async (data, e) => {
+            await onSubmit(data, e);
+            handleCloseDropdown();
+            setDestination(null);
+          }}
         >
           {({
             handleBlur,
@@ -167,12 +177,14 @@ const LeftModal = ({
                     dropdownController.current = controller;
                   }}
                   clearOnFocus={false}
-                  closeOnBlur={true}
                   onSelectItem={(value) => {
                     if (value) {
                       setFieldValue("destination", value?.title);
                       setDestination(value);
                     }
+                  }}
+                  onClear={() => {
+                    setDestination(null);
                   }}
                   dataSet={destinations}
                   loading={loadingDestination}
