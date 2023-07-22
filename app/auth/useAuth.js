@@ -251,7 +251,7 @@ const useAuth = () => {
             );
           });
         } else if (typeCount !== data.length) {
-          await deleteFromTable("trip_category");
+          await deleteFromTable("trip_type");
           await tripType.data.map(async (item) => {
             await insertToTable(
               "INSERT INTO trip_type (type, trip_category, trip_template) values (?,?,?)",

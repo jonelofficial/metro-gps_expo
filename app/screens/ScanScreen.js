@@ -55,7 +55,7 @@ const ScanScreen = () => {
       const json = await JSON.parse(data);
 
       if (json.username && json.password && !token) {
-        login(json);
+        await login(json);
       } else if (json.vehicle_id && token) {
         const vehicles = await selectTable("vehicles");
         const vehicle = vehicles.find(

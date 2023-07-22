@@ -72,8 +72,8 @@ const LeftModal = ({
       <Modal
         visible={showLeftModal}
         onDismiss={() => {
-          onCloseLeftModal();
-          setDestination(null);
+          // onCloseLeftModal();
+          // setDestination(null);
         }}
         contentContainerStyle={{
           backgroundColor: "white",
@@ -166,6 +166,7 @@ const LeftModal = ({
                   controller={(controller) => {
                     dropdownController.current = controller;
                   }}
+                  clearOnFocus={false}
                   closeOnBlur={true}
                   onSelectItem={(value) => {
                     if (value) {

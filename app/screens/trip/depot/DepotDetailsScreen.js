@@ -254,38 +254,48 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                   <>
                     <Content
                       label="Tare Weight"
-                      details={item?.tare_weight
-                        ?.toFixed(1)
-                        ?.toString()
-                        ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      details={
+                        item?.tare_weight
+                        // ?.toFixed(1)
+                        // ?.toString()
+                        // ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
                     />
                     <Content
                       label="Gross Weight"
-                      details={item?.gross_weight
-                        ?.toFixed(1)
-                        ?.toString()
-                        ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      details={
+                        item?.gross_weight
+                        // ?.toFixed(1)
+                        // ?.toString()
+                        // ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
                     />
                     <Content
                       label="Net Weight"
-                      details={item?.net_weight
-                        ?.toFixed(1)
-                        ?.toString()
-                        ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      details={
+                        item?.net_weight
+                        // ?.toFixed(1)
+                        // ?.toString()
+                        // ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
                     />
                     <Content
                       label="Item Count"
-                      details={item?.item_count
-                        ?.toFixed(1)
-                        ?.toString()
-                        ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      details={
+                        item?.item_count
+                        // ?.toFixed(1)
+                        // ?.toString()
+                        // ?.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
                     />
                     <Content
                       label="DOA Count"
-                      details={item?.doa_count
-                        ?.toFixed(1)
-                        ?.toString()
-                        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      details={
+                        item?.doa_count
+                        // ?.toFixed(1)
+                        // ?.toString()
+                        // .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
                     />
                   </>
                 )}
