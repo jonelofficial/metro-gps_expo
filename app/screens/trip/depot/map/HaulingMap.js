@@ -555,9 +555,24 @@ const HaulingMap = ({ theme, navigation }) => {
       const routeRes = await selectTable("route");
       const mapPoints = [...routeRes.map((item) => JSON.parse(item?.points))];
 
+      const offlineTripInitial = await selectTable(
+        "depot_hauling WHERE id = (SELECT MAX(id) FROM depot_hauling)"
+      );
+
+      const imgInitial = JSON.parse(offlineTripInitial[0]?.image);
+      imgInitial.push({
+        name: new Date() + "_odometer",
+        uri: data.odometer_image_path?.uri || null,
+        type: "image/jpg",
+      });
+
       await updateToTable(
-        "UPDATE depot_hauling SET odometer_done = (?), points = (?)  WHERE id = (SELECT MAX(id) FROM depot_hauling)",
-        [data.odometer_done, JSON.stringify(mapPoints)]
+        "UPDATE depot_hauling SET image = (?), odometer_done = (?), points = (?)  WHERE id = (SELECT MAX(id) FROM depot_hauling)",
+        [
+          JSON.stringify(imgInitial),
+          data.odometer_done,
+          JSON.stringify(mapPoints),
+        ]
       );
 
       if (net) {
@@ -566,6 +581,7 @@ const HaulingMap = ({ theme, navigation }) => {
         );
 
         const img = JSON.parse(offlineTrip[0]?.image);
+
         const form = new FormData();
 
         form.append("trip_date", JSON.parse(offlineTrip[0]?.date));
@@ -577,7 +593,7 @@ const HaulingMap = ({ theme, navigation }) => {
         form.append("diesels", offlineTrip[0]?.gas);
         form.append("odometer", JSON.parse(offlineTrip[0]?.odometer));
         form.append("odometer_done", JSON.parse(data?.odometer_done));
-        img?.uri !== null && form.append("image", img);
+        img !== null && img.map((img) => form.append("images", img));
         form.append("others", offlineTrip[0].others);
         form.append("charging", offlineTrip[0].charging);
         form.append("companion", offlineTrip[0].companion);

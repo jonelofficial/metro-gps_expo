@@ -31,6 +31,11 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
   const dispatch = useDispatch();
 
   const { isOpen, onClose, onToggle } = useDisclosure();
+  const {
+    isOpen: isOpenDoneImg,
+    onClose: onCloseDoneImg,
+    onToggle: onToggleDoneImg,
+  } = useDisclosure();
 
   const {
     isOpen: isLoading,
@@ -211,6 +216,16 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                     label="Odo Image"
                     details={
                       <TouchableOpacity onPress={onToggle}>
+                        <Text style={{ color: colors.primary }}>View</Text>
+                      </TouchableOpacity>
+                    }
+                  />
+                )}
+                {item?.odometer_done_image_path && (
+                  <Content
+                    label="Odo Done Image"
+                    details={
+                      <TouchableOpacity onPress={onToggleDoneImg}>
                         <Text style={{ color: colors.primary }}>View</Text>
                       </TouchableOpacity>
                     }
@@ -559,6 +574,55 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
             }}
           >
             <Button onPress={onClose} textColor={colors.danger}>
+              Close
+            </Button>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={isOpenDoneImg}
+          onDismiss={onCloseDoneImg}
+          contentContainerStyle={{
+            backgroundColor: "white",
+            margin: 15,
+            padding: 20,
+            borderRadius: 10,
+            justifyContent: "space-between",
+          }}
+        >
+          <Image
+            defaultSource={require("../../../assets/placeholder/car_placeholder.png")}
+            style={{
+              height: "93%",
+              borderRadius: 10,
+            }}
+            source={{
+              uri: `${process.env.BASEURL}/${item?.odometer_done_image_path}`,
+            }}
+            onLoadStart={onToggleLoading}
+            onLoadEnd={onCloseLoading}
+          />
+          {isLoading && (
+            <View
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                zIndex: 999,
+              }}
+            >
+              <ActivityIndicator size="small" />
+            </View>
+          )}
+
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "flex-end",
+              marginTop: 10,
+            }}
+          >
+            <Button onPress={onCloseDoneImg} textColor={colors.danger}>
               Close
             </Button>
           </View>

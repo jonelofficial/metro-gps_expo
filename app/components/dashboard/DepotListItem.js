@@ -81,7 +81,8 @@ const DepotListItem = ({
       form.append("diesels", JSON.stringify(item?.diesels));
       form.append("odometer", item?.odometer);
       form.append("odometer_done", item?.odometer_done);
-      item?.image?.uri !== null && form.append("image", item.image);
+      item?.image !== null &&
+        item.image.map((img) => form.append("images", img));
       form.append("others", item.others);
       form.append("charging", item.charging);
       form.append("companion", JSON.stringify(item.companion));
@@ -101,7 +102,8 @@ const DepotListItem = ({
       form.append("diesels", JSON.stringify(item.diesels));
       form.append("odometer", item.odometer);
       form.append("odometer_done", item.odometer_done);
-      item?.image.uri !== null && form.append("image", item.image);
+      item?.image !== null &&
+        item.image.map((img) => form.append("images", img));
       form.append("others", item.others);
       form.append("charging", item.charging);
       form.append("companion", JSON.stringify(item.companion));

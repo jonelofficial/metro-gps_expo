@@ -22,6 +22,8 @@ const ArrivedModal = ({
 }) => {
   const [formSchema, setFormSchema] = useState(arrivedModalSchema);
 
+  const [showError, setShowError] = useState(false);
+
   useEffect(() => {
     trip?.locations?.length > 1 && setFormSchema(arrivedModalFullSchema);
 
@@ -76,6 +78,15 @@ const ArrivedModal = ({
                 const value = values?.gross_weight - tareWeight;
                 setFieldValue("net_weight", `${value.toFixed(1)}`);
               }
+
+              if (
+                values?.gross_weight !== "" &&
+                parseInt(values?.gross_weight) <= parseInt(tareWeight)
+              ) {
+                setShowError(true);
+              } else {
+                setShowError(false);
+              }
               return () => {
                 null;
               };
@@ -95,19 +106,18 @@ const ArrivedModal = ({
                       label="Gross Weight"
                       keyboardType="numeric"
                     />
-                    {values?.gross_weight !== "" &&
-                      values?.gross_weight <= tareWeight && (
-                        <Text
-                          style={{
-                            color: "red",
-                            fontSize: 14,
-                            padding: 5,
-                            marginTop: -10,
-                          }}
-                        >
-                          Gross weight should not be less than the tare weight
-                        </Text>
-                      )}
+                    {showError && (
+                      <Text
+                        style={{
+                          color: "red",
+                          fontSize: 14,
+                          padding: 5,
+                          marginTop: -10,
+                        }}
+                      >
+                        Gross weight should not be less than the tare weight
+                      </Text>
+                    )}
                     <TextField
                       touched={touched}
                       errors={errors}
@@ -135,11 +145,7 @@ const ArrivedModal = ({
                   onPress={handleSubmit}
                   title="Proceed"
                   isLoading={arrivedLoading}
-                  disabled={
-                    arrivedLoading ||
-                    (values?.gross_weight !== "" &&
-                      values?.gross_weight <= tareWeight)
-                  }
+                  disabled={arrivedLoading || showError}
                 />
               </>
             );

@@ -341,11 +341,13 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
         user?.userId,
         vehicle_id._id,
         data.odometer,
-        JSON.stringify({
-          name: new Date() + "_odometer",
-          uri: data.odometer_image_path?.uri || null,
-          type: "image/jpg",
-        }),
+        JSON.stringify([
+          {
+            name: new Date() + "_odometer",
+            uri: data.odometer_image_path?.uri || null,
+            type: "image/jpg",
+          },
+        ]),
         JSON.stringify(companion),
         data.others,
         JSON.stringify([]),
@@ -398,11 +400,13 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
         user?.userId,
         vehicle_id._id,
         data.odometer,
-        JSON.stringify({
-          name: new Date() + "_odometer",
-          uri: data.odometer_image_path?.uri || null,
-          type: "image/jpg",
-        }),
+        JSON.stringify([
+          {
+            name: new Date() + "_odometer",
+            uri: data.odometer_image_path?.uri || null,
+            type: "image/jpg",
+          },
+        ]),
         JSON.stringify(companion),
         data.others,
         JSON.stringify([]),
@@ -533,6 +537,9 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                     useEffect(() => {
                       if (image) {
                         setFieldValue("odometer_image_path", image);
+                        setErrors("odometer_image_path", null);
+                      } else {
+                        setFieldValue("odometer_image_path", null);
                         setErrors("odometer_image_path", null);
                       }
 
