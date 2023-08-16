@@ -84,12 +84,22 @@ const AppScreen = ({ theme }) => {
 
   useEffect(() => {
     (async () => {
+      // if (
+      //   (await TaskManager?.isTaskRegisteredAsync(
+      //     "background-location-task"
+      //   )) ||
+      //   (await TaskManager?.isTaskRegisteredAsync("interval"))
+      // ) {
+      //   Location?.stopLocationUpdatesAsync("background-location-task");
+      //   Location?.stopLocationUpdatesAsync("interval");
+      // }
+
       if (
-        (await TaskManager.isTaskRegisteredAsync("background-location-task")) ||
-        (await TaskManager.isTaskRegisteredAsync("interval"))
+        (await TaskManager?.isTaskDefined("background-location-task")) ||
+        (await TaskManager?.isTaskDefined("interval"))
       ) {
-        Location.stopLocationUpdatesAsync("background-location-task");
-        Location.stopLocationUpdatesAsync("interval");
+        Location?.unregisterTaskAsync("background-location-task");
+        Location?.unregisterTaskAsync("interval");
       }
 
       Platform?.OS === "android" &&

@@ -153,35 +153,42 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
         </Appbar.Header>
         <View style={styles.container}>
           <ScrollView>
-            <Card style={styles.containerWrapper}>
-              <Card.Content>
-                <Text>User Details</Text>
-                <Line />
-                <Content
-                  label="Employee ID"
-                  details={item?.user_id?.employee_id}
-                />
-                <Content
-                  label="Name"
-                  details={item?.user_id?.first_name}
-                  detailsStyle={{ textTransform: "capitalize" }}
-                />
-                <Content
-                  label="Department"
-                  details={item?.user_id?.department}
-                  detailsStyle={{ textTransform: "capitalize" }}
-                />
-              </Card.Content>
-            </Card>
+            {item?.user_id?.employee_id != undefined && (
+              <Card style={styles.containerWrapper}>
+                <Card.Content>
+                  <Text>User Details</Text>
+                  <Line />
+                  <Content
+                    label="Employee ID"
+                    details={item?.user_id?.employee_id}
+                  />
+                  <Content
+                    label="Name"
+                    details={item?.user_id?.first_name}
+                    detailsStyle={{ textTransform: "capitalize" }}
+                  />
+                  <Content
+                    label="Department"
+                    details={item?.user_id?.department}
+                    detailsStyle={{ textTransform: "capitalize" }}
+                  />
+                </Card.Content>
+              </Card>
+            )}
 
-            <Card style={styles.containerWrapper}>
-              <Card.Content>
-                <Text>Vehicle Details</Text>
-                <Line />
-                <Content label="Plate #" details={item?.vehicle_id?.plate_no} />
-                <Content label="Details" details={item?.vehicle_id?.name} />
-              </Card.Content>
-            </Card>
+            {item?.vehicle_id?.plate_no != undefined && (
+              <Card style={styles.containerWrapper}>
+                <Card.Content>
+                  <Text>Vehicle Details</Text>
+                  <Line />
+                  <Content
+                    label="Plate #"
+                    details={item?.vehicle_id?.plate_no}
+                  />
+                  <Content label="Details" details={item?.vehicle_id?.name} />
+                </Card.Content>
+              </Card>
+            )}
 
             <Card style={styles.containerWrapper}>
               <Card.Content>

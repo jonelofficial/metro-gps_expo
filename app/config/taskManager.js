@@ -105,8 +105,10 @@ const taskManager = (interval, onBackground) => {
     })();
 
     return () => {
-      Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
-      Location.stopLocationUpdatesAsync("interval");
+      Location?.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+      Location?.stopLocationUpdatesAsync("interval");
+      Location?.unregisterTaskAsync("background-location-task");
+      Location?.unregisterTaskAsync("interval");
     };
   }, []);
 

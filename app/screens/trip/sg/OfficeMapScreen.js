@@ -479,7 +479,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         form.append("vehicle_id", ifOfflineTrip[0].vehicle_id);
         form.append("odometer", JSON.parse(ifOfflineTrip[0]?.odometer));
         form.append("odometer_done", JSON.parse(vehicle_data?.odometer_done));
-        ifImg?.uri !== null && ifImg.map((img) => form.append("images", img));
+        ifImg !== null && ifImg.map((img) => form.append("images", img));
         form.append("companion", ifOfflineTrip[0].companion);
         form.append("points", JSON.stringify(mapPoints));
         form.append("others", ifOfflineTrip[0].others);

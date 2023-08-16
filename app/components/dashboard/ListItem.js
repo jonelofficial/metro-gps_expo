@@ -61,8 +61,7 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
     form.append("vehicle_id", item.vehicle_id);
     form.append("odometer", item.odometer);
     form.append("odometer_done", item.odometer_done);
-    item?.image.uri !== null &&
-      item.image.map((img) => form.append("images", img));
+    item?.image !== null && item.image.map((img) => form.append("images", img));
     form.append("companion", JSON.stringify(item.companion));
     form.append("points", JSON.stringify(item.points));
     form.append("others", item.others);
