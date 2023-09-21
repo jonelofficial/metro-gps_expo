@@ -19,7 +19,7 @@ export const metroApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Trip", "Hauling", "Delivery"],
+  tagTypes: ["Trip", "Hauling", "Delivery", "Live"],
   endpoints: (builder) => ({
     // T R I P S
     getAllTrips: builder.query({
@@ -67,6 +67,21 @@ export const metroApi = createApi({
       }),
       invalidatesTags: ["Delivery"],
     }),
+
+    // LIVE
+    getAllTripsLive: builder.query({
+      query: (params) =>
+        `/live/apk-trips-live?page=${params?.page}&limit=${params?.limit}&search=${params?.search}&searchBy=${params?.searchBy}&date=${params?.date}`,
+      providesTags: ["Live"],
+    }),
+    createLiveTrip: builder.mutation({
+      query: (payload) => ({
+        url: "/live/trip-live",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: "Live",
+    }),
   }),
 });
 
@@ -77,4 +92,6 @@ export const {
   useCreateHaulingTripMutation,
   useGetAllTripsDeliveryQuery,
   useCreateDeliveryTripMutation,
+  useGetAllTripsLiveQuery,
+  useCreateLiveTripMutation,
 } = metroApi;

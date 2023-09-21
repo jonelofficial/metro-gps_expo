@@ -134,3 +134,14 @@ export const arrivedDeliveryModalOthersSchema = Yup.object().shape({
     .required()
     .label("Destination Name is required"),
 });
+
+// DEPOT LIVE
+
+export const liveFormSchema = Yup.object().shape({
+  odometer: Yup.number().required().label("Odometer"),
+  odometer_image_path: Yup.object().required().label("Odometer Picture"),
+  charging: Yup.string().required().label("Charging"),
+  others: Yup.string().label("Others"),
+  trip_type: Yup.string().nullable().required().label("Trip Type"),
+  total_bags: Yup.number().required().label("Total Bags"),
+});

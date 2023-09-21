@@ -4,6 +4,7 @@ import { useStopwatch } from "react-timer-hook";
 import { selectTable } from "../../../utility/sqlite";
 import useDisclosure from "../../../hooks/useDisclosure";
 import { StyleSheet } from "react-native";
+import Screen from "../../../components/Screen";
 
 const LiveMapScreen = ({ theme }) => {
   const { colors } = theme;

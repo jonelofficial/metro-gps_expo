@@ -45,6 +45,26 @@ const runSQLite = () => {
       );
 
       await createTable(
+        "live",
+        `id integer primary key not null,
+        date TEXT, user_id TEXT,
+        vehicle_id TEXT ,
+        odometer TEXT,
+        odometer_done TEXT,
+        image LONGTEXT,
+        companion LONGTEXT,
+        points LONGTEXT,
+        others TEXT,
+        locations LONGTEXT ,
+        gas LONGTEXT,
+        charging TEXT,
+        trip_type TEXT,
+        total_bags TEXT,
+        total_bags_delivered TEXT,
+        destination TEXT`
+      );
+
+      await createTable(
         "depot_hauling",
         `id integer primary key not null,
       date TEXT, user_id TEXT,
