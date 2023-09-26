@@ -98,8 +98,8 @@ const AppScreen = ({ theme }) => {
         (await TaskManager?.isTaskDefined("background-location-task")) ||
         (await TaskManager?.isTaskDefined("interval"))
       ) {
-        Location?.unregisterTaskAsync("background-location-task");
-        Location?.unregisterTaskAsync("interval");
+        TaskManager?.unregisterTaskAsync("background-location-task");
+        TaskManager?.unregisterTaskAsync("interval");
       }
 
       Platform?.OS === "android" &&

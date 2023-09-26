@@ -104,11 +104,17 @@ const taskManager = (interval, onBackground) => {
       }
     })();
 
-    return () => {
-      Location?.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
-      Location?.stopLocationUpdatesAsync("interval");
-      Location?.unregisterTaskAsync("background-location-task");
-      Location?.unregisterTaskAsync("interval");
+    return async () => {
+      // Location?.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+      // Location?.stopLocationUpdatesAsync("interval");
+      // Location?.unregisterTaskAsync("background-location-task");
+      // Location?.unregisterTaskAsync("interval");
+      if (await TaskManager?.isTaskDefined("background-location-task")) {
+        TaskManager?.unregisterTaskAsync("background-location-task");
+      }
+      if (await TaskManager?.isTaskDefined("interval")) {
+        TaskManager?.unregisterTaskAsync("interval");
+      }
     };
   }, []);
 

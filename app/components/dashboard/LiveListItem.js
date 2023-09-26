@@ -1,11 +1,10 @@
 import dayjs from "dayjs";
-import { getPathLength } from "geolib";
 import moment from "moment-timezone";
 import React, { useEffect } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { Button, Text, withTheme } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
-import { useCreateTripMutation } from "../../api/metroApi";
+import { useCreateLiveTripMutation } from "../../api/metroApi";
 import { validatorStatus } from "../../redux-toolkit/counter/vaidatorSlice";
 import { deleteFromTable } from "../../utility/sqlite";
 import useToast from "../../hooks/useToast";
@@ -26,7 +25,7 @@ const LiveListItem = ({
   const net = useSelector((state) => state.net.value);
   const { showAlert } = useToast();
 
-  const [createTrip, { isLoading }] = useCreateTripMutation();
+  const [createLiveTrip, { isLoading }] = useCreateLiveTripMutation();
 
   const newLocations = item.locations.filter(
     (location) => location.status == "left" || location.status == "arrived"
@@ -65,6 +64,7 @@ const LiveListItem = ({
     // start sync loading
     setSyncing(true);
     const form = new FormData();
+    form.append("trip_date", item.trip_date);
     form.append("vehicle_id", item.vehicle_id);
     form.append("odometer", item.odometer);
     form.append("odometer_done", item.odometer_done);
@@ -72,15 +72,18 @@ const LiveListItem = ({
     form.append("companion", JSON.stringify(item.companion));
     form.append("points", JSON.stringify(item.points));
     form.append("others", item.others);
-    form.append("trip_date", item.trip_date);
     form.append("locations", JSON.stringify(item.locations));
     form.append("diesels", JSON.stringify(item.diesels));
     form.append("charging", item.charging);
+    form.append("trip_type", item.trip_type);
+    form.append("total_bags", item.total_bags);
+    form.append("total_bags_delivered", item.total_bags_delivered);
+    form.append("destination", item.destination);
 
-    const res = await createTrip(form);
+    const res = await createLiveTrip(form);
     if (res?.data) {
       // Remove offline trip to sqlite database and state
-      await deleteFromTable(`offline_trip WHERE id=${item._id}`);
+      await deleteFromTable(`live WHERE id=${item._id}`);
       setTrip((prevState) => [
         ...prevState.filter((obj) => obj._id !== item._id),
       ]);
@@ -91,7 +94,7 @@ const LiveListItem = ({
       }
     } else {
       if (res?.error?.data?.error) {
-        await deleteFromTable(`offline_trip WHERE id=${item._id}`);
+        await deleteFromTable(`live WHERE id=${item._id}`);
         setTrip((prevState) => [
           ...prevState.filter((obj) => obj._id !== item._id),
         ]);

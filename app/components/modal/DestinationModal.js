@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Modal, Portal, Text, withTheme } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Modal,
+  Portal,
+  Text,
+  withTheme,
+} from "react-native-paper";
 import { TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
@@ -52,6 +58,22 @@ const DestinationModal = ({
 
   return (
     <Portal>
+      {loadingDestination && (
+        <View
+          style={{
+            position: "absolute",
+            zIndex: 999,
+            backgroundColor: "rgba(0, 0, 0, 0.2)",
+            height: "100%",
+            width: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text>Loading Destination</Text>
+          <ActivityIndicator animating={true} color={colors.primary} />
+        </View>
+      )}
       <Modal
         visible={isOpenDestination}
         onDismiss={() => {

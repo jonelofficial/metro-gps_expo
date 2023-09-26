@@ -145,3 +145,7 @@ export const liveFormSchema = Yup.object().shape({
   trip_type: Yup.string().nullable().required().label("Trip Type"),
   total_bags: Yup.number().required().label("Total Bags"),
 });
+
+export const arrivedLiveModalSchema = Yup.object().shape({
+  total_bags_delivered: Yup.number().required().label("Total Bags Delivered"),
+});
