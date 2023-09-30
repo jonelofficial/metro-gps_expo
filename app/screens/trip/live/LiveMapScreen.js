@@ -514,7 +514,7 @@ const LiveMapScreen = ({ theme, navigation }) => {
         ]
       );
 
-      if (!net) {
+      if (net) {
         const ifOfflineTrip = await selectTable(
           "live WHERE id = (SELECT MAX(id) FROM live)"
         );

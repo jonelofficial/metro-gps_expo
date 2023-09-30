@@ -46,7 +46,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   const [estimatedOdo, setEstimatedOdo] = useState(0);
   const [trip, setTrip] = useState({ locations: [] });
   const [points, setPoints] = useState([]);
-  const [syncingTrip, setSyncingTrip] = useState(true);
+  const [syncingTrip, setSyncingTrip] = useState(false);
   const [onBackground, setOnBackground] = useState(false);
 
   // TIMER
@@ -55,14 +55,14 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   // HOOKS AND CONFIG
 
   const { showAlert } = useToast();
-  const { handleInterval, handleLeft, handleArrived } = useLocations();
+  // const { handleInterval, handleLeft, handleArrived } = useLocations();
 
   // for background interval
 
-  const { location, showMap, requestPremissions } = taskManager(
-    (newObj) => reloadRoute(newObj),
-    onBackground
-  );
+  // const { location, showMap, requestPremissions } = taskManager(
+  //   (newObj) => reloadRoute(newObj),
+  //   onBackground
+  // );
 
   const net = useSelector((state) => state.net.value);
 
@@ -133,7 +133,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     (async () => {
       await deleteFromTable("route");
       await reloadMapState();
-      await getRoute();
+      // await getRoute();
       // console.log(await TaskManager.getRegisteredTasksAsync());
     })();
     // HANDLE APP STATE
@@ -143,22 +143,22 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     );
 
     // HANDLE TRIP INTERVAL. 300000 = 5 minutes
-    const loc = setInterval(() => {
-      (async () => {
-        const intervalRes = await handleInterval();
-        if (intervalRes) {
-          const newObj = {
-            ...intervalRes,
-            date: moment(Date.now()).tz("Asia/Manila"),
-          };
+    // const loc = setInterval(() => {
+    //   (async () => {
+    //     const intervalRes = await handleInterval();
+    //     if (intervalRes) {
+    //       const newObj = {
+    //         ...intervalRes,
+    //         date: moment(Date.now()).tz("Asia/Manila"),
+    //       };
 
-          reloadRoute(newObj);
-        }
-      })();
-    }, 600000);
+    //       reloadRoute(newObj);
+    //     }
+    //   })();
+    // }, 600000);
 
     return async () => {
-      clearInterval(loc);
+      // clearInterval(loc);
       await updateRoute();
       deleteFromTable("route");
       subscription.remove();
@@ -166,37 +166,37 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   }, []);
 
   // PATH OR POINTS AND TOTAL KM USEEFFECT
-  useEffect(() => {
-    if (location) {
-      (async () => {
-        // INSERT POINTS OR PATH TO SQLITE location?.coords?.speed >= 1.4  <= 0
-        if (location && !location?.coords?.speed <= 0 && !syncingTrip) {
-          setPoints((currentValue) => [
-            ...currentValue,
-            {
-              latitude: location?.coords?.latitude,
-              longitude: location?.coords?.longitude,
-            },
-          ]);
-          insertToTable("INSERT INTO route (points) values (?)", [
-            JSON.stringify({
-              latitude: location?.coords?.latitude,
-              longitude: location?.coords?.longitude,
-            }),
-          ]);
-        }
+  // useEffect(() => {
+  //   if (location) {
+  //     (async () => {
+  //       // INSERT POINTS OR PATH TO SQLITE location?.coords?.speed >= 1.4  <= 0
+  //       if (location && !location?.coords?.speed <= 0 && !syncingTrip) {
+  //         setPoints((currentValue) => [
+  //           ...currentValue,
+  //           {
+  //             latitude: location?.coords?.latitude,
+  //             longitude: location?.coords?.longitude,
+  //           },
+  //         ]);
+  //         insertToTable("INSERT INTO route (points) values (?)", [
+  //           JSON.stringify({
+  //             latitude: location?.coords?.latitude,
+  //             longitude: location?.coords?.longitude,
+  //           }),
+  //         ]);
+  //       }
 
-        // COMPUTE TOTAL KM
-        const meter = getPathLength(points);
-        const km = meter / 1000;
-        setTotalKm(km.toFixed(1));
-      })();
-    }
+  //       // COMPUTE TOTAL KM
+  //       const meter = getPathLength(points);
+  //       const km = meter / 1000;
+  //       setTotalKm(km.toFixed(1));
+  //     })();
+  //   }
 
-    return () => {
-      null;
-    };
-  }, [location]);
+  //   return () => {
+  //     null;
+  //   };
+  // }, [location]);
 
   // HANDLE BACK
   useEffect(() => {
@@ -365,12 +365,33 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       startLeftLoading();
       start(new Date());
 
-      const leftRes = await Promise.race([
-        handleLeft(location),
-        new Promise((resolve, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), 60000)
-        ),
-      ]);
+      // const leftRes = await Promise.race([
+      //   handleLeft(location),
+      //   new Promise((resolve, reject) =>
+      //     setTimeout(() => reject(new Error("Timeout")), 60000)
+      //   ),
+      // ]);
+
+      const leftRes = {
+        lat: 0,
+        long: 0,
+        address: [
+          {
+            postalCode: null,
+            country: "Philippines",
+            isoCountryCode: "PH",
+            subregion: "No Location",
+            city: null,
+            street: null,
+            district: null,
+            name: "No Location",
+            streetNumber: null,
+            region: "No Location",
+            timezone: null,
+          },
+        ],
+        status: "left",
+      };
 
       if (leftRes) {
         const newObj = {
@@ -406,12 +427,33 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       startArrivedLoading();
       pause();
 
-      const arrivedRes = await Promise.race([
-        handleArrived(location),
-        new Promise((resolve, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), 60000)
-        ),
-      ]);
+      // const arrivedRes = await Promise.race([
+      //   handleArrived(location),
+      //   new Promise((resolve, reject) =>
+      //     setTimeout(() => reject(new Error("Timeout")), 60000)
+      //   ),
+      // ]);
+
+      const arrivedRes = {
+        lat: 0,
+        long: 0,
+        address: [
+          {
+            postalCode: null,
+            country: "Philippines",
+            isoCountryCode: "PH",
+            subregion: "No Location",
+            city: null,
+            street: null,
+            district: null,
+            name: "No Location",
+            streetNumber: null,
+            region: "No Location",
+            timezone: null,
+          },
+        ],
+        status: "arrived",
+      };
 
       if (arrivedRes) {
         const newObj = {
@@ -522,14 +564,24 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       Keyboard.dismiss();
       startGasLoading();
 
+      // const gasObj = {
+      //   gas_station_id: data.gas_station_id,
+      //   gas_station_name: data.gas_station_name,
+      //   odometer: data.odometer,
+      //   liter: data.liter,
+      //   amount: data.amount,
+      //   lat: location?.coords?.latitude,
+      //   long: location?.coords?.longitude,
+      // };
+
       const gasObj = {
         gas_station_id: data.gas_station_id,
         gas_station_name: data.gas_station_name,
         odometer: data.odometer,
         liter: data.liter,
         amount: data.amount,
-        lat: location?.coords?.latitude,
-        long: location?.coords?.longitude,
+        lat: 0,
+        long: 0,
       };
 
       const tripRes = await selectTable("offline_trip");
@@ -550,18 +602,18 @@ const OfficeMapScreen = ({ theme, navigation }) => {
     }
   };
 
-  if (!showMap) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Allow permission for locations.</Text>
-        <Button onPress={requestPremissions}>Request Permission</Button>
-      </View>
-    );
-  }
+  // if (!showMap) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <Text>Allow permission for locations.</Text>
+  //       <Button onPress={requestPremissions}>Request Permission</Button>
+  //     </View>
+  //   );
+  // }
 
-  if (!location) {
-    return <LoaderAnimation />;
-  }
+  // if (!location) {
+  //   return <LoaderAnimation />;
+  // }
   return (
     <>
       {syncingTrip && (
@@ -592,10 +644,10 @@ const OfficeMapScreen = ({ theme, navigation }) => {
           <Text style={[styles.title, { color: colors.accent }]}>
             M E T R O{"   "}G P S
           </Text>
-          <View>
+          {/* <View>
             {location && <Text>Latitude: {location.coords.latitude}</Text>}
             {location && <Text>Longitude: {location.coords.longitude}</Text>}
-          </View>
+          </View> */}
         </View>
 
         <View style={styles.secondContainer}>

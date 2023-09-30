@@ -108,27 +108,41 @@ const AppScreen = ({ theme }) => {
       try {
         const camera = await Camera.requestCameraPermissionsAsync();
         const media = await MediaLibrary.requestPermissionsAsync();
-        const location = await Location.requestForegroundPermissionsAsync();
-        const backgroundLoc =
-          await Location.requestBackgroundPermissionsAsync();
+        // const location = await Location.requestForegroundPermissionsAsync();
+        // const backgroundLoc = await Location.requestBackgroundPermissionsAsync();
         const notifications = await Notifications.requestPermissionsAsync();
 
         if (
           camera.status === "granted" &&
           media.status === "granted" &&
-          location.status === "granted" &&
-          backgroundLoc.status === "granted" &&
+          // location.status === "granted" &&
+          // backgroundLoc.status === "granted" &&
           notifications.status === "granted"
         ) {
           await handleUser();
         } else {
+          // Alert.alert(
+          //   "Request Permission",
+          //   `Please accept permission for ${
+          //     camera.status === "denied" ? "CAMERA " : ""
+          //   }${media.status === "denied" ? "MEDIA LIBRARY " : ""}${
+          //     location.status === "denied" ? "LOCATION" : ""
+          //   }${backgroundLoc.status === "denied" ? "BACKGROUND LOCATION" : ""}${
+          //     notifications.status === "denied" ? "NOTIFICATION" : ""
+          //   } to run the app.\n \nGo to phone setting > Application > Metro GPS > Permission or click OPEN PERMISSION then restart app. Thank you`,
+          //   [
+          //     { text: "OK", onPress: () => null, style: "cancel" },
+          //     {
+          //       text: "OPEN PERMISSION",
+          //       onPress: () => Linking.openSettings(),
+          //     },
+          //   ]
+          // );
           Alert.alert(
             "Request Permission",
             `Please accept permission for ${
               camera.status === "denied" ? "CAMERA " : ""
             }${media.status === "denied" ? "MEDIA LIBRARY " : ""}${
-              location.status === "denied" ? "LOCATION" : ""
-            }${backgroundLoc.status === "denied" ? "BACKGROUND LOCATION" : ""}${
               notifications.status === "denied" ? "NOTIFICATION" : ""
             } to run the app.\n \nGo to phone setting > Application > Metro GPS > Permission or click OPEN PERMISSION then restart app. Thank you`,
             [

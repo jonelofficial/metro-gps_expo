@@ -244,6 +244,11 @@ const LiveDetailsScreen = ({ route, theme, navigation }) => {
                     return comp?.first_name;
                   })}
                 />
+                <Content label="Total Bags" details={item?.total_bags} />
+                <Content
+                  label="Total Bags Delivered"
+                  details={item?.total_bags_delivered}
+                />
               </Card.Content>
             </Card>
 
