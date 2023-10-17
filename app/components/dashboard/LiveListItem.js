@@ -27,14 +27,14 @@ const LiveListItem = ({
 
   const [createLiveTrip, { isLoading }] = useCreateLiveTripMutation();
 
-  const newLocations = item.locations.filter(
+  const newLocations = item?.locations?.filter(
     (location) => location.status == "left" || location.status == "arrived"
   );
 
   useEffect(() => {
     if (
-      newLocations.length % 2 !== 0 ||
-      newLocations.length === 0 ||
+      newLocations?.length % 2 !== 0 ||
+      newLocations?.length === 0 ||
       isNaN(item?.odometer_done)
     ) {
       dispatch(validatorStatus(false));
@@ -57,28 +57,29 @@ const LiveListItem = ({
   const minutes = totalMinutes % 60;
 
   const hour = `${hours.toFixed(0)}.${minutes == 0 ? "00" : minutes}`;
-  const time = moment(item.trip_date).tz("Asia/Manila").format("h:mm a");
-  const date = dayjs(item.trip_date).format("MM-DD-YY");
+  const time = moment(item?.trip_date).tz("Asia/Manila").format("h:mm a");
+  const date = dayjs(item?.trip_date).format("MM-DD-YY");
 
   const handleSync = async () => {
     // start sync loading
     setSyncing(true);
     const form = new FormData();
-    form.append("trip_date", item.trip_date);
-    form.append("vehicle_id", item.vehicle_id);
-    form.append("odometer", item.odometer);
-    form.append("odometer_done", item.odometer_done);
-    item?.image !== null && item.image.map((img) => form.append("images", img));
-    form.append("companion", JSON.stringify(item.companion));
-    form.append("points", JSON.stringify(item.points));
-    form.append("others", item.others);
-    form.append("locations", JSON.stringify(item.locations));
-    form.append("diesels", JSON.stringify(item.diesels));
-    form.append("charging", item.charging);
-    form.append("trip_type", item.trip_type);
-    form.append("total_bags", item.total_bags);
-    form.append("total_bags_delivered", item.total_bags_delivered);
-    form.append("destination", item.destination);
+    form.append("trip_date", item?.trip_date);
+    form.append("vehicle_id", item?.vehicle_id);
+    form.append("odometer", item?.odometer);
+    form.append("odometer_done", item?.odometer_done);
+    item?.image !== null &&
+      item?.image.map((img) => form.append("images", img));
+    form.append("companion", JSON.stringify(item?.companion));
+    form.append("points", JSON.stringify(item?.points));
+    form.append("others", item?.others);
+    form.append("locations", JSON.stringify(item?.locations));
+    form.append("diesels", JSON.stringify(item?.diesels));
+    form.append("charging", item?.charging);
+    form.append("trip_type", item?.trip_type);
+    form.append("total_bags", item?.total_bags);
+    form.append("total_bags_delivered", item?.total_bags_delivered);
+    form.append("destination", item?.destination);
 
     const res = await createLiveTrip(form);
     if (res?.data) {
@@ -113,8 +114,8 @@ const LiveListItem = ({
           padding: 15,
           alignItems: "center",
           backgroundColor:
-            newLocations.length % 2 !== 0 ||
-            newLocations.length === 0 ||
+            newLocations?.length % 2 !== 0 ||
+            newLocations?.length === 0 ||
             isNaN(item?.odometer_done)
               ? colors.danger
               : item?.offline
@@ -129,12 +130,12 @@ const LiveListItem = ({
                 borderRadius: 10,
                 marginRight: 13,
                 backgroundColor:
-                  newLocations.length % 2 !== 0 || !net || isLoading || syncing
+                  newLocations?.length % 2 !== 0 || !net || isLoading || syncing
                     ? colors.notActive
                     : colors.primary,
                 display:
-                  newLocations.length % 2 !== 0 ||
-                  newLocations.length === 0 ||
+                  newLocations?.length % 2 !== 0 ||
+                  newLocations?.length === 0 ||
                   isNaN(item?.odometer_done)
                     ? "none"
                     : "flex",
@@ -142,12 +143,12 @@ const LiveListItem = ({
               labelStyle={{
                 fontSize: 14,
                 color:
-                  newLocations.length % 2 !== 0 || newLocations.length === 0
+                  newLocations?.length % 2 !== 0 || newLocations?.length === 0
                     ? colors.danger
                     : colors.white,
               }}
               disabled={
-                newLocations.length % 2 !== 0 || isLoading || !net || syncing
+                newLocations?.length % 2 !== 0 || isLoading || !net || syncing
               }
               loading={isLoading}
               onPress={handleSync}
@@ -168,7 +169,7 @@ const LiveListItem = ({
               <Text
                 style={{ color: item?.offline ? colors.white : colors.success }}
               >
-                {`#${item._id.slice(20)}`}
+                {`#${item?._id?.slice(20)}`}
               </Text>
             </View>
           )}
@@ -177,8 +178,8 @@ const LiveListItem = ({
         <View style={{ flex: 1 }}>
           <View>
             <Text style={{ color: item?.offline && colors.white }}>
-              {newLocations.length % 2 !== 0 ||
-              newLocations.length === 0 ||
+              {newLocations?.length % 2 !== 0 ||
+              newLocations?.length === 0 ||
               isNaN(item?.odometer_done)
                 ? "CLICK TO RESUME TRIP"
                 : (km &&

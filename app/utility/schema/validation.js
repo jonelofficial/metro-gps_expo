@@ -75,26 +75,39 @@ export const haulingFormSchema = Yup.object().shape({
   odometer: Yup.number().required().label("Odometer"),
   odometer_image_path: Yup.object().required().label("Odometer Picture"),
   trip_category: Yup.string().required().label("Trip Category"),
-  trip_type: Yup.string().nullable().required().label("Trip Type"),
-  destination: Yup.string().nullable().required().label("Destination"),
+  trip_type: Yup.string().nullable().label("Trip Type"),
+  destination: Yup.string().nullable().label("Destination"),
   tare_weight: Yup.number().required().label("Tare Weight"),
   charging: Yup.string().required().label("Charging"),
   others: Yup.string().label("Others"),
 });
 
 export const arrivedModalSchema = Yup.object().shape({
-  temperature: Yup.number().required().label("Temperature"),
-  tare_weight: Yup.number().required().label("Tare Weight"),
+  // temperature: Yup.number().required().label("Temperature"),
+  // tare_weight: Yup.number().required().label("Tare Weight"),
+  destination: Yup.string()
+    .nullable()
+    .required()
+    .label("Destination is required"),
+  destination_name: Yup.string().label("Destination Name is required"),
 });
 
 export const arrivedModalFullSchema = Yup.object().shape({
   net_weight: Yup.number().label("Net Weight"),
   gross_weight: Yup.number().required().label("Gross Weight"),
   doa_count: Yup.number().required().label("DOA Count"),
+  destination: Yup.string()
+    .nullable()
+    .required()
+    .label("Destination is required"),
+  destination_name: Yup.string().label("Destination Name is required"),
 });
 
 export const leftModalSchema = Yup.object().shape({
-  item_count: Yup.number().required().label("Item Count"),
+  item_count: Yup.number()
+    .required()
+    .min(1, "Item Count must be greater than 0")
+    .label("Item Count"),
 });
 export const leftModalChangeDestinationSchema = Yup.object().shape({
   destination: Yup.string().nullable().required().label("Destination"),
@@ -111,8 +124,8 @@ export const deliveryFormSchema = Yup.object().shape({
   odometer: Yup.number().required().label("Odometer"),
   odometer_image_path: Yup.object().required().label("Odometer Picture"),
   trip_category: Yup.string().required().label("Trip Category"),
-  trip_type: Yup.string().nullable().required().label("Trip Type"),
-  destination: Yup.string().nullable().required().label("Destination"),
+  trip_type: Yup.string().nullable().label("Trip Type"),
+  destination: Yup.string().nullable().label("Destination"),
   temperature: Yup.string().required().label("Temperature"),
   charging: Yup.string().required().label("Charging"),
   others: Yup.string().label("Others"),

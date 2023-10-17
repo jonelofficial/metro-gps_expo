@@ -46,6 +46,7 @@ const DeliveryMap = ({ theme, navigation }) => {
   const [onBackground, setOnBackground] = useState(false);
   const [doneDelivery, setDoneDelivery] = useState(false);
   const [lastLeft, setLastLeft] = useState(false);
+  const [currentOdo, setCurrentOdo] = useState(0);
 
   const dispatch = useDispatch();
   const [createTrip, { isLoading }] = useCreateDeliveryTripMutation();
@@ -54,10 +55,11 @@ const DeliveryMap = ({ theme, navigation }) => {
   const { showAlert } = useToast();
 
   // LOCATION
-  const { location, showMap, requestPremissions } = taskManager(
-    (newObj) => reloadRoute(newObj),
-    onBackground
-  );
+  const {
+    location = { coords: { latitude: 0, longitude: 0 } },
+    showMap,
+    requestPremissions,
+  } = taskManager((newObj) => reloadRoute(newObj), onBackground);
 
   const { handleArrived, handleInterval, handleLeft } = useLocations();
 
@@ -145,9 +147,6 @@ const DeliveryMap = ({ theme, navigation }) => {
       await deleteFromTable("route");
       await reloadMapState();
       await getRoute();
-      const delivery = await selectTable(
-        "depot_delivery WHERE id = (SELECT MAX(id) FROM depot_delivery)"
-      );
     })();
 
     // HANDLE APP STATE
@@ -332,6 +331,8 @@ const DeliveryMap = ({ theme, navigation }) => {
 
   const reloadMapState = async () => {
     const tripRes = await selectTable("depot_delivery");
+
+    setCurrentOdo(tripRes[tripRes.length - 1].odometer);
 
     const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
 
@@ -784,6 +785,7 @@ const DeliveryMap = ({ theme, navigation }) => {
         doneLoading={doneLoading || isLoading}
         onCloseDoneModal={onCloseDoneModal}
         onSubmit={sqliteDone}
+        currentOdo={currentOdo}
       />
 
       {/* GAS MODAL */}

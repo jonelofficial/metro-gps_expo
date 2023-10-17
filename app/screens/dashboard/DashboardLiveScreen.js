@@ -177,38 +177,71 @@ const DashboardLiveScreen = ({ theme, navigation }) => {
     if (res?.length > 0) {
       validator ? handleNotSyncNotif() : handleUnfinishedTrip();
 
-      await res.map((item) => {
+      await res?.map((item) => {
         if (user?.userId !== item?.user_id) {
           return null;
         }
-        setTrip((prevState) => [
-          {
-            _id: item.id,
-            vehicle_id: item.vehicle_id,
-            companion: JSON.parse(item?.companion),
-            diesels: JSON.parse(item?.gas),
-            locations: JSON.parse(item?.locations),
-            // odometer: JSON.parse(item?.odometer),
-            // odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
-            odometer: item?.odometer,
-            odometer_done: parseFloat(item?.odometer_done),
-            points: JSON.parse(item?.points),
-            image: JSON.parse(item?.image),
-            user_id: {
-              _id: user?.userId,
-              trip_template: user?.trip_template,
+
+        setTrip((prevState) => {
+          if (prevState?.length > 0) {
+            return [
+              {
+                _id: item.id,
+                vehicle_id: item.vehicle_id,
+                companion: JSON.parse(item?.companion),
+                diesels: JSON.parse(item?.gas),
+                locations: JSON.parse(item?.locations),
+                // odometer: JSON.parse(item?.odometer),
+                // odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+                odometer: item?.odometer,
+                odometer_done: parseFloat(item?.odometer_done),
+                points: JSON.parse(item?.points),
+                image: JSON.parse(item?.image),
+                user_id: {
+                  _id: user?.userId,
+                  trip_template: user?.trip_template,
+                },
+                trip_date: JSON.parse(item?.date),
+                others: item?.others,
+                offline: true,
+                charging: item?.charging,
+                trip_type: item?.trip_type,
+                total_bags: item?.total_bags,
+                total_bags_delivered: item?.total_bags_delivered,
+                destination: item?.destination,
+              },
+              ...prevState,
+            ];
+          }
+          return [
+            {
+              _id: item.id,
+              vehicle_id: item.vehicle_id,
+              companion: JSON.parse(item?.companion),
+              diesels: JSON.parse(item?.gas),
+              locations: JSON.parse(item?.locations),
+              // odometer: JSON.parse(item?.odometer),
+              // odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+              odometer: item?.odometer,
+              odometer_done: parseFloat(item?.odometer_done),
+              points: JSON.parse(item?.points),
+              image: JSON.parse(item?.image),
+              user_id: {
+                _id: user?.userId,
+                trip_template: user?.trip_template,
+              },
+              trip_date: JSON.parse(item?.date),
+              others: item?.others,
+              offline: true,
+              charging: item?.charging,
+              trip_type: item?.trip_type,
+              total_bags: item?.total_bags,
+              total_bags_delivered: item?.total_bags_delivered,
+              destination: item?.destination,
             },
-            trip_date: JSON.parse(item?.date),
-            others: item?.others,
-            offline: true,
-            charging: item?.charging,
-            trip_type: item?.trip_type,
-            total_bags: item?.total_bags,
-            total_bags_delivered: item?.total_bags_delivered,
-            destination: item?.destination,
-          },
-          ...prevState,
-        ]);
+            // ...prevState,
+          ];
+        });
         setTotalCount((prevState) => prevState + 1);
       });
     }

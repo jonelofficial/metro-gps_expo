@@ -17,7 +17,7 @@ import {
   Text,
   withTheme,
 } from "react-native-paper";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   useGetAllTripsDeliveryQuery,
   useGetAllTripsHaulingQuery,
@@ -36,6 +36,7 @@ import * as Notifications from "expo-notifications";
 import useToast from "../../hooks/useToast";
 import DepotListItem from "../../components/dashboard/DepotListItem";
 import DropDownPicker from "react-native-dropdown-picker";
+import { setDepotTripCateogry } from "../../redux-toolkit/counter/depotTripCategorySlice";
 
 const DashboardDepotScreen = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -58,8 +59,10 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
   const user = useSelector((state) => state.token.userDetails);
   const validator = useSelector((state) => state.validator.value);
   const depotTripCategory = useSelector(
-    (state) => state.depotTripCategory.value
+    (state) => state?.depotTripCategory?.value
   );
+
+  const dispatch = useDispatch();
 
   // FOR TRIP
   const [trip, setTrip] = useState([]);
@@ -90,6 +93,9 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
     { label: "Hauling", value: "hauling", parent: "depot" },
     { label: "Delivery", value: "delivery", parent: "depot" },
   ]);
+  useEffect(() => {
+    dispatch(setDepotTripCateogry(dropdownValue));
+  }, [dropdownValue]);
 
   // FOR RTK
   const { reset, setState, state } = useParams();
@@ -108,7 +114,7 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
   };
 
   const { data, isLoading, isFetching, error, isError } =
-    dropdownValue === "hauling"
+    depotTripCategory === "hauling"
       ? useGetAllTripsHaulingQuery(opt1, opt2)
       : useGetAllTripsDeliveryQuery(opt1, opt2);
 
@@ -201,7 +207,7 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
   const handleOfflineTrip = async () => {
     setOfflineLoading(true);
 
-    if (dropdownValue === "hauling") {
+    if (depotTripCategory === "hauling") {
       const res = await selectTable("depot_hauling");
       if (res?.length > 0) {
         validator ? handleNotSyncNotif() : handleUnfinishedTrip();
@@ -210,39 +216,76 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
           if (user?.userId !== item?.user_id) {
             return null;
           }
-          setTrip((prevState) => [
-            {
-              _id: item.id,
-              vehicle_id: item.vehicle_id,
-              companion: JSON.parse(item?.companion),
-              diesels: JSON.parse(item?.gas),
-              locations: JSON.parse(item?.locations),
-              odometer: JSON.parse(item?.odometer),
-              odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
-              points: JSON.parse(item?.points),
-              image: JSON.parse(item?.image),
-              user_id: {
-                _id: user?.userId,
-                trip_template: user?.trip_template,
-              },
-              trip_date: JSON.parse(item?.date),
-              others: item?.others,
-              offline: true,
-              charging: item?.charging,
+          setTrip((prevState) => {
+            if (prevState?.length > 0) {
+              return [
+                {
+                  _id: item.id,
+                  vehicle_id: item.vehicle_id,
+                  companion: JSON.parse(item?.companion),
+                  diesels: JSON.parse(item?.gas),
+                  locations: JSON.parse(item?.locations),
+                  odometer: JSON.parse(item?.odometer),
+                  odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+                  points: JSON.parse(item?.points),
+                  image: JSON.parse(item?.image),
+                  user_id: {
+                    _id: user?.userId,
+                    trip_template: user?.trip_template,
+                  },
+                  trip_date: JSON.parse(item?.date),
+                  others: item?.others,
+                  offline: true,
+                  charging: item?.charging,
 
-              trip_type: item?.trip_type,
-              trip_category: item?.trip_category,
-              destination: item?.destination,
-              farm: item?.farm,
-              temperature: item?.temperature,
-              tare_weight: item?.tare_weight,
-              gross_weight: item?.gross_weight,
-              net_weight: item?.net_weight,
-              item_count: item?.item_count,
-              doa_count: item?.doa_count,
-            },
-            ...prevState,
-          ]);
+                  trip_type: item?.trip_type,
+                  trip_category: item?.trip_category,
+                  destination: item?.destination,
+                  farm: item?.farm,
+                  temperature: item?.temperature,
+                  tare_weight: item?.tare_weight,
+                  gross_weight: item?.gross_weight,
+                  net_weight: item?.net_weight,
+                  item_count: item?.item_count,
+                  doa_count: item?.doa_count,
+                },
+                ...prevState,
+              ];
+            }
+            return [
+              {
+                _id: item.id,
+                vehicle_id: item.vehicle_id,
+                companion: JSON.parse(item?.companion),
+                diesels: JSON.parse(item?.gas),
+                locations: JSON.parse(item?.locations),
+                odometer: JSON.parse(item?.odometer),
+                odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+                points: JSON.parse(item?.points),
+                image: JSON.parse(item?.image),
+                user_id: {
+                  _id: user?.userId,
+                  trip_template: user?.trip_template,
+                },
+                trip_date: JSON.parse(item?.date),
+                others: item?.others,
+                offline: true,
+                charging: item?.charging,
+
+                trip_type: item?.trip_type,
+                trip_category: item?.trip_category,
+                destination: item?.destination,
+                farm: item?.farm,
+                temperature: item?.temperature,
+                tare_weight: item?.tare_weight,
+                gross_weight: item?.gross_weight,
+                net_weight: item?.net_weight,
+                item_count: item?.item_count,
+                doa_count: item?.doa_count,
+              },
+              // ...prevState,
+            ];
+          });
           setTotalCount((prevState) => prevState + 1);
         });
       }
@@ -255,35 +298,68 @@ const DashboardDepotScreen = ({ theme, navigation }) => {
           if (user?.userId !== item?.user_id) {
             return null;
           }
-          setTrip((prevState) => [
-            {
-              _id: item.id,
-              vehicle_id: item.vehicle_id,
-              companion: JSON.parse(item?.companion),
-              diesels: JSON.parse(item?.gas),
-              locations: JSON.parse(item?.locations),
-              odometer: JSON.parse(item?.odometer),
-              odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
-              points: JSON.parse(item?.points),
-              image: JSON.parse(item?.image),
-              user_id: {
-                _id: user?.userId,
-                trip_template: user?.trip_template,
-              },
-              trip_date: JSON.parse(item?.date),
-              others: item?.others,
-              offline: true,
-              charging: item?.charging,
+          setTrip((prevState) => {
+            if (prevState?.length > 0) {
+              return [
+                {
+                  _id: item.id,
+                  vehicle_id: item.vehicle_id,
+                  companion: JSON.parse(item?.companion),
+                  diesels: JSON.parse(item?.gas),
+                  locations: JSON.parse(item?.locations),
+                  odometer: JSON.parse(item?.odometer),
+                  odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+                  points: JSON.parse(item?.points),
+                  image: JSON.parse(item?.image),
+                  user_id: {
+                    _id: user?.userId,
+                    trip_template: user?.trip_template,
+                  },
+                  trip_date: JSON.parse(item?.date),
+                  others: item?.others,
+                  offline: true,
+                  charging: item?.charging,
 
-              trip_type: item?.trip_type,
-              trip_category: item?.trip_category,
-              destination: item?.destination,
-              route: item?.route,
-              temperature: item?.temperature,
-              crates_transaction: JSON.parse(item?.crates_transaction),
-            },
-            ...prevState,
-          ]);
+                  trip_type: item?.trip_type,
+                  trip_category: item?.trip_category,
+                  destination: item?.destination,
+                  route: item?.route,
+                  temperature: item?.temperature,
+                  crates_transaction: JSON.parse(item?.crates_transaction),
+                },
+                ...prevState,
+              ];
+            }
+            return [
+              {
+                _id: item.id,
+                vehicle_id: item.vehicle_id,
+                companion: JSON.parse(item?.companion),
+                diesels: JSON.parse(item?.gas),
+                locations: JSON.parse(item?.locations),
+                odometer: JSON.parse(item?.odometer),
+                odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+                points: JSON.parse(item?.points),
+                image: JSON.parse(item?.image),
+                user_id: {
+                  _id: user?.userId,
+                  trip_template: user?.trip_template,
+                },
+                trip_date: JSON.parse(item?.date),
+                others: item?.others,
+                offline: true,
+                charging: item?.charging,
+
+                trip_type: item?.trip_type,
+                trip_category: item?.trip_category,
+                destination: item?.destination,
+                route: item?.route,
+                temperature: item?.temperature,
+                crates_transaction: JSON.parse(item?.crates_transaction),
+              },
+              // ...prevState,
+            ];
+          });
           setTotalCount((prevState) => prevState + 1);
         });
       }

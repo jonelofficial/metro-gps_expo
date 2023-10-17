@@ -64,10 +64,11 @@ const LiveMapScreen = ({ theme, navigation }) => {
 
   // for background interval
 
-  const { location, showMap, requestPremissions } = taskManager(
-    (newObj) => reloadRoute(newObj),
-    onBackground
-  );
+  const {
+    location = { coords: { latitude: 0, longitude: 0 } },
+    showMap,
+    requestPremissions,
+  } = taskManager((newObj) => reloadRoute(newObj), onBackground);
 
   const net = useSelector((state) => state.net.value);
 

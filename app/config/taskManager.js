@@ -14,32 +14,32 @@ const taskManager = (interval, onBackground) => {
   const { showAlert } = useToast();
   const navigation = useNavigation();
 
-  useEffect(() => {
-    (() => {
-      alertTimer = setTimeout(() => {
-        showAlert(
-          "No Location detected. Please reload app and make sure phone GPS is ON",
-          "danger"
-        );
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: "Dashboard",
-              params: { screen: "DashboardStack" },
-            },
-          ],
-        });
-      }, 30000);
-    })();
+  // useEffect(() => {
+  //   (() => {
+  //     alertTimer = setTimeout(() => {
+  //       showAlert(
+  //         "No Location detected. Please reload app and make sure phone GPS is ON",
+  //         "danger"
+  //       );
+  //       navigation.reset({
+  //         index: 0,
+  //         routes: [
+  //           {
+  //             name: "Dashboard",
+  //             params: { screen: "DashboardStack" },
+  //           },
+  //         ],
+  //       });
+  //     }, 30000);
+  //   })();
 
-    return () => {
-      if (alertTimer) {
-        clearTimeout(alertTimer);
-        alertTimer = null;
-      }
-    };
-  }, []);
+  //   return () => {
+  //     if (alertTimer) {
+  //       clearTimeout(alertTimer);
+  //       alertTimer = null;
+  //     }
+  //   };
+  // }, []);
 
   TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
     if (error) {

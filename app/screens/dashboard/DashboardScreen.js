@@ -180,28 +180,54 @@ const DashboardScreen = ({ theme, navigation }) => {
         if (user?.userId !== item?.user_id) {
           return null;
         }
-        setTrip((prevState) => [
-          {
-            _id: item.id,
-            vehicle_id: item.vehicle_id,
-            companion: JSON.parse(item?.companion),
-            diesels: JSON.parse(item?.gas),
-            locations: JSON.parse(item?.locations),
-            odometer: JSON.parse(item?.odometer),
-            odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
-            points: JSON.parse(item?.points),
-            image: JSON.parse(item?.image),
-            user_id: {
-              _id: user?.userId,
-              trip_template: user?.trip_template,
+        setTrip((prevState) => {
+          if (prevState?.length > 0) {
+            return [
+              {
+                _id: item.id,
+                vehicle_id: item.vehicle_id,
+                companion: JSON.parse(item?.companion),
+                diesels: JSON.parse(item?.gas),
+                locations: JSON.parse(item?.locations),
+                odometer: JSON.parse(item?.odometer),
+                odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+                points: JSON.parse(item?.points),
+                image: JSON.parse(item?.image),
+                user_id: {
+                  _id: user?.userId,
+                  trip_template: user?.trip_template,
+                },
+                trip_date: JSON.parse(item?.date),
+                others: item?.others,
+                offline: true,
+                charging: item?.charging,
+              },
+              ...prevState,
+            ];
+          }
+          return [
+            {
+              _id: item.id,
+              vehicle_id: item.vehicle_id,
+              companion: JSON.parse(item?.companion),
+              diesels: JSON.parse(item?.gas),
+              locations: JSON.parse(item?.locations),
+              odometer: JSON.parse(item?.odometer),
+              odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+              points: JSON.parse(item?.points),
+              image: JSON.parse(item?.image),
+              user_id: {
+                _id: user?.userId,
+                trip_template: user?.trip_template,
+              },
+              trip_date: JSON.parse(item?.date),
+              others: item?.others,
+              offline: true,
+              charging: item?.charging,
             },
-            trip_date: JSON.parse(item?.date),
-            others: item?.others,
-            offline: true,
-            charging: item?.charging,
-          },
-          ...prevState,
-        ]);
+            // ...prevState,
+          ];
+        });
         setTotalCount((prevState) => prevState + 1);
       });
     }

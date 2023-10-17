@@ -48,6 +48,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   const [points, setPoints] = useState([]);
   const [syncingTrip, setSyncingTrip] = useState(false);
   const [onBackground, setOnBackground] = useState(false);
+  const [currentOdo, setCurrentOdo] = useState(0);
 
   // TIMER
   const { seconds, minutes, hours, start, pause } = useStopwatch({});
@@ -312,6 +313,8 @@ const OfficeMapScreen = ({ theme, navigation }) => {
 
   const reloadMapState = async () => {
     const tripRes = await selectTable("offline_trip");
+
+    setCurrentOdo(tripRes[tripRes.length - 1].odometer);
 
     const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
 
@@ -789,6 +792,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         doneLoading={doneLoading || isLoading}
         onCloseDoneModal={onCloseDoneModal}
         onSubmit={sqliteDone}
+        currentOdo={currentOdo}
       />
 
       {/* GAS MODAL */}

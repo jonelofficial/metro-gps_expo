@@ -46,9 +46,10 @@ const HaulingMap = ({ theme, navigation }) => {
   const [syncingTrip, setSyncingTrip] = useState(true);
   const [onBackground, setOnBackground] = useState(false);
   const [itemCount, setItemCount] = useState("");
-  const [destinationState, setDestinationState] = useState();
+  const [destinationState, setDestinationState] = useState(null);
   const [tareWeight, setTareWeight] = useState(0);
   const [destination, setDestination] = useState();
+  const [currentOdo, setCurrentOdo] = useState(0);
 
   const dispatch = useDispatch();
   const [createTrip, { isLoading }] = useCreateHaulingTripMutation();
@@ -57,10 +58,11 @@ const HaulingMap = ({ theme, navigation }) => {
   const { showAlert } = useToast();
 
   // LOCATION
-  const { location, showMap, requestPremissions } = taskManager(
-    (newObj) => reloadRoute(newObj),
-    onBackground
-  );
+  const {
+    location = { coords: { latitude: 0, longitude: 0 } },
+    showMap,
+    requestPremissions,
+  } = taskManager((newObj) => reloadRoute(newObj), onBackground);
 
   const { handleArrived, handleInterval, handleLeft } = useLocations();
 
@@ -337,6 +339,8 @@ const HaulingMap = ({ theme, navigation }) => {
   const reloadMapState = async () => {
     const tripRes = await selectTable("depot_hauling");
 
+    setCurrentOdo(tripRes[tripRes.length - 1].odometer);
+
     setItemCount(tripRes[tripRes.length - 1]?.item_count);
     setTareWeight(tripRes[tripRes.length - 1]?.tare_weight);
     setDestination(tripRes[tripRes.length - 1]?.destination);
@@ -483,8 +487,12 @@ const HaulingMap = ({ theme, navigation }) => {
         const newObj = {
           ...arrivedRes,
           date: moment(Date.now()).tz("Asia/Manila"),
+          // destination:
+          //   trip?.locations?.length >= 2 && itemCount ? "Depot" : destination,
           destination:
-            trip?.locations?.length >= 2 && itemCount ? "Depot" : destination,
+            data?.destination === "OTHER LOCATION"
+              ? data.destination_name
+              : data?.destination,
         };
 
         await reloadRoute(newObj);
@@ -759,16 +767,18 @@ const HaulingMap = ({ theme, navigation }) => {
                 }
                 loading={leftLoading}
                 onPress={async () => {
-                  if (trip?.locations?.length <= 0) {
-                    await sqliteLeft();
-                  } else {
-                    onToggleLeftModal();
-                  }
+                  // if (trip?.locations?.length <= 0) {
+                  //   await sqliteLeft();
+                  // } else {
+                  //   onToggleLeftModal();
+                  // }
+                  onToggleLeftModal();
                 }}
               >
-                {trip?.locations?.length === 0
+                {/* {trip?.locations?.length === 0
                   ? "Left Depot"
-                  : trip?.locations?.length >= 1 && "Left Farm"}
+                  : trip?.locations?.length >= 1 && "Left Farm"} */}
+                Left
               </Button>
             </View>
 
@@ -785,14 +795,16 @@ const HaulingMap = ({ theme, navigation }) => {
                 }
                 loading={arrivedLoading}
                 onPress={() => {
-                  !itemCount ? sqliteArrived() : onToggleArrivedModal();
+                  // !itemCount ? sqliteArrived() : onToggleArrivedModal();
+                  onToggleArrivedModal();
                 }}
               >
-                {trip?.locations?.length === 1
+                {/* {trip?.locations?.length === 1
                   ? "Arrived Farm"
                   : trip?.locations?.length >= 2 && itemCount
                   ? "Arrived Depot"
-                  : "Arrived Farm"}
+                  : "Arrived Farm"} */}
+                Arrived
               </Button>
             </View>
           </View>
@@ -846,6 +858,7 @@ const HaulingMap = ({ theme, navigation }) => {
         doneLoading={doneLoading || isLoading}
         onCloseDoneModal={onCloseDoneModal}
         onSubmit={sqliteDone}
+        currentOdo={currentOdo}
       />
 
       {/* GAS MODAL */}
@@ -863,6 +876,7 @@ const HaulingMap = ({ theme, navigation }) => {
         showLeftModal={showLeftModal}
         onSubmit={handleLeftButton}
         destinationState={{ destinationState, setDestinationState }}
+        trip={trip}
       />
 
       {/* ARRIVED MODAL */}
@@ -871,8 +885,8 @@ const HaulingMap = ({ theme, navigation }) => {
         onCloseArrivedModal={onCloseArrivedModal}
         showArrivedModal={showArrivedModal}
         onSubmit={sqliteArrived}
-        trip={trip}
         tareWeight={tareWeight}
+        itemCount={itemCount}
       />
     </>
   );

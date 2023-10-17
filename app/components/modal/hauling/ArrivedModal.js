@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useRef } from "react";
 import { TouchableOpacity, View } from "react-native";
-import { Modal, Portal, Text } from "react-native-paper";
+import { Modal, Portal, Text, withTheme } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
 import TextField from "../../form/TextField";
@@ -11,26 +11,76 @@ import {
 } from "../../../utility/schema/validation";
 import { useState } from "react";
 import { useEffect } from "react";
+import { AutocompleteDropdown } from "react-native-autocomplete-dropdown";
+import { selectTable } from "../../../utility/sqlite";
 
 const ArrivedModal = ({
   showArrivedModal,
   onCloseArrivedModal,
   arrivedLoading,
   onSubmit,
-  trip,
   tareWeight,
+  theme,
+  itemCount,
 }) => {
+  const { colors } = theme;
   const [formSchema, setFormSchema] = useState(arrivedModalSchema);
 
   const [showError, setShowError] = useState(false);
 
   useEffect(() => {
-    trip?.locations?.length > 1 && setFormSchema(arrivedModalFullSchema);
+    itemCount && setFormSchema(arrivedModalFullSchema);
 
     return () => {
       null;
     };
-  }, [trip]);
+  }, [itemCount]);
+
+  const [destinations, setDestinations] = useState([]);
+  const [destination, setDestination] = useState(null);
+  const [loadingDestination, setLoadingDestination] = useState(true);
+
+  const dropdownController = useRef(null);
+  const searchRef = useRef(null);
+
+  const handleCloseDropdown = () => {
+    if (dropdownController.current) {
+      dropdownController.current.close();
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      // const res = await selectTable("depot_hauling");
+      // const destinationRes = await selectTable("destination");
+      // const destinations = destinationRes.filter(
+      //   (obj) =>
+      //     obj.trip_template === "Depot" &&
+      //     obj.trip_category === res[res?.length - 1].trip_category &&
+      //     obj.trip_type === res[res?.length - 1].trip_type
+      // );
+      // destinations.push({ destination: "Others" });
+      // setDestinations([
+      //   ...destinations.map((obj) => {
+      //     return { value: obj.destination, label: obj.destination };
+      //   }),
+      // ]);
+      // setDestinations([
+      //   ...destinations.map((obj, i) => {
+      //     return { id: i, title: obj.destination };
+      //   }),
+      // ]);
+      const sgDestination = await selectTable("sg_destination");
+
+      const newDestinations = sgDestination.map(({ location, id }) => ({
+        id,
+        title: location,
+      }));
+      setDestinations((prevState) => [...prevState, ...newDestinations]);
+
+      setLoadingDestination(false);
+    })();
+  }, []);
 
   return (
     <Portal>
@@ -60,6 +110,7 @@ const ArrivedModal = ({
             net_weight: "",
             gross_weight: "",
             doa_count: "",
+            destination: destination,
           }}
           validationSchema={formSchema}
           onSubmit={onSubmit}
@@ -94,53 +145,106 @@ const ArrivedModal = ({
 
             return (
               <>
-                {trip?.locations?.length > 1 && (
-                  <>
+                <>
+                  <AutocompleteDropdown
+                    ref={searchRef}
+                    controller={(controller) => {
+                      dropdownController.current = controller;
+                    }}
+                    clearOnFocus={false}
+                    onSelectItem={(value) => {
+                      if (value) {
+                        setFieldValue("destination", value?.title);
+                        setDestination(value);
+                      }
+                    }}
+                    onClear={() => {
+                      setDestination(null);
+                    }}
+                    dataSet={destinations}
+                    loading={loadingDestination}
+                    containerStyle={{
+                      marginBottom:
+                        touched?.destination && errors?.destination ? 5 : 16,
+                    }}
+                    inputContainerStyle={{
+                      backgroundColor: colors.white,
+                      borderRadius: 15,
+                      borderColor: colors.light,
+                      borderWidth: 1,
+                    }}
+                    inputHeight={50}
+                    textInputProps={{
+                      placeholder: "Destination",
+                      autoCorrect: false,
+                      autoCapitalize: "none",
+                      style: {
+                        fontFamily: "Khyay",
+                        borderRadius: 25,
+                        paddingLeft: 18,
+                        fontSize: 16,
+                      },
+                    }}
+                  />
+                  {destination?.title === "OTHER LOCATION" && (
                     <TextField
                       touched={touched}
                       errors={errors}
                       handleChange={handleChange}
                       handleBlur={handleBlur}
                       values={values}
-                      name="gross_weight"
-                      label="Gross Weight"
-                      keyboardType="numeric"
+                      name="destination_name"
+                      label="Destination Name"
                     />
-                    {showError && (
-                      <Text
-                        style={{
-                          color: "red",
-                          fontSize: 14,
-                          padding: 5,
-                          marginTop: -10,
-                        }}
-                      >
-                        Gross weight should not be less than the tare weight
-                      </Text>
-                    )}
-                    <TextField
-                      touched={touched}
-                      errors={errors}
-                      handleChange={handleChange}
-                      handleBlur={handleBlur}
-                      values={values}
-                      name="net_weight"
-                      label="Net Weight (Auto-fill)"
-                      keyboardType="numeric"
-                      disabled={true}
-                    />
-                    <TextField
-                      touched={touched}
-                      errors={errors}
-                      handleChange={handleChange}
-                      handleBlur={handleBlur}
-                      values={values}
-                      name="doa_count"
-                      label="DOA Count"
-                      keyboardType="numeric"
-                    />
-                  </>
-                )}
+                  )}
+                  {itemCount && (
+                    <>
+                      <TextField
+                        touched={touched}
+                        errors={errors}
+                        handleChange={handleChange}
+                        handleBlur={handleBlur}
+                        values={values}
+                        name="gross_weight"
+                        label="Gross Weight"
+                        keyboardType="numeric"
+                      />
+                      {showError && (
+                        <Text
+                          style={{
+                            color: "red",
+                            fontSize: 14,
+                            padding: 5,
+                            marginTop: -10,
+                          }}
+                        >
+                          Gross weight should not be less than the tare weight
+                        </Text>
+                      )}
+                      <TextField
+                        touched={touched}
+                        errors={errors}
+                        handleChange={handleChange}
+                        handleBlur={handleBlur}
+                        values={values}
+                        name="net_weight"
+                        label="Net Weight (Auto-fill)"
+                        keyboardType="numeric"
+                        disabled={true}
+                      />
+                      <TextField
+                        touched={touched}
+                        errors={errors}
+                        handleChange={handleChange}
+                        handleBlur={handleBlur}
+                        values={values}
+                        name="doa_count"
+                        label="DOA Count"
+                        keyboardType="numeric"
+                      />
+                    </>
+                  )}
+                </>
                 <SubmitButton
                   onPress={handleSubmit}
                   title="Proceed"
@@ -156,4 +260,4 @@ const ArrivedModal = ({
   );
 };
 
-export default ArrivedModal;
+export default withTheme(ArrivedModal);

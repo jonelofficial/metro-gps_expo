@@ -41,12 +41,11 @@ const DestinationModal = ({
     (async () => {
       const sgDestination = await selectTable("sg_destination");
 
-      await sgDestination.map(({ location, id }) => {
-        setDestinations((prevState) => [
-          ...prevState,
-          { id: id, title: location },
-        ]);
-      });
+      const newDestinations = sgDestination.map(({ location, id }) => ({
+        id,
+        title: location,
+      }));
+      setDestinations((prevState) => [...prevState, ...newDestinations]);
 
       setLoadingDestination(false);
     })();

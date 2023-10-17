@@ -17,6 +17,7 @@ const DoneModal = ({
   estimatedOdo,
   onSubmit,
   doneLoading,
+  currentOdo,
 }) => {
   const image = useSelector((state) => state.image.value);
   const dispatch = useDispatch();
@@ -144,11 +145,29 @@ const DoneModal = ({
                     keyboardType="numeric"
                     defaultValue={values["odometer_done"]}
                   />
+                  {(currentOdo > values["odometer_done"] ||
+                    currentOdo == values["odometer_done"]) && (
+                    <Text
+                      style={{
+                        color: "red",
+                        fontSize: 14,
+                        padding: 5,
+                        marginTop: -10,
+                      }}
+                    >
+                      Done odometer must be greater than previous odometer
+                      inputted.
+                    </Text>
+                  )}
                   <SubmitButton
                     onPress={handleSubmit}
                     title="Proceed"
                     isLoading={doneLoading}
-                    disabled={doneLoading}
+                    disabled={
+                      doneLoading ||
+                      currentOdo == values["odometer_done"] ||
+                      currentOdo > values["odometer_done"]
+                    }
                   />
                 </>
               );

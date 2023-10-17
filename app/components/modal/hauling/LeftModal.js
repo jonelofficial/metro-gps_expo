@@ -22,6 +22,7 @@ const LeftModal = ({
   onSubmit,
   theme,
   destinationState,
+  trip,
 }) => {
   const { colors } = theme;
 
@@ -50,25 +51,33 @@ const LeftModal = ({
 
   useEffect(() => {
     (async () => {
-      const res = await selectTable("depot_hauling");
-      const destinationRes = await selectTable("destination");
-      const destinations = destinationRes.filter(
-        (obj) =>
-          obj.trip_template === "Depot" &&
-          obj.trip_category === res[res?.length - 1].trip_category &&
-          obj.trip_type === res[res?.length - 1].trip_type
-      );
-      destinations.push({ destination: "Others" });
+      // const res = await selectTable("depot_hauling");
+      // const destinationRes = await selectTable("destination");
+      // const destinations = destinationRes.filter(
+      //   (obj) =>
+      //     obj.trip_template === "Depot" &&
+      //     obj.trip_category === res[res?.length - 1].trip_category &&
+      //     obj.trip_type === res[res?.length - 1].trip_type
+      // );
+      // destinations.push({ destination: "Others" });
       // setDestinations([
       //   ...destinations.map((obj) => {
       //     return { value: obj.destination, label: obj.destination };
       //   }),
       // ]);
-      setDestinations([
-        ...destinations.map((obj, i) => {
-          return { id: i, title: obj.destination };
-        }),
-      ]);
+      // setDestinations([
+      //   ...destinations.map((obj, i) => {
+      //     return { id: i, title: obj.destination };
+      //   }),
+      // ]);
+      const sgDestination = await selectTable("sg_destination");
+
+      const newDestinations = sgDestination.map(({ location, id }) => ({
+        id,
+        title: location,
+      }));
+      setDestinations((prevState) => [...prevState, ...newDestinations]);
+
       setLoadingDestination(false);
     })();
   }, []);
@@ -112,7 +121,8 @@ const LeftModal = ({
           validationSchema={
             destination?.title === "Others"
               ? leftModalOthersSchema
-              : destination && destination?.title !== "Others"
+              : (destination && destination?.title !== "Others") ||
+                trip?.locations?.length <= 0
               ? leftModalChangeDestinationSchema
               : leftModalSchema
           }
@@ -211,7 +221,7 @@ const LeftModal = ({
                     },
                   }}
                 />
-                {destination?.title === "Others" && (
+                {destination?.title === "OTHER LOCATION" && (
                   <TextField
                     touched={touched}
                     errors={errors}
@@ -222,8 +232,23 @@ const LeftModal = ({
                     label="Destination Name"
                   />
                 )}
+                {/* 
+                {(!destination && !trip?.locations?.length) ||
+                  (trip?.locations?.length <= 0 && (
+                    <TextField
+                      touched={touched}
+                      errors={errors}
+                      handleChange={handleChange}
+                      handleBlur={handleBlur}
+                      values={values}
+                      name="item_count"
+                      label="Item Count"
+                      keyboardType="numeric"
+                    />
+                  ))} */}
 
-                {!destination && (
+                {(!trip?.locations?.length <= 0 ||
+                  (!destination && trip?.locations?.length > 0)) && (
                   <TextField
                     touched={touched}
                     errors={errors}

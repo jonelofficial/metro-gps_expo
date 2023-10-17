@@ -76,7 +76,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
   // TRIP TYPE - HAULING
   const [tripType, setTripType] = useState([]);
-  const [tripTypeValue, setTripTypeValue] = useState(user?.trip_type);
+  const [tripTypeValue, setTripTypeValue] = useState(user?.trip_type || "null");
 
   const {
     isOpen: showTripTypeDropdown,
@@ -87,7 +87,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   // TRIP TYPE - DELIVERY
   const [tripTypeDelivery, setTripTypeDelivery] = useState([]);
   const [tripTypeDeliveryValue, setTripTypeDeliveryValue] = useState(
-    user?.trip_type
+    user?.trip_type || "null"
   );
 
   const {
@@ -99,10 +99,14 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
   //
 
   // TRIP CATEGORY
+  const depotTripCategory = useSelector(
+    (state) => state?.depotTripCategory?.value
+  );
 
   const [tripCategory, setTripCategory] = useState([]);
   const [tripCategoryValue, setTripCategoryValue] = useState(
-    user?.trip_category
+    user?.trip_category ||
+      depotTripCategory.charAt(0).toUpperCase() + depotTripCategory.slice(1)
   );
 
   const {
@@ -118,7 +122,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
   // DESTINATION HAULING
   const [destinations, setDestinations] = useState([]);
-  const [destination, setDestination] = useState();
+  const [destination, setDestination] = useState("null");
 
   const {
     isOpen: showDestinationsDropdown,
@@ -648,7 +652,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                           {/* TRIP TYPE */}
                           {tripCategoryValue?.toLowerCase() === "hauling" && (
                             <>
-                              <Text style={styles.text}>Trip Type:</Text>
+                              {/* <Text style={styles.text}>Trip Type:</Text>
                               <DropDownPicker
                                 listMode="SCROLLVIEW"
                                 open={showTripTypeDropdown}
@@ -682,7 +686,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                                 }}
                                 zIndex={3000}
                                 zIndexInverse={1000}
-                              />
+                              /> */}
                               {/* TRIP TYPE ERROR HANDLING */}
                               {touched?.trip_type && errors?.trip_type && (
                                 <Errors>{errors.trip_type}</Errors>
@@ -692,7 +696,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
 
                           {tripCategoryValue?.toLowerCase() === "delivery" && (
                             <>
-                              <Text style={styles.text}>Trip Type:</Text>
+                              {/* <Text style={styles.text}>Trip Type:</Text>
                               <DropDownPicker
                                 listMode="SCROLLVIEW"
                                 open={showTripTypeDeliveryDropdown}
@@ -726,7 +730,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                                 }}
                                 zIndex={3000}
                                 zIndexInverse={1000}
-                              />
+                              /> */}
                               {/* TRIP TYPE ERROR HANDLING */}
                               {touched?.trip_type && errors?.trip_type && (
                                 <Errors>{errors.trip_type}</Errors>
@@ -737,7 +741,8 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                           {/* DESTINATIONS */}
 
                           {tripCategoryValue !== undefined && (
-                            <Text style={styles.text}>Destinations:</Text>
+                            // <Text style={styles.text}>Destinations:</Text>
+                            <></>
                           )}
                           {tripCategoryValue?.toLowerCase() === "hauling" && (
                             // <DropDownPicker
@@ -772,43 +777,44 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                             //   zIndex={2000}
                             //   zIndexInverse={2000}
                             // />
-                            <AutocompleteDropdown
-                              ref={searchRef}
-                              controller={(controller) => {
-                                dropdownController.current = controller;
-                              }}
-                              clearOnFocus={false}
-                              onSelectItem={(value) => {
-                                if (value) {
-                                  setFieldValue("destination", value?.title);
-                                }
-                              }}
-                              dataSet={destinations}
-                              containerStyle={{
-                                marginBottom:
-                                  touched?.destination && errors?.destination
-                                    ? 5
-                                    : 16,
-                              }}
-                              inputContainerStyle={{
-                                backgroundColor: colors.white,
-                                borderRadius: 15,
-                                borderColor: colors.light,
-                                borderWidth: 1,
-                              }}
-                              inputHeight={50}
-                              textInputProps={{
-                                placeholder: "Destination",
-                                autoCorrect: false,
-                                autoCapitalize: "none",
-                                style: {
-                                  fontFamily: "Khyay",
-                                  borderRadius: 25,
-                                  paddingLeft: 18,
-                                  fontSize: 16,
-                                },
-                              }}
-                            />
+                            // <AutocompleteDropdown
+                            //   ref={searchRef}
+                            //   controller={(controller) => {
+                            //     dropdownController.current = controller;
+                            //   }}
+                            //   clearOnFocus={false}
+                            //   onSelectItem={(value) => {
+                            //     if (value) {
+                            //       setFieldValue("destination", value?.title);
+                            //     }
+                            //   }}
+                            //   dataSet={destinations}
+                            //   containerStyle={{
+                            //     marginBottom:
+                            //       touched?.destination && errors?.destination
+                            //         ? 5
+                            //         : 16,
+                            //   }}
+                            //   inputContainerStyle={{
+                            //     backgroundColor: colors.white,
+                            //     borderRadius: 15,
+                            //     borderColor: colors.light,
+                            //     borderWidth: 1,
+                            //   }}
+                            //   inputHeight={50}
+                            //   textInputProps={{
+                            //     placeholder: "Destination",
+                            //     autoCorrect: false,
+                            //     autoCapitalize: "none",
+                            //     style: {
+                            //       fontFamily: "Khyay",
+                            //       borderRadius: 25,
+                            //       paddingLeft: 18,
+                            //       fontSize: 16,
+                            //     },
+                            //   }}
+                            // />
+                            <></>
                           )}
                           {tripCategoryValue?.toLowerCase() === "delivery" && (
                             // <DropDownPicker
@@ -843,43 +849,44 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                             //   zIndex={2000}
                             //   zIndexInverse={2000}
                             // />
-                            <AutocompleteDropdown
-                              ref={searchRef}
-                              controller={(controller) => {
-                                dropdownController.current = controller;
-                              }}
-                              clearOnFocus={false}
-                              onSelectItem={(value) => {
-                                if (value) {
-                                  setFieldValue("destination", value?.title);
-                                }
-                              }}
-                              dataSet={deliveryDestinations}
-                              containerStyle={{
-                                marginBottom:
-                                  touched?.destination && errors?.destination
-                                    ? 5
-                                    : 16,
-                              }}
-                              inputContainerStyle={{
-                                backgroundColor: colors.white,
-                                borderRadius: 15,
-                                borderColor: colors.light,
-                                borderWidth: 1,
-                              }}
-                              inputHeight={50}
-                              textInputProps={{
-                                placeholder: "Destination",
-                                autoCorrect: false,
-                                autoCapitalize: "none",
-                                style: {
-                                  fontFamily: "Khyay",
-                                  borderRadius: 25,
-                                  paddingLeft: 18,
-                                  fontSize: 16,
-                                },
-                              }}
-                            />
+                            // <AutocompleteDropdown
+                            //   ref={searchRef}
+                            //   controller={(controller) => {
+                            //     dropdownController.current = controller;
+                            //   }}
+                            //   clearOnFocus={false}
+                            //   onSelectItem={(value) => {
+                            //     if (value) {
+                            //       setFieldValue("destination", value?.title);
+                            //     }
+                            //   }}
+                            //   dataSet={deliveryDestinations}
+                            //   containerStyle={{
+                            //     marginBottom:
+                            //       touched?.destination && errors?.destination
+                            //         ? 5
+                            //         : 16,
+                            //   }}
+                            //   inputContainerStyle={{
+                            //     backgroundColor: colors.white,
+                            //     borderRadius: 15,
+                            //     borderColor: colors.light,
+                            //     borderWidth: 1,
+                            //   }}
+                            //   inputHeight={50}
+                            //   textInputProps={{
+                            //     placeholder: "Destination",
+                            //     autoCorrect: false,
+                            //     autoCapitalize: "none",
+                            //     style: {
+                            //       fontFamily: "Khyay",
+                            //       borderRadius: 25,
+                            //       paddingLeft: 18,
+                            //       fontSize: 16,
+                            //     },
+                            //   }}
+                            // />
+                            <></>
                           )}
 
                           {/* DESTINATION ERROR HANDLING */}
@@ -911,7 +918,7 @@ const DepotTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
                               handleBlur={handleBlur}
                               values={values}
                               name="temperature"
-                              label="Temperature"
+                              label="Temperature °F"
                               keyboardType="numeric"
                             />
                           )}
