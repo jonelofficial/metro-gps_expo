@@ -34,6 +34,7 @@ import moment from "moment-timezone";
 import AutoSuccessAnimation from "../../../../components/loading/AutoSuccessAnimation";
 import { validatorStatus } from "../../../../redux-toolkit/counter/vaidatorSlice";
 import { setDepotTripCateogry } from "../../../../redux-toolkit/counter/depotTripCategorySlice";
+import DestinationModal from "../../../../components/modal/DestinationModal";
 
 const DeliveryMap = ({ theme, navigation }) => {
   const { colors } = theme;
@@ -138,6 +139,12 @@ const DeliveryMap = ({ theme, navigation }) => {
     isOpen: lastDelivery,
     onClose: onCloseLastDelivery,
     onToggle: onToggleLastDelivery,
+  } = useDisclosure();
+
+  const {
+    isOpen: isOpenDestination,
+    onClose: onCloseDestination,
+    onToggle: onToggleDestination,
   } = useDisclosure();
 
   // FOR UNMOUNTING
@@ -351,8 +358,8 @@ const DeliveryMap = ({ theme, navigation }) => {
       });
     }
   };
-
-  const sqliteLeft = async () => {
+  const [lastDestination, setLastDestination] = useState("");
+  const sqliteLeft = async (data) => {
     try {
       Keyboard.dismiss();
       startLeftLoading();
@@ -371,6 +378,10 @@ const DeliveryMap = ({ theme, navigation }) => {
         const newObj = {
           ...leftRes,
           date: moment(Date.now()).tz("Asia/Manila"),
+          destination:
+            data?.destination === "OTHER LOCATION"
+              ? data.destination_name
+              : data?.destination || lastDestination,
         };
 
         if (doneDelivery) {
@@ -383,7 +394,7 @@ const DeliveryMap = ({ theme, navigation }) => {
         await reloadRoute(newObj);
         await reloadMapState();
       }
-
+      onCloseDestination();
       stopLefLoading();
       startLoader();
     } catch (error) {
@@ -459,7 +470,12 @@ const DeliveryMap = ({ theme, navigation }) => {
         await reloadRoute(newObj);
         await reloadMapState();
       }
-
+      setLastDestination(
+        data?.destination === "Others"
+          ? data.destination_name
+          : data?.destination
+      );
+      onCloseDestination();
       stopArrivedLoading();
       onCloseArrivedModal();
       startLoader();
@@ -550,8 +566,10 @@ const DeliveryMap = ({ theme, navigation }) => {
         form.append("vehicle_id", offlineTrip[0]?.vehicle_id);
         form.append("locations", offlineTrip[0]?.locations);
         form.append("diesels", offlineTrip[0]?.gas);
-        form.append("odometer", JSON.parse(offlineTrip[0]?.odometer));
-        form.append("odometer_done", JSON.parse(data?.odometer_done));
+        // form.append("odometer", JSON.parse(offlineTrip[0]?.odometer));
+        // form.append("odometer_done", JSON.parse(data?.odometer_done));
+        form.append("odometer", JSON.parse(parseInt(offlineTrip[0]?.odometer)));
+        form.append("odometer_done", JSON.parse(parseInt(data?.odometer_done)));
         img !== null && img.map((img) => form.append("images", img));
         form.append("others", offlineTrip[0].others);
         form.append("charging", offlineTrip[0].charging);
@@ -711,9 +729,13 @@ const DeliveryMap = ({ theme, navigation }) => {
                   lastLeft
                 }
                 loading={leftLoading}
-                onPress={sqliteLeft}
+                onPress={
+                  trip?.locations?.length === 0
+                    ? onToggleDestination
+                    : sqliteLeft
+                }
               >
-                {trip?.locations?.length === 0 ? "Left Depot" : " Left Store"}
+                {trip?.locations?.length === 0 ? "Left" : " Left Store"}
               </Button>
             </View>
 
@@ -729,9 +751,11 @@ const DeliveryMap = ({ theme, navigation }) => {
                   trip?.locations?.length === 0
                 }
                 loading={arrivedLoading}
-                onPress={doneDelivery ? sqliteArrived : onToggleArrivedModal}
+                onPress={
+                  doneDelivery ? onToggleDestination : onToggleArrivedModal
+                }
               >
-                {doneDelivery ? "Arrived Depot" : "Arrived Store"}
+                {doneDelivery ? "Arrived" : "Arrived Store"}
               </Button>
             </View>
           </View>
@@ -777,6 +801,14 @@ const DeliveryMap = ({ theme, navigation }) => {
           </View>
         </View>
       </Screen>
+
+      {/* DESTINATION MODAL ON LEFT */}
+      <DestinationModal
+        isOpenDestination={isOpenDestination}
+        onCloseDestination={onCloseDestination}
+        loading={arrivedLoading || leftLoading}
+        onSubmit={doneDelivery ? sqliteArrived : sqliteLeft}
+      />
 
       {/* DONE MODAL */}
       <DoneModal

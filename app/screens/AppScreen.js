@@ -47,8 +47,8 @@ const AppScreen = ({ theme }) => {
 
   const handleUser = async () => {
     try {
-      // console.log(await selectTable("offline_trip"));
-      // await deleteFromTable("live");s
+      // console.log(await selectTable("depot_hauling"));
+      // await deleteFromTable("depot_hauling");
       // await deleteFromTable("vehicles");
       // await removeToken();
       // await removeUser();

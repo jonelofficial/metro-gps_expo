@@ -360,6 +360,7 @@ const HaulingMap = ({ theme, navigation }) => {
     }
   };
 
+  const [lastDestination, setLastDestination] = useState("");
   const handleLeftButton = async (data, { resetForm }) => {
     try {
       Keyboard.dismiss();
@@ -379,11 +380,11 @@ const HaulingMap = ({ theme, navigation }) => {
         const newObj = {
           ...leftRes,
           date: moment(Date.now()).tz("Asia/Manila"),
-          // destination:
-          //   data?.destination === "Others"
-          //     ? data.destination_name
-          //     : data?.destination,
-          destination: destination,
+          destination:
+            data?.destination === "Others"
+              ? data?.destination_name
+              : data?.destination || lastDestination,
+          // destination: destination,
         };
 
         await reloadRoute(newObj);
@@ -415,7 +416,11 @@ const HaulingMap = ({ theme, navigation }) => {
           );
         }
       }
-
+      setLastDestination(
+        data?.destination === "Others"
+          ? data.destination_name
+          : data?.destination
+      );
       setDestinationState(null);
       resetForm();
       stopLefLoading();
@@ -509,6 +514,11 @@ const HaulingMap = ({ theme, navigation }) => {
           );
         }
       }
+      setLastDestination(
+        data?.destination === "Others"
+          ? data.destination_name
+          : data?.destination
+      );
 
       stopArrivedLoading();
       onCloseArrivedModal();
@@ -599,8 +609,8 @@ const HaulingMap = ({ theme, navigation }) => {
         form.append("vehicle_id", offlineTrip[0]?.vehicle_id);
         form.append("locations", offlineTrip[0]?.locations);
         form.append("diesels", offlineTrip[0]?.gas);
-        form.append("odometer", JSON.parse(offlineTrip[0]?.odometer));
-        form.append("odometer_done", JSON.parse(data?.odometer_done));
+        form.append("odometer", JSON.parse(parseInt(offlineTrip[0]?.odometer)));
+        form.append("odometer_done", JSON.parse(parseInt(data?.odometer_done)));
         img !== null && img.map((img) => form.append("images", img));
         form.append("others", offlineTrip[0].others);
         form.append("charging", offlineTrip[0].charging);

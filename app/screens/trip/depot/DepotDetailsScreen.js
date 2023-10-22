@@ -329,10 +329,15 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                         <Fragment key={i}>
                           <Content
                             label="Status"
+                            // details={
+                            //   i == 0 || newLocations.length - 1 === i
+                            //     ? `${loc?.status} Depot`
+                            //     : `${loc?.status} Farm`
+                            // }
                             details={
                               i == 0 || newLocations.length - 1 === i
-                                ? `${loc?.status} Depot`
-                                : `${loc?.status} Farm`
+                                ? `${loc?.status} `
+                                : `${loc?.status} `
                             }
                             detailsStyle={{
                               textTransform: "capitalize",

@@ -189,8 +189,10 @@ const DashboardScreen = ({ theme, navigation }) => {
                 companion: JSON.parse(item?.companion),
                 diesels: JSON.parse(item?.gas),
                 locations: JSON.parse(item?.locations),
-                odometer: JSON.parse(item?.odometer),
-                odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+                odometer: JSON.parse(parseFloat(item?.odometer)),
+                // odometer: JSON.parse(item?.odometer),
+                // odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
+                odometer_done: JSON.parse(parseFloat(item?.odometer_done)),
                 points: JSON.parse(item?.points),
                 image: JSON.parse(item?.image),
                 user_id: {
