@@ -46,13 +46,18 @@ const LiveMapScreen = ({ theme, navigation }) => {
   const user = useSelector((state) => state.token.userDetails);
 
   // STATE
-  const [totalKm, setTotalKm] = useState(0);
+  // const [totalKm, setTotalKm] = useState(0);
   const [estimatedOdo, setEstimatedOdo] = useState(0);
   const [trip, setTrip] = useState({ locations: [] });
   const [points, setPoints] = useState([]);
   const [syncingTrip, setSyncingTrip] = useState(true);
   const [onBackground, setOnBackground] = useState(false);
   const [totalBagsDelivered, setTotalBagsDelivered] = useState(0);
+  const [currentOdo, setCurrentOdo] = useState(0);
+
+  const [lastDestination, setLastDestination] = useState("");
+  const [doneDelivery, setDoneDelivery] = useState(false);
+  const [lastLeft, setLastLeft] = useState(false);
 
   // TIMER
   const { seconds, minutes, hours, start, pause } = useStopwatch({});
@@ -60,15 +65,15 @@ const LiveMapScreen = ({ theme, navigation }) => {
   // HOOKS AND CONFIG
 
   const { showAlert } = useToast();
-  const { handleInterval, handleLeft, handleArrived } = useLocations();
+  // const { handleInterval, handleLeft, handleArrived } = useLocations();
 
   // for background interval
 
-  const {
-    location = { coords: { latitude: 0, longitude: 0 } },
-    showMap,
-    requestPremissions,
-  } = taskManager((newObj) => reloadRoute(newObj), onBackground);
+  // const {
+  //   location = { coords: { latitude: 0, longitude: 0 } },
+  //   showMap,
+  //   requestPremissions,
+  // } = taskManager((newObj) => reloadRoute(newObj), onBackground);
 
   const net = useSelector((state) => state.net.value);
 
@@ -137,6 +142,13 @@ const LiveMapScreen = ({ theme, navigation }) => {
     onToggle: onToggleArrivedModal,
   } = useDisclosure();
 
+  // LAST DELIVERY
+  const {
+    isOpen: lastDelivery,
+    onClose: onCloseLastDelivery,
+    onToggle: onToggleLastDelivery,
+  } = useDisclosure();
+
   // REDUX
   const dispatch = useDispatch();
   const [createLiveTrip, { isLoading }] = useCreateLiveTripMutation();
@@ -156,19 +168,20 @@ const LiveMapScreen = ({ theme, navigation }) => {
       handleAppStateChange
     );
 
-    // HANDLE TRIP INTERVAL
-    const loc = setInterval(() => {
-      (async () => {
-        const intervalRes = await handleInterval();
-        if (intervalRes) {
-          const newObj = {
-            ...intervalRes,
-            date: moment(Date.now()).tz("Asia/Manila"),
-          };
-          reloadRoute(newObj);
-        }
-      })();
-    }, 600000);
+    // // HANDLE TRIP INTERVAL
+    // const loc = setInterval(() => {
+    //   (async () => {
+    //     const intervalRes = await handleInterval();
+    //     if (intervalRes) {
+    //       const newObj = {
+    //         ...intervalRes,
+    //         date: moment(Date.now()).tz("Asia/Manila"),
+    //       };
+    //       reloadRoute(newObj);
+    //     }
+    //   })();
+    // }, 600000);
+
     return async () => {
       clearInterval(loc);
       await updateRoute();
@@ -177,36 +190,36 @@ const LiveMapScreen = ({ theme, navigation }) => {
     };
   }, []);
 
-  // PATH OR POINTS AND TOTAL KM USEEFFECT
-  useEffect(() => {
-    if (location) {
-      (async () => {
-        if (location && !location?.coords?.speed <= 0 && !syncingTrip) {
-          setPoints((currentValue) => [
-            ...currentValue,
-            {
-              latitude: location?.coords?.latitude,
-              longitude: location?.coords?.longitude,
-            },
-          ]);
-          insertToTable("INSERT INTO route (points) values (?)", [
-            JSON.stringify({
-              latitude: location?.coords?.latitude,
-              longitude: location?.coords?.longitude,
-            }),
-          ]);
-        }
+  // // PATH OR POINTS AND TOTAL KM USEEFFECT
+  // useEffect(() => {
+  //   if (location) {
+  //     (async () => {
+  //       if (location && !location?.coords?.speed <= 0 && !syncingTrip) {
+  //         setPoints((currentValue) => [
+  //           ...currentValue,
+  //           {
+  //             latitude: location?.coords?.latitude,
+  //             longitude: location?.coords?.longitude,
+  //           },
+  //         ]);
+  //         insertToTable("INSERT INTO route (points) values (?)", [
+  //           JSON.stringify({
+  //             latitude: location?.coords?.latitude,
+  //             longitude: location?.coords?.longitude,
+  //           }),
+  //         ]);
+  //       }
 
-        // COMPUTE TOTAL KM
-        const meter = getPathLength(points);
-        const km = meter / 1000;
-        setTotalKm(km.toFixed(1));
-      })();
-    }
-    return () => {
-      null;
-    };
-  }, [location]);
+  //       // COMPUTE TOTAL KM
+  //       const meter = getPathLength(points);
+  //       const km = meter / 1000;
+  //       // setTotalKm(km.toFixed(1));
+  //     })();
+  //   }
+  //   return () => {
+  //     null;
+  //   };
+  // }, [location]);
 
   useEffect(() => {
     BackHandler.addEventListener("hardwareBackPress", backAction);
@@ -311,7 +324,12 @@ const LiveMapScreen = ({ theme, navigation }) => {
   const reloadMapState = async () => {
     const tripRes = await selectTable("live");
 
+    setCurrentOdo(tripRes[tripRes.length - 1].odometer);
+
     const locPoint = JSON.parse(tripRes[tripRes.length - 1]?.locations);
+
+    setDoneDelivery(JSON.parse(tripRes[tripRes.length - 1]?.last_delivery));
+    setLastLeft(JSON.parse(tripRes[tripRes.length - 1]?.last_left));
 
     const newLocations = locPoint.filter(
       (location) => location.status == "left" || location.status == "arrived"
@@ -334,7 +352,7 @@ const LiveMapScreen = ({ theme, navigation }) => {
       setPoints(mapPoints);
       const meter = getPathLength(mapPoints);
       const km = meter / 1000;
-      setTotalKm(km.toFixed(1));
+      // setTotalKm(km.toFixed(1));
     }
 
     const tripRes = await selectTable("live");
@@ -358,17 +376,40 @@ const LiveMapScreen = ({ theme, navigation }) => {
 
   // SQLITE FUNCTION
 
-  const sqliteLeft = async (data, { resetForm }) => {
+  const sqliteLeft = async (data) => {
     try {
       startLeftLoading();
       start(new Date());
 
-      const leftRes = await Promise.race([
-        handleLeft(location),
-        new Promise((resolve, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), 60000)
-        ),
-      ]);
+      console.log("SQLITE LEFT WORKING");
+
+      // const leftRes = await Promise.race([
+      //   handleLeft(location),
+      //   new Promise((resolve, reject) =>
+      //     setTimeout(() => reject(new Error("Timeout")), 60000)
+      //   ),
+      // ]);
+
+      const leftRes = {
+        lat: 0,
+        long: 0,
+        address: [
+          {
+            postalCode: null,
+            country: "Philippines",
+            isoCountryCode: "PH",
+            subregion: "No Location",
+            city: null,
+            street: null,
+            district: null,
+            name: "No Location",
+            streetNumber: null,
+            region: "No Location",
+            timezone: null,
+          },
+        ],
+        status: "left",
+      };
 
       if (leftRes) {
         const newObj = {
@@ -377,14 +418,21 @@ const LiveMapScreen = ({ theme, navigation }) => {
           destination:
             data?.destination === "OTHER LOCATION"
               ? data.destination_name
-              : data?.destination,
+              : data?.destination || lastDestination,
         };
+
+        if (doneDelivery) {
+          await updateToTable(
+            "UPDATE live SET last_left = (?) WHERE id = (SELECT MAX (id) FROM live)",
+            [JSON.stringify(doneDelivery)]
+          );
+        }
 
         await reloadRoute(newObj);
         await reloadMapState();
       }
 
-      resetForm();
+      // resetForm();
       onCloseDestination();
       stopLefLoading();
       handleSuccess();
@@ -410,12 +458,35 @@ const LiveMapScreen = ({ theme, navigation }) => {
       startArrivedLoading();
       pause();
 
-      const arrivedRes = await Promise.race([
-        handleArrived(location),
-        new Promise((resolve, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), 60000)
-        ),
-      ]);
+      console.log("SQLITE ARRIVED WORKING");
+
+      // const arrivedRes = await Promise.race([
+      //   handleArrived(location),
+      //   new Promise((resolve, reject) =>
+      //     setTimeout(() => reject(new Error("Timeout")), 60000)
+      //   ),
+      // ]);
+
+      const arrivedRes = {
+        lat: 0,
+        long: 0,
+        address: [
+          {
+            postalCode: null,
+            country: "Philippines",
+            isoCountryCode: "PH",
+            subregion: "No Location",
+            city: null,
+            street: null,
+            district: null,
+            name: "No Location",
+            streetNumber: null,
+            region: "No Location",
+            timezone: null,
+          },
+        ],
+        status: "arrived",
+      };
 
       if (arrivedRes) {
         const newObj = {
@@ -427,18 +498,60 @@ const LiveMapScreen = ({ theme, navigation }) => {
               : data?.destination,
         };
 
-        await updateToTable(
-          `UPDATE live SET 
-          total_bags_delivered = (?) 
-          WHERE id = (SELECT MAX(id) FROM live)`,
-          [totalBagsDelivered]
+        const delivery = await selectTable(
+          "live WHERE id = (SELECT MAX(id) FROM live)"
         );
+
+        const transactions = JSON.parse(
+          delivery[delivery.length - 1].transactions
+        );
+
+        if (!transactions && !doneDelivery) {
+          const newTransaction = [data];
+          await updateToTable(
+            "UPDATE live SET transactions = (?) WHERE id = (SELECT MAX (id) FROM live)",
+            [JSON.stringify(newTransaction)]
+          );
+        } else if (!doneDelivery && !lastDelivery) {
+          transactions.push(data);
+          await updateToTable(
+            "UPDATE live SET transactions = (?) WHERE id = (SELECT MAX (id) FROM live)",
+            [JSON.stringify(transactions)]
+          );
+        }
+
+        if (transactions && lastDelivery && !doneDelivery) {
+          transactions.push(data);
+
+          await updateToTable(
+            "UPDATE live SET last_delivery = (?), transactions = (?)  WHERE id = (SELECT MAX (id) FROM live)",
+            [JSON.stringify(lastDelivery), JSON.stringify(transactions)]
+          );
+        } else if (!transactions && lastDelivery && !doneDelivery) {
+          const newCratesTransaction = [data];
+
+          await updateToTable(
+            "UPDATE live SET last_delivery = (?), transactions = (?)  WHERE id = (SELECT MAX (id) FROM live)",
+            [JSON.stringify(lastDelivery), JSON.stringify(newCratesTransaction)]
+          );
+        }
+
+        // await updateToTable(
+        //   `UPDATE live SET
+        //   total_bags_delivered = (?)
+        //   WHERE id = (SELECT MAX(id) FROM live)`,
+        //   [totalBagsDelivered]
+        // );
 
         await reloadRoute(newObj);
         await reloadMapState();
       }
-
-      resetForm();
+      setLastDestination(
+        data?.destination === "Others"
+          ? data.destination_name
+          : data?.destination
+      );
+      // resetForm();
       onCloseDestination();
       stopArrivedLoading();
       onCloseArrivedModal();
@@ -459,14 +572,24 @@ const LiveMapScreen = ({ theme, navigation }) => {
       Keyboard.dismiss();
       startGasLoading();
 
+      // const gasObj = {
+      //   gas_station_id: data.gas_station_id,
+      //   gas_station_name: data.gas_station_name,
+      //   odometer: data.odometer,
+      //   liter: data.liter,
+      //   amount: data.amount,
+      //   lat: location?.coords?.latitude,
+      //   long: location?.coords?.longitude,
+      // };
+
       const gasObj = {
         gas_station_id: data.gas_station_id,
         gas_station_name: data.gas_station_name,
         odometer: data.odometer,
         liter: data.liter,
         amount: data.amount,
-        lat: location?.coords?.latitude,
-        long: location?.coords?.longitude,
+        lat: 0,
+        long: 0,
       };
 
       const tripRes = await selectTable("live");
@@ -519,6 +642,18 @@ const LiveMapScreen = ({ theme, navigation }) => {
         const ifOfflineTrip = await selectTable(
           "live WHERE id = (SELECT MAX(id) FROM live)"
         );
+
+        const totalBagDelivered = JSON.parse(
+          ifOfflineTrip[0]?.transactions
+        )?.reduce(
+          (acc, value) =>
+            acc +
+            (value?.total_bags_delivered
+              ? parseFloat(value.total_bags_delivered)
+              : 0),
+          0
+        );
+
         const ifImg = JSON.parse(ifOfflineTrip[0]?.image);
         const form = new FormData();
         form.append("trip_date", JSON.parse(ifOfflineTrip[0]?.date));
@@ -534,11 +669,9 @@ const LiveMapScreen = ({ theme, navigation }) => {
         form.append("charging", ifOfflineTrip[0].charging);
         form.append("trip_type", ifOfflineTrip[0].trip_type);
         form.append("total_bags", ifOfflineTrip[0].total_bags);
-        form.append(
-          "total_bags_delivered",
-          ifOfflineTrip[0].total_bags_delivered
-        );
+        form.append("total_bags_delivered", totalBagDelivered);
         form.append("destination", ifOfflineTrip[0].destination);
+        form.append("transactions", ifOfflineTrip[0].transactions);
 
         const res = await createLiveTrip(form);
 
@@ -567,18 +700,152 @@ const LiveMapScreen = ({ theme, navigation }) => {
     }
   };
 
-  if (!showMap) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Allow permission for locations.</Text>
-        <Button onPress={requestPremissions}>Request Permission</Button>
-      </View>
-    );
-  }
+  // if (!showMap) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <Text>Allow permission for locations.</Text>
+  //       <Button onPress={requestPremissions}>Request Permission</Button>
+  //     </View>
+  //   );
+  // }
 
-  if (!location) {
-    return <LoaderAnimation />;
-  }
+  // if (!location) {
+  //   return <LoaderAnimation />;
+  // }
+
+  // const styles = StyleSheet.create({
+  //   firstContainer: {
+  //     flex: 0.5,
+  //     justifyContent: "center",
+  //     alignItems: "center",
+  //     marginHorizontal: 15,
+  //     marginBottom: 15,
+  //     borderWidth: 2,
+  //     borderRadius: 10,
+  //   },
+  //   title: {
+  //     fontSize: 18,
+  //     marginBottom: 10,
+  //   },
+  //   secondContainer: {
+  //     flex: 0.5,
+  //     marginHorizontal: 15,
+  //     marginBottom: 15,
+  //   },
+  //   timer: {
+  //     borderWidth: 2,
+  //     borderRadius: 10,
+  //     padding: 15,
+  //     alignItems: "center",
+  //     justifyContent: "center",
+  //     flexDirection: "row",
+  //   },
+  //   buttonWrapper: {
+  //     marginTop: 15,
+  //     marginBottom: 8,
+  //     flexDirection: "row",
+  //     justifyContent: "space-between",
+  //   },
+  //   buttonContainer: { width: "48%" },
+  //   buttonLabelStyle: {
+  //     fontSize: 18,
+  //     lineHeight: 35,
+  //   },
+  //   doneButton: { position: "absolute", bottom: 0, left: 0, right: 0 },
+  //   container: {
+  //     padding: 16,
+  //   },
+  //   label: {
+  //     color: "#333",
+  //     fontSize: 14,
+  //     fontWeight: "bold",
+  //     marginBottom: 8,
+  //   },
+  //   picker: {
+  //     padding: 0,
+  //     margin: 0,
+  //   },
+  // });
+
+  const styles = StyleSheet.create({
+    firstContainer: {
+      flex: 0.5,
+      justifyContent: "center",
+      alignItems: "center",
+      marginHorizontal: 15,
+      marginBottom: 15,
+      borderWidth: 2,
+      borderRadius: 10,
+      borderColor: colors.primary,
+    },
+    //
+    secondContainer: {
+      flex: 0.5,
+      marginHorizontal: 15,
+      marginBottom: 15,
+    },
+    timer: {
+      borderWidth: 2,
+      borderRadius: 10,
+      padding: 15,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      borderColor: colors.primary,
+    },
+    buttonContainer: {
+      marginTop: 15,
+      marginBottom: 8,
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    buttonWrapper: {
+      width: "48%",
+    },
+    buttonLabelStyle: {
+      fontSize: 18,
+      lineHeight: 35,
+    },
+    leftButton: {
+      backgroundColor: leftLoading
+        ? colors.notActive
+        : trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
+        ? colors.notActive
+        : lastLeft
+        ? colors.notActive
+        : colors.danger,
+    },
+    arrivedButton: {
+      backgroundColor:
+        arrivedLoading ||
+        trip?.locations?.length % 2 === 0 ||
+        trip?.locations?.length === 0
+          ? colors.notActive
+          : colors.success,
+    },
+    doneContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
+    doneButton: {
+      backgroundColor:
+        trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
+          ? colors.notActive
+          : trip?.locations?.length === 0
+          ? colors.notActive
+          : leftLoading
+          ? colors.notActive
+          : arrivedLoading
+          ? colors.notActive
+          : doneLoading
+          ? colors.notActive
+          : trip?.locations?.length % 2 === 0 && !lastLeft
+          ? colors.notActive
+          : colors.dark,
+    },
+  });
 
   return (
     <>
@@ -610,10 +877,10 @@ const LiveMapScreen = ({ theme, navigation }) => {
           <Text style={[styles.title, { color: colors.accent }]}>
             M E T R O{"   "}G P S
           </Text>
-          <View>
+          {/* <View>
             {location && <Text>Latitude: {location.coords.latitude}</Text>}
             {location && <Text>Longitude: {location.coords.longitude}</Text>}
-          </View>
+          </View> */}
         </View>
 
         <View style={styles.secondContainer}>
@@ -631,67 +898,51 @@ const LiveMapScreen = ({ theme, navigation }) => {
             }:${
               seconds < 10 ? `0${seconds}` : seconds >= 10 && seconds
             }`}</Text>
-            <Text>{`  Total KM: ${totalKm || "0"}`}</Text>
+            {/* <Text>{`  Total KM: ${totalKm || "0"}`}</Text> */}
           </View>
 
           {/* LEFT AND ARRIVED BUTTON */}
-          <View style={styles.buttonWrapper}>
-            <View style={styles.buttonContainer}>
+          <View style={styles.buttonContainer}>
+            <View style={styles.buttonWrapper}>
               <Button
                 mode="contained"
-                // style={{
-                //   backgroundColor: leftLoading
-                //     ? colors.notActive
-                //     : trip?.locations?.length % 2 !== 0 &&
-                //       trip?.locations?.length > 0
-                //     ? colors.notActive
-                //     : colors.danger,
-                // }}
-                style={{
-                  backgroundColor: leftLoading
-                    ? colors.notActive
-                    : trip?.locations?.length > 0
-                    ? colors.notActive
-                    : colors.danger,
-                }}
+                style={styles.leftButton}
                 labelStyle={styles.buttonLabelStyle}
-                // disabled={
-                //   leftLoading ||
-                //   arrivedLoading ||
-                //   (trip?.locations.length % 2 !== 0 &&
-                //     trip?.locations.length > 0)
-                // }
                 disabled={
-                  leftLoading || arrivedLoading || trip?.locations.length > 0
+                  leftLoading ||
+                  arrivedLoading ||
+                  (trip?.locations?.length % 2 !== 0 &&
+                    trip?.locations?.length > 0) ||
+                  lastLeft
                 }
                 loading={leftLoading}
-                onPress={onToggleDestination}
+                onPress={
+                  trip?.locations?.length === 0
+                    ? onToggleDestination
+                    : sqliteLeft
+                }
               >
-                Left
+                {trip?.locations?.length === 0 ? "Left" : " Left Store"}
               </Button>
             </View>
-            <View style={styles.buttonContainer}>
+
+            <View style={styles.buttonWrapper}>
               <Button
                 mode="contained"
-                style={{
-                  backgroundColor:
-                    leftLoading ||
-                    trip?.locations?.length % 2 === 0 ||
-                    trip?.locations?.length === 0
-                      ? colors.notActive
-                      : colors.success,
-                }}
+                style={styles.arrivedButton}
                 labelStyle={styles.buttonLabelStyle}
                 disabled={
                   arrivedLoading ||
                   leftLoading ||
-                  trip?.locations.length % 2 === 0 ||
-                  trip?.locations.length === 0
+                  trip?.locations?.length % 2 === 0 ||
+                  trip?.locations?.length === 0
                 }
                 loading={arrivedLoading}
-                onPress={onToggleArrivedModal}
+                onPress={
+                  doneDelivery ? onToggleDestination : onToggleArrivedModal
+                }
               >
-                Arrived
+                {doneDelivery ? "Arrived" : "Arrived Store"}
               </Button>
             </View>
           </View>
@@ -716,23 +967,10 @@ const LiveMapScreen = ({ theme, navigation }) => {
           </View>
 
           {/* DONE BUTTON */}
-          <View style={styles.doneButton}>
+          <View style={styles.doneContainer}>
             <Button
               mode="contained"
-              style={{
-                backgroundColor:
-                  trip?.locations.length % 2 !== 0 && trip?.locations.length > 0
-                    ? colors.notActive
-                    : trip?.locations.length === 0
-                    ? colors.notActive
-                    : leftLoading
-                    ? colors.notActive
-                    : arrivedLoading
-                    ? colors.notActive
-                    : doneLoading
-                    ? colors.notActive
-                    : colors.dark,
-              }}
+              style={styles.doneButton}
               labelStyle={styles.buttonLabelStyle}
               disabled={
                 (trip?.locations.length % 2 !== 0 &&
@@ -740,7 +978,8 @@ const LiveMapScreen = ({ theme, navigation }) => {
                 trip?.locations.length === 0 ||
                 arrivedLoading ||
                 leftLoading ||
-                doneLoading
+                doneLoading ||
+                (trip?.locations?.length % 2 === 0 && !lastLeft)
               }
               onPress={onToggleDoneModal}
             >
@@ -755,7 +994,7 @@ const LiveMapScreen = ({ theme, navigation }) => {
         isOpenDestination={isOpenDestination}
         onCloseDestination={onCloseDestination}
         loading={arrivedLoading || leftLoading}
-        onSubmit={trip?.locations.length % 2 === 0 ? sqliteLeft : sqliteArrived}
+        onSubmit={doneDelivery ? sqliteArrived : sqliteLeft}
       />
 
       {/* DONE MODAL */}
@@ -765,6 +1004,7 @@ const LiveMapScreen = ({ theme, navigation }) => {
         doneLoading={doneLoading || isLoading}
         onCloseDoneModal={onCloseDoneModal}
         onSubmit={sqliteDone}
+        currentOdo={currentOdo}
       />
 
       {/* GAS MODAL */}
@@ -780,65 +1020,11 @@ const LiveMapScreen = ({ theme, navigation }) => {
         arrivedLoading={arrivedLoading}
         onCloseArrivedModal={onCloseArrivedModal}
         showArrivedModal={showArrivedModal}
-        onSubmit={handleArrivedModal}
-        trip={trip}
+        onSubmit={sqliteArrived}
+        checkboxState={{ lastDelivery, onToggleLastDelivery }}
       />
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  firstContainer: {
-    flex: 0.5,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 15,
-    marginBottom: 15,
-    borderWidth: 2,
-    borderRadius: 10,
-  },
-  title: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  secondContainer: {
-    flex: 0.5,
-    marginHorizontal: 15,
-    marginBottom: 15,
-  },
-  timer: {
-    borderWidth: 2,
-    borderRadius: 10,
-    padding: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-  },
-  buttonWrapper: {
-    marginTop: 15,
-    marginBottom: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  buttonContainer: { width: "48%" },
-  buttonLabelStyle: {
-    fontSize: 18,
-    lineHeight: 35,
-  },
-  doneButton: { position: "absolute", bottom: 0, left: 0, right: 0 },
-  container: {
-    padding: 16,
-  },
-  label: {
-    color: "#333",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  picker: {
-    padding: 0,
-    margin: 0,
-  },
-});
 
 export default withTheme(LiveMapScreen);

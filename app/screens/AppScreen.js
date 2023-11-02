@@ -112,49 +112,33 @@ const AppScreen = ({ theme }) => {
         // const backgroundLoc = await Location.requestBackgroundPermissionsAsync();
         const notifications = await Notifications.requestPermissionsAsync();
 
-        // REMOVE THIS IF NO LOCATION
-        const location = await Location.requestForegroundPermissionsAsync();
-        const backgroundLoc =
-          await Location.requestBackgroundPermissionsAsync();
-        //  END
+        // // REMOVE THIS IF NO LOCATION
+        // const location = await Location.requestForegroundPermissionsAsync();
+        // const backgroundLoc =
+        //   await Location.requestBackgroundPermissionsAsync();
+        // //  END
 
         if (
           camera.status === "granted" &&
           media.status === "granted" &&
           // location.status === "granted" &&
           // backgroundLoc.status === "granted" &&
-          notifications.status === "granted" &&
-          // REMOVE THIS IF NO LOCATION
-          location.status === "granted" &&
-          backgroundLoc.status === "granted"
-          //  END
+          notifications.status === "granted"
+          // // REMOVE THIS IF NO LOCATION
+          // location.status === "granted" &&
+          // backgroundLoc.status === "granted"
+          // //  END
         ) {
           await handleUser();
         } else {
-          // REMOVE THIS IF NO LOCATION
-          Alert.alert(
-            "Request Permission",
-            `Please accept permission for ${
-              camera.status === "denied" ? "CAMERA " : ""
-            }${media.status === "denied" ? "MEDIA LIBRARY " : ""}${
-              location.status === "denied" ? "LOCATION" : ""
-            }${backgroundLoc.status === "denied" ? "BACKGROUND LOCATION" : ""}${
-              notifications.status === "denied" ? "NOTIFICATION" : ""
-            } to run the app.\n \nGo to phone setting > Application > Metro GPS > Permission or click OPEN PERMISSION then restart app. Thank you`,
-            [
-              { text: "OK", onPress: () => null, style: "cancel" },
-              {
-                text: "OPEN PERMISSION",
-                onPress: () => Linking.openSettings(),
-              },
-            ]
-          );
-          // END
+          // // REMOVE THIS IF NO LOCATION
           // Alert.alert(
           //   "Request Permission",
           //   `Please accept permission for ${
           //     camera.status === "denied" ? "CAMERA " : ""
           //   }${media.status === "denied" ? "MEDIA LIBRARY " : ""}${
+          //     location.status === "denied" ? "LOCATION" : ""
+          //   }${backgroundLoc.status === "denied" ? "BACKGROUND LOCATION" : ""}${
           //     notifications.status === "denied" ? "NOTIFICATION" : ""
           //   } to run the app.\n \nGo to phone setting > Application > Metro GPS > Permission or click OPEN PERMISSION then restart app. Thank you`,
           //   [
@@ -165,6 +149,22 @@ const AppScreen = ({ theme }) => {
           //     },
           //   ]
           // );
+          // // END
+          Alert.alert(
+            "Request Permission",
+            `Please accept permission for ${
+              camera.status === "denied" ? "CAMERA " : ""
+            }${media.status === "denied" ? "MEDIA LIBRARY " : ""}${
+              notifications.status === "denied" ? "NOTIFICATION" : ""
+            } to run the app.\n \nGo to phone setting > Application > Metro GPS > Permission or click OPEN PERMISSION then restart app. Thank you`,
+            [
+              { text: "OK", onPress: () => null, style: "cancel" },
+              {
+                text: "OPEN PERMISSION",
+                onPress: () => Linking.openSettings(),
+              },
+            ]
+          );
         }
       } catch (error) {
         console.log("APP-SCREEN ERROR: ", error);

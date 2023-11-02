@@ -39,21 +39,21 @@ const LiveTripFormScreen = ({ theme, route: navigationRoute, navigation }) => {
     BackHandler.addEventListener("hardwareBackPress", backAction);
 
     (async () => {
-      // const res = await selectTable("department");
+      const res = await selectTable("department");
       // console.log(res);
       // let data = [];
 
-      // data = JSON.parse(res[0]?.data);
+      const data = JSON.parse(res[0]?.data);
 
-      // setDepartments(
-      //   data &&
-      //     departments.length === 0 && [
-      //       ...data.map((item) => ({
-      //         value: item?.department_name,
-      //         label: item?.department_name,
-      //       })),
-      //     ]
-      // );
+      setDepartments(
+        data &&
+          departments.length === 0 && [
+            ...data.map((item) => ({
+              value: item?.department_name,
+              label: item?.department_name,
+            })),
+          ]
+      );
 
       const filterData = (data) => {
         return data.filter((obj) => obj.trip_template === "Live");

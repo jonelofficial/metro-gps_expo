@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { createTable, deleteFromTable, showTable } from "../utility/sqlite";
+import { createTable, showTable } from "../utility/sqlite";
 import * as SQLite from "expo-sqlite";
 
 const runSQLite = () => {
@@ -61,7 +61,10 @@ const runSQLite = () => {
         trip_type TEXT,
         total_bags TEXT,
         total_bags_delivered TEXT,
-        destination TEXT`
+        destination TEXT,
+        transactions LONGTEXT,
+        last_delivery TEXT,
+        last_left TEXT`
       );
 
       await createTable(

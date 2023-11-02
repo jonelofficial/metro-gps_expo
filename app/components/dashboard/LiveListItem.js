@@ -63,6 +63,16 @@ const LiveListItem = ({
   const handleSync = async () => {
     // start sync loading
     setSyncing(true);
+
+    const totalBagDelivered = JSON.parse(item.transactions)?.reduce(
+      (acc, value) =>
+        acc +
+        (value?.total_bags_delivered
+          ? parseFloat(value.total_bags_delivered)
+          : 0),
+      0
+    );
+
     const form = new FormData();
     form.append("trip_date", item?.trip_date);
     form.append("vehicle_id", item?.vehicle_id);
@@ -78,8 +88,9 @@ const LiveListItem = ({
     form.append("charging", item?.charging);
     form.append("trip_type", item?.trip_type);
     form.append("total_bags", item?.total_bags);
-    form.append("total_bags_delivered", item?.total_bags_delivered);
+    form.append("total_bags_delivered", totalBagDelivered);
     form.append("destination", item?.destination);
+    form.append("transactions", item?.transactions);
 
     const res = await createLiveTrip(form);
     if (res?.data) {

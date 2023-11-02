@@ -145,8 +145,10 @@ const DoneModal = ({
                     keyboardType="numeric"
                     defaultValue={values["odometer_done"]}
                   />
-                  {(currentOdo > values["odometer_done"] ||
-                    currentOdo == values["odometer_done"]) && (
+                  {(parseFloat(currentOdo) >
+                    parseFloat(values["odometer_done"]) ||
+                    parseFloat(currentOdo) ==
+                      parseFloat(values["odometer_done"])) && (
                     <Text
                       style={{
                         color: "red",
@@ -165,8 +167,10 @@ const DoneModal = ({
                     isLoading={doneLoading}
                     disabled={
                       doneLoading ||
-                      currentOdo == values["odometer_done"] ||
-                      currentOdo > values["odometer_done"]
+                      parseFloat(currentOdo) ==
+                        parseFloat(values["odometer_done"]) ||
+                      parseFloat(currentOdo) >
+                        parseFloat(values["odometer_done"])
                     }
                   />
                 </>

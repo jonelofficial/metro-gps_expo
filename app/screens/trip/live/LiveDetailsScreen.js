@@ -296,6 +296,17 @@ const LiveDetailsScreen = ({ route, theme, navigation }) => {
                           />
                         )}
 
+                        {loc?.status == "arrived" &&
+                          newLocations.length !== i + 1 && (
+                            <Content
+                              label="Bags Delivered"
+                              details={
+                                item?.transactions[Math.floor(i / 2)]
+                                  ?.total_bags_delivered
+                              }
+                            />
+                          )}
+
                         {newLocations.length !== i + 1 && <MapDivider />}
                       </Fragment>
                     );

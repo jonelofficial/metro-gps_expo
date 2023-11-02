@@ -161,4 +161,13 @@ export const liveFormSchema = Yup.object().shape({
 
 export const arrivedLiveModalSchema = Yup.object().shape({
   total_bags_delivered: Yup.number().required().label("Total Bags Delivered"),
+  destination: Yup.string().nullable().required().label("Destination"),
+});
+
+export const arrivedLiveModalOthersSchema = Yup.object().shape({
+  total_bags_delivered: Yup.number().required().label("Total Bags Delivered"),
+  destination: Yup.string().nullable().required().label("Destination"),
+  destination_name: Yup.string()
+    .required()
+    .label("Destination Name is required"),
 });

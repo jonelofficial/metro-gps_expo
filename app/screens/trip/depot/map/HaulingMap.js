@@ -40,7 +40,7 @@ const HaulingMap = ({ theme, navigation }) => {
   const { colors } = theme;
   // STATE
   const [trip, setTrip] = useState({ locations: [] });
-  const [totalKm, setTotalKm] = useState(0);
+  // const [totalKm, setTotalKm] = useState(0);
   const [estimatedOdo, setEstimatedOdo] = useState(0);
   const [points, setPoints] = useState([]);
   const [syncingTrip, setSyncingTrip] = useState(true);
@@ -58,13 +58,13 @@ const HaulingMap = ({ theme, navigation }) => {
   const { showAlert } = useToast();
 
   // LOCATION
-  const {
-    location = { coords: { latitude: 0, longitude: 0 } },
-    showMap,
-    requestPremissions,
-  } = taskManager((newObj) => reloadRoute(newObj), onBackground);
+  // const {
+  //   location = { coords: { latitude: 0, longitude: 0 } },
+  //   showMap,
+  //   requestPremissions,
+  // } = taskManager((newObj) => reloadRoute(newObj), onBackground);
 
-  const { handleArrived, handleInterval, handleLeft } = useLocations();
+  // const { handleArrived, handleInterval, handleLeft } = useLocations();
 
   // NET
   const net = useSelector((state) => state.net.value);
@@ -151,20 +151,20 @@ const HaulingMap = ({ theme, navigation }) => {
       handleAppStateChange
     );
 
-    // HANDLE TRIP INTERVAL. 300000 = 5 minutes
-    const loc = setInterval(() => {
-      (async () => {
-        const intervalRes = await handleInterval();
-        if (intervalRes) {
-          const newObj = {
-            ...intervalRes,
-            date: moment(Date.now()).tz("Asia/Manila"),
-          };
+    // // HANDLE TRIP INTERVAL. 300000 = 5 minutes
+    // const loc = setInterval(() => {
+    //   (async () => {
+    //     const intervalRes = await handleInterval();
+    //     if (intervalRes) {
+    //       const newObj = {
+    //         ...intervalRes,
+    //         date: moment(Date.now()).tz("Asia/Manila"),
+    //       };
 
-          reloadRoute(newObj);
-        }
-      })();
-    }, 600000);
+    //       reloadRoute(newObj);
+    //     }
+    //   })();
+    // }, 600000);
 
     return async () => {
       clearInterval(loc);
@@ -175,37 +175,37 @@ const HaulingMap = ({ theme, navigation }) => {
   }, []);
 
   // PATH OR POINTS AND TOTAL KM USEEFFECT
-  useEffect(() => {
-    if (location) {
-      (async () => {
-        if (location && !location?.coords?.speed <= 0 && !syncingTrip) {
-          setPoints((currentValue) => [
-            ...currentValue,
-            {
-              latitude: location?.coords?.latitude,
-              longitude: location?.coords?.longitude,
-            },
-          ]);
+  // useEffect(() => {
+  //   if (location) {
+  //     (async () => {
+  //       if (location && !location?.coords?.speed <= 0 && !syncingTrip) {
+  //         setPoints((currentValue) => [
+  //           ...currentValue,
+  //           {
+  //             latitude: location?.coords?.latitude,
+  //             longitude: location?.coords?.longitude,
+  //           },
+  //         ]);
 
-          insertToTable("INSERT INTO route (points) values (?)", [
-            JSON.stringify({
-              latitude: location?.coords?.latitude,
-              longitude: location?.coords?.longitude,
-            }),
-          ]);
-        }
+  //         insertToTable("INSERT INTO route (points) values (?)", [
+  //           JSON.stringify({
+  //             latitude: location?.coords?.latitude,
+  //             longitude: location?.coords?.longitude,
+  //           }),
+  //         ]);
+  //       }
 
-        // COMPUTE TOTAL KM
-        const meter = getPathLength(points);
-        const km = meter / 1000;
-        setTotalKm(km.toFixed(1));
-      })();
-    }
+  //       // COMPUTE TOTAL KM
+  //       const meter = getPathLength(points);
+  //       const km = meter / 1000;
+  //       // setTotalKm(km.toFixed(1));
+  //     })();
+  //   }
 
-    return () => {
-      null;
-    };
-  }, [location]);
+  //   return () => {
+  //     null;
+  //   };
+  // }, [location]);
 
   // HANDLE BACK
   useEffect(() => {
@@ -276,7 +276,7 @@ const HaulingMap = ({ theme, navigation }) => {
 
       const meter = getPathLength(mapPoints);
       const km = meter / 1000;
-      setTotalKm(km.toFixed(1));
+      // setTotalKm(km.toFixed(1));
     }
 
     const tripRes = await selectTable("depot_hauling");
@@ -367,14 +367,35 @@ const HaulingMap = ({ theme, navigation }) => {
       startLeftLoading();
       start(new Date());
 
-      const leftRes = await Promise.race([
-        handleLeft(location),
-        new Promise((resolve, reject) =>
-          setTimeout(() => {
-            reject(new Error("Timeout"));
-          }, 60000)
-        ),
-      ]);
+      // const leftRes = await Promise.race([
+      //   handleLeft(location),
+      //   new Promise((resolve, reject) =>
+      //     setTimeout(() => {
+      //       reject(new Error("Timeout"));
+      //     }, 60000)
+      //   ),
+      // ]);
+
+      const leftRes = {
+        lat: 0,
+        long: 0,
+        address: [
+          {
+            postalCode: null,
+            country: "Philippines",
+            isoCountryCode: "PH",
+            subregion: "No Location",
+            city: null,
+            street: null,
+            district: null,
+            name: "No Location",
+            streetNumber: null,
+            region: "No Location",
+            timezone: null,
+          },
+        ],
+        status: "left",
+      };
 
       if (leftRes) {
         const newObj = {
@@ -390,7 +411,7 @@ const HaulingMap = ({ theme, navigation }) => {
         await reloadRoute(newObj);
         await reloadMapState();
 
-        if (data?.item_count) {
+        if (data?.item_count && !data?.destination) {
           setItemCount(data?.item_count);
           await updateToTable(
             `UPDATE depot_hauling SET
@@ -442,14 +463,35 @@ const HaulingMap = ({ theme, navigation }) => {
       startLeftLoading();
       start(new Date());
 
-      const leftRes = await Promise.race([
-        handleLeft(location),
-        new Promise((resolve, reject) =>
-          setTimeout(() => {
-            reject(new Error("Timeout"));
-          }, 60000)
-        ),
-      ]);
+      // const leftRes = await Promise.race([
+      //   handleLeft(location),
+      //   new Promise((resolve, reject) =>
+      //     setTimeout(() => {
+      //       reject(new Error("Timeout"));
+      //     }, 60000)
+      //   ),
+      // ]);
+
+      const leftRes = {
+        lat: 0,
+        long: 0,
+        address: [
+          {
+            postalCode: null,
+            country: "Philippines",
+            isoCountryCode: "PH",
+            subregion: "No Location",
+            city: null,
+            street: null,
+            district: null,
+            name: "No Location",
+            streetNumber: null,
+            region: "No Location",
+            timezone: null,
+          },
+        ],
+        status: "left",
+      };
 
       if (leftRes) {
         const newObj = {
@@ -480,12 +522,33 @@ const HaulingMap = ({ theme, navigation }) => {
       startArrivedLoading();
       pause();
 
-      const arrivedRes = await Promise.race([
-        handleArrived(location),
-        new Promise((resolve, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), 6000)
-        ),
-      ]);
+      // const arrivedRes = await Promise.race([
+      //   handleArrived(location),
+      //   new Promise((resolve, reject) =>
+      //     setTimeout(() => reject(new Error("Timeout")), 6000)
+      //   ),
+      // ]);
+
+      const arrivedRes = {
+        lat: 0,
+        long: 0,
+        address: [
+          {
+            postalCode: null,
+            country: "Philippines",
+            isoCountryCode: "PH",
+            subregion: "No Location",
+            city: null,
+            street: null,
+            district: null,
+            name: "No Location",
+            streetNumber: null,
+            region: "No Location",
+            timezone: null,
+          },
+        ],
+        status: "arrived",
+      };
 
       if (arrivedRes) {
         onCloseArrivedModal();
@@ -538,14 +601,24 @@ const HaulingMap = ({ theme, navigation }) => {
       Keyboard.dismiss();
       startGasLoading();
 
+      // const gasObj = {
+      //   gas_station_id: data.gas_station_id,
+      //   gas_station_name: data.gas_station_name,
+      //   odometer: data.odometer,
+      //   liter: data.liter,
+      //   amount: data.amount,
+      //   lat: location?.coords?.latitude,
+      //   long: location?.coords?.longitude,
+      // };
+
       const gasObj = {
         gas_station_id: data.gas_station_id,
         gas_station_name: data.gas_station_name,
         odometer: data.odometer,
         liter: data.liter,
         amount: data.amount,
-        lat: location?.coords?.latitude,
-        long: location?.coords?.longitude,
+        lat: 0,
+        long: 0,
       };
 
       const tripRes = await selectTable("depot_hauling");
@@ -727,18 +800,18 @@ const HaulingMap = ({ theme, navigation }) => {
     },
   });
 
-  if (!showMap) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Allow permission for locations</Text>
-        <Button onPress={requestPremissions}>Request Permission</Button>
-      </View>
-    );
-  }
+  // if (!showMap) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <Text>Allow permission for locations</Text>
+  //       <Button onPress={requestPremissions}>Request Permission</Button>
+  //     </View>
+  //   );
+  // }
 
-  if (!location) {
-    return <LoaderAnimation />;
-  }
+  // if (!location) {
+  //   return <LoaderAnimation />;
+  // }
 
   return (
     <>
@@ -758,7 +831,7 @@ const HaulingMap = ({ theme, navigation }) => {
             }:${
               seconds < 10 ? `0${seconds}` : seconds >= 10 && seconds
             }`}</Text>
-            <Text>{`  Total KM:  ${totalKm || "0"}`}</Text>
+            {/* <Text>{`  Total KM:  ${totalKm || "0"}`}</Text> */}
           </View>
 
           {/* LEFT AND ARRIVED BUTTON */}

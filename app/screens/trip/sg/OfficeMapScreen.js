@@ -42,7 +42,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
   const { colors } = theme;
   const user = useSelector((state) => state.token.userDetails);
   // STATE
-  const [totalKm, setTotalKm] = useState(0);
+  // const [totalKm, setTotalKm] = useState(0);
   const [estimatedOdo, setEstimatedOdo] = useState(0);
   const [trip, setTrip] = useState({ locations: [] });
   const [points, setPoints] = useState([]);
@@ -339,7 +339,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       setPoints(mapPoints);
       const meter = getPathLength(mapPoints);
       const km = meter / 1000;
-      setTotalKm(km.toFixed(1));
+      // setTotalKm(km.toFixed(1));
     }
 
     const tripRes = await selectTable("offline_trip");
@@ -676,7 +676,7 @@ const OfficeMapScreen = ({ theme, navigation }) => {
             }:${
               seconds < 10 ? `0${seconds}` : seconds >= 10 && seconds
             }`}</Text>
-            <Text>{`  Total KM: ${totalKm || "0"}`}</Text>
+            {/* <Text>{`  Total KM: ${totalKm || "0"}`}</Text> */}
           </View>
 
           {/* LEFT AND ARRIVED BUTTON */}

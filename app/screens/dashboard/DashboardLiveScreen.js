@@ -209,6 +209,7 @@ const DashboardLiveScreen = ({ theme, navigation }) => {
                 total_bags: item?.total_bags,
                 total_bags_delivered: item?.total_bags_delivered,
                 destination: item?.destination,
+                transactions: item?.transactions,
               },
               ...prevState,
             ];
@@ -238,6 +239,7 @@ const DashboardLiveScreen = ({ theme, navigation }) => {
               total_bags: item?.total_bags,
               total_bags_delivered: item?.total_bags_delivered,
               destination: item?.destination,
+              transactions: item?.transactions,
             },
             // ...prevState,
           ];

@@ -31,7 +31,7 @@ const LeftModal = ({
 
   const [destinations, setDestinations] = useState([]);
   const [loadingDestination, setLoadingDestination] = useState(true);
-
+  const [hasItem, setHasItem] = useState(false);
   // const [destination, setDestination] = useState();
 
   const {
@@ -113,6 +113,8 @@ const LeftModal = ({
           </TouchableOpacity>
         </View>
         <Formik
+          validateOnChange={false}
+          validateOnBlur={false}
           initialValues={{
             item_count: "",
             destination: destination,
@@ -141,86 +143,60 @@ const LeftModal = ({
             errors,
             touched,
           }) => {
+            useEffect(() => {
+              if (values.item_count) {
+                setHasItem(true);
+                setDestination(null);
+                setFieldValue("destination", null);
+              } else {
+                setHasItem(false);
+              }
+            }, [values]);
+
             return (
               <>
-                {/* <DropDownPicker
-                  id="destination"
-                  listMode="SCROLLVIEW"
-                  open={showDestinationsDropdown}
-                  CloseIconComponent={() => {
-                    console.log("click close");
-                  }}
-                  value={destination}
-                  items={destinations}
-                  onChangeValue={(value) => {
-                    setFieldValue("destination", value);
-                  }}
-                  setOpen={onToggleDestinationsDropdown}
-                  setValue={setDestination}
-                  setItems={setDestinations}
-                  placeholder={
-                    !destinations
-                      ? "Loading..."
-                      : "Change Destination (Optional)"
-                  }
-                  textStyle={{
-                    fontFamily: "Khyay",
-                    fontSize: 16,
-                  }}
-                  style={{
-                    borderRadius: 15,
-                    borderColor: colors.light,
-                    marginBottom: errors.destination ? 0 : 12,
-                    zIndex: 0,
-                  }}
-                  dropDownContainerStyle={{
-                    borderColor: colors.light,
-                    maxHeight: 150,
-                  }}
-                  zIndex={2000}
-                  zIndexInverse={2000}
-                /> */}
-
-                <AutocompleteDropdown
-                  ref={searchRef}
-                  controller={(controller) => {
-                    dropdownController.current = controller;
-                  }}
-                  clearOnFocus={false}
-                  onSelectItem={(value) => {
-                    if (value) {
-                      setFieldValue("destination", value?.title);
-                      setDestination(value);
-                    }
-                  }}
-                  onClear={() => {
-                    setDestination(null);
-                  }}
-                  dataSet={destinations}
-                  loading={loadingDestination}
-                  containerStyle={{
-                    marginBottom:
-                      touched?.destination && errors?.destination ? 5 : 16,
-                  }}
-                  inputContainerStyle={{
-                    backgroundColor: colors.white,
-                    borderRadius: 15,
-                    borderColor: colors.light,
-                    borderWidth: 1,
-                  }}
-                  inputHeight={50}
-                  textInputProps={{
-                    placeholder: "Destination",
-                    autoCorrect: false,
-                    autoCapitalize: "none",
-                    style: {
-                      fontFamily: "Khyay",
-                      borderRadius: 25,
-                      paddingLeft: 18,
-                      fontSize: 16,
-                    },
-                  }}
-                />
+                {!!!hasItem && (
+                  <AutocompleteDropdown
+                    ref={searchRef}
+                    controller={(controller) => {
+                      dropdownController.current = controller;
+                    }}
+                    clearOnFocus={false}
+                    onSelectItem={(value) => {
+                      if (value) {
+                        setFieldValue("destination", value?.title);
+                        setDestination(value);
+                      }
+                    }}
+                    onClear={() => {
+                      setDestination(null);
+                    }}
+                    dataSet={destinations}
+                    loading={loadingDestination}
+                    containerStyle={{
+                      marginBottom:
+                        touched?.destination && errors?.destination ? 5 : 16,
+                    }}
+                    inputContainerStyle={{
+                      backgroundColor: colors.white,
+                      borderRadius: 15,
+                      borderColor: colors.light,
+                      borderWidth: 1,
+                    }}
+                    inputHeight={50}
+                    textInputProps={{
+                      placeholder: "Destination",
+                      autoCorrect: false,
+                      autoCapitalize: "none",
+                      style: {
+                        fontFamily: "Khyay",
+                        borderRadius: 25,
+                        paddingLeft: 18,
+                        fontSize: 16,
+                      },
+                    }}
+                  />
+                )}
                 {destination?.title === "OTHER LOCATION" && (
                   <TextField
                     touched={touched}
@@ -258,6 +234,7 @@ const LeftModal = ({
                     name="item_count"
                     label="Item Count"
                     keyboardType="numeric"
+                    disabled={destination}
                   />
                 )}
 
