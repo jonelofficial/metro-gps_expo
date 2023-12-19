@@ -29,7 +29,8 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
     if (
       newLocations.length % 2 !== 0 ||
       newLocations.length === 0 ||
-      isNaN(item?.odometer_done)
+      isNaN(item?.odometer_done) ||
+      item?.odometer_done == null
     ) {
       dispatch(validatorStatus(false));
     }
@@ -105,7 +106,8 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
           backgroundColor:
             newLocations.length % 2 !== 0 ||
             newLocations.length === 0 ||
-            isNaN(item?.odometer_done)
+            isNaN(item?.odometer_done) ||
+            item?.odometer_done == null
               ? colors.danger
               : item?.offline
               ? colors.primarySync
@@ -125,7 +127,8 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
                 display:
                   newLocations.length % 2 !== 0 ||
                   newLocations.length === 0 ||
-                  isNaN(item?.odometer_done)
+                  isNaN(item?.odometer_done) ||
+                  item?.odometer_done == null
                     ? "none"
                     : "flex",
               }}
@@ -169,7 +172,8 @@ const ListItem = ({ item, theme, onPress, setTrip, setTotalCount, page }) => {
             <Text style={{ color: item?.offline && colors.white }}>
               {newLocations.length % 2 !== 0 ||
               newLocations.length === 0 ||
-              isNaN(item?.odometer_done)
+              isNaN(item?.odometer_done) ||
+              item?.odometer_done == null
                 ? "CLICK TO RESUME TRIP"
                 : (km &&
                     `${km

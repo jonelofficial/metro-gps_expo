@@ -357,6 +357,12 @@ const HaulingMap = ({ theme, navigation }) => {
       setTrip({
         locations: [...newLocations],
       });
+
+      if (locPoint?.length % 2 == 0 && locPoint?.length > 1) {
+        setCurrentOdo(locPoint[locPoint.length - 1]?.odometer);
+      } else if (locPoint?.length % 2 != 0 && locPoint?.length > 1) {
+        setCurrentOdo(locPoint[locPoint.length - 2]?.odometer);
+      }
     }
   };
 
@@ -547,8 +553,11 @@ const HaulingMap = ({ theme, navigation }) => {
             timezone: null,
           },
         ],
+        odometer: data.arrivedOdo,
         status: "arrived",
       };
+
+      setCurrentOdo(data.arrivedOdo);
 
       if (arrivedRes) {
         onCloseArrivedModal();
@@ -970,6 +979,8 @@ const HaulingMap = ({ theme, navigation }) => {
         onSubmit={sqliteArrived}
         tareWeight={tareWeight}
         itemCount={itemCount}
+        currentOdo={currentOdo}
+        onArrived={trip?.locations.length % 2 === 0 ? false : true}
       />
     </>
   );

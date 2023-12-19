@@ -29,6 +29,8 @@ const ArrivedModal = ({
   onSubmit,
   checkboxState,
   theme,
+  currentOdo,
+  onArrived,
 }) => {
   const { colors } = theme;
   const { lastDelivery, onToggleLastDelivery } = checkboxState;
@@ -100,8 +102,9 @@ const ArrivedModal = ({
         <Formik
           initialValues={{
             total_bags_delivered: "",
-            destination: destination,
-            destination_name: "",
+            // destination: destination,
+            // destination_name: "",
+            // arrivedOdo: "",
           }}
           validationSchema={
             destination?.title === "OTHER LOCATION"
@@ -125,7 +128,7 @@ const ArrivedModal = ({
           }) => {
             return (
               <>
-                <AutocompleteDropdown
+                {/* <AutocompleteDropdown
                   ref={searchRef}
                   controller={(controller) => {
                     dropdownController.current = controller;
@@ -162,15 +165,15 @@ const ArrivedModal = ({
                       fontSize: 16,
                     },
                   }}
-                />
+                /> */}
                 {/* TRIP TYPE ERROR HANDLING */}
-                {touched?.destination && errors?.destination && (
+                {/* {touched?.destination && errors?.destination && (
                   <Text style={{ color: "red", fontSize: 14, padding: 5 }}>
                     {errors.destination}
                   </Text>
-                )}
+                )} */}
 
-                {destination?.title === "OTHER LOCATION" && (
+                {/* {destination?.title === "OTHER LOCATION" && (
                   <TextField
                     touched={touched}
                     errors={errors}
@@ -180,7 +183,38 @@ const ArrivedModal = ({
                     name="destination_name"
                     label="Destination Name"
                   />
+                )} */}
+
+                {/* {onArrived && (
+                  <TextField
+                    touched={touched}
+                    errors={errors}
+                    handleChange={handleChange}
+                    handleBlur={handleBlur}
+                    values={values}
+                    name="arrivedOdo"
+                    label="Vehicle Odometer"
+                    keyboardType="numeric"
+                    defaultValue={values["arrivedOdo"]}
+                  />
                 )}
+                {(parseFloat(currentOdo) > parseFloat(values["arrivedOdo"]) ||
+                  parseFloat(currentOdo) == parseFloat(values["arrivedOdo"])) &&
+                  onArrived &&
+                  !arrivedLoading && (
+                    <Text
+                      style={{
+                        color: "red",
+                        fontSize: 14,
+                        padding: 5,
+                        marginTop: -10,
+                      }}
+                    >
+                      Done odometer must be greater than previous odometer
+                      inputted.
+                    </Text>
+                  )} */}
+
                 <TextField
                   touched={touched}
                   errors={errors}
@@ -223,7 +257,15 @@ const ArrivedModal = ({
                   onPress={handleSubmit}
                   title="Proceed"
                   isLoading={arrivedLoading}
-                  disabled={arrivedLoading}
+                  disabled={
+                    arrivedLoading
+                    // ||
+                    // ((parseFloat(currentOdo) ==
+                    //   parseFloat(values["arrivedOdo"]) ||
+                    //   parseFloat(currentOdo) >
+                    //     parseFloat(values["arrivedOdo"])) &&
+                    //   onArrived)
+                  }
                 />
               </>
             );

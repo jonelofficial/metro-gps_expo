@@ -356,6 +356,12 @@ const DeliveryMap = ({ theme, navigation }) => {
       setTrip({
         locations: [...newLocations],
       });
+
+      if (locPoint?.length % 2 == 0 && locPoint?.length > 1) {
+        setCurrentOdo(locPoint[locPoint.length - 1]?.odometer);
+      } else if (locPoint?.length % 2 != 0 && locPoint?.length > 1) {
+        setCurrentOdo(locPoint[locPoint.length - 2]?.odometer);
+      }
     }
   };
   const [lastDestination, setLastDestination] = useState("");
@@ -364,6 +370,8 @@ const DeliveryMap = ({ theme, navigation }) => {
       Keyboard.dismiss();
       startLeftLoading();
       start(new Date());
+
+      console.log("running");
 
       // const leftRes = await Promise.race([
       //   handleLeft(location),
@@ -405,10 +413,55 @@ const DeliveryMap = ({ theme, navigation }) => {
               : data?.destination || lastDestination,
         };
 
-        if (doneDelivery) {
+        // if (doneDelivery) {
+        //   await updateToTable(
+        //     "UPDATE depot_delivery SET last_left = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+        //     [JSON.stringify(doneDelivery)]
+        //   );
+        // }
+
+        const delivery = await selectTable(
+          "depot_delivery WHERE id = (SELECT MAX(id) FROM depot_delivery)"
+        );
+
+        const cratesTransaction = JSON.parse(
+          delivery[delivery.length - 1].crates_transaction
+        );
+
+        if (!cratesTransaction && !doneDelivery) {
+          const newCratesTransaction = [data];
           await updateToTable(
-            "UPDATE depot_delivery SET last_left = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
-            [JSON.stringify(doneDelivery)]
+            "UPDATE depot_delivery SET crates_transaction = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+            [JSON.stringify(newCratesTransaction)]
+          );
+        } else if (!doneDelivery && !lastDelivery) {
+          cratesTransaction.push(data);
+
+          await updateToTable(
+            "UPDATE depot_delivery SET crates_transaction = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+            [JSON.stringify(cratesTransaction)]
+          );
+        }
+
+        if (cratesTransaction && lastDelivery) {
+          cratesTransaction.push(data);
+          await updateToTable(
+            "UPDATE depot_delivery SET last_store = (?), crates_transaction = (?), last_left = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+            [
+              JSON.stringify(lastDelivery),
+              JSON.stringify(cratesTransaction),
+              JSON.stringify(doneDelivery),
+            ]
+          );
+        } else if (!cratesTransaction && lastDelivery) {
+          const newCratesTransaction = [data];
+          await updateToTable(
+            "UPDATE depot_delivery SET last_store = (?), crates_transaction = (?), last_left = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+            [
+              JSON.stringify(lastDelivery),
+              JSON.stringify(newCratesTransaction),
+              JSON.stringify(doneDelivery),
+            ]
           );
         }
 
@@ -417,6 +470,7 @@ const DeliveryMap = ({ theme, navigation }) => {
       }
       onCloseDestination();
       stopLefLoading();
+      onCloseArrivedModal();
       startLoader();
     } catch (error) {
       console.log("SQLITE LEFT: ", error);
@@ -459,8 +513,11 @@ const DeliveryMap = ({ theme, navigation }) => {
             timezone: null,
           },
         ],
+        odometer: data.arrivedOdo,
         status: "arrived",
       };
+
+      setCurrentOdo(data.arrivedOdo);
 
       if (arrivedRes) {
         const newObj = {
@@ -472,42 +529,42 @@ const DeliveryMap = ({ theme, navigation }) => {
               : data?.destination,
         };
 
-        const delivery = await selectTable(
-          "depot_delivery WHERE id = (SELECT MAX(id) FROM depot_delivery)"
-        );
+        // const delivery = await selectTable(
+        //   "depot_delivery WHERE id = (SELECT MAX(id) FROM depot_delivery)"
+        // );
 
-        const cratesTransaction = JSON.parse(
-          delivery[delivery.length - 1].crates_transaction
-        );
+        // const cratesTransaction = JSON.parse(
+        //   delivery[delivery.length - 1].crates_transaction
+        // );
 
-        if (!cratesTransaction && !doneDelivery) {
-          const newCratesTransaction = [data];
-          await updateToTable(
-            "UPDATE depot_delivery SET crates_transaction = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
-            [JSON.stringify(newCratesTransaction)]
-          );
-        } else if (!doneDelivery && !lastDelivery) {
-          cratesTransaction.push(data);
+        // if (!cratesTransaction && !doneDelivery) {
+        //   const newCratesTransaction = [data];
+        //   await updateToTable(
+        //     "UPDATE depot_delivery SET crates_transaction = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+        //     [JSON.stringify(newCratesTransaction)]
+        //   );
+        // } else if (!doneDelivery && !lastDelivery) {
+        //   cratesTransaction.push(data);
 
-          await updateToTable(
-            "UPDATE depot_delivery SET crates_transaction = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
-            [JSON.stringify(cratesTransaction)]
-          );
-        }
+        //   await updateToTable(
+        //     "UPDATE depot_delivery SET crates_transaction = (?) WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+        //     [JSON.stringify(cratesTransaction)]
+        //   );
+        // }
 
-        if (cratesTransaction && lastDelivery && !doneDelivery) {
-          cratesTransaction.push(data);
-          await updateToTable(
-            "UPDATE depot_delivery SET last_store = (?), crates_transaction = (?)  WHERE id = (SELECT MAX (id) FROM depot_delivery)",
-            [JSON.stringify(lastDelivery), JSON.stringify(cratesTransaction)]
-          );
-        } else if (!cratesTransaction && lastDelivery && !doneDelivery) {
-          const newCratesTransaction = [data];
-          await updateToTable(
-            "UPDATE depot_delivery SET last_store = (?), crates_transaction = (?)  WHERE id = (SELECT MAX (id) FROM depot_delivery)",
-            [JSON.stringify(lastDelivery), JSON.stringify(newCratesTransaction)]
-          );
-        }
+        // if (cratesTransaction && lastDelivery && !doneDelivery) {
+        //   cratesTransaction.push(data);
+        //   await updateToTable(
+        //     "UPDATE depot_delivery SET last_store = (?), crates_transaction = (?)  WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+        //     [JSON.stringify(lastDelivery), JSON.stringify(cratesTransaction)]
+        //   );
+        // } else if (!cratesTransaction && lastDelivery && !doneDelivery) {
+        //   const newCratesTransaction = [data];
+        //   await updateToTable(
+        //     "UPDATE depot_delivery SET last_store = (?), crates_transaction = (?)  WHERE id = (SELECT MAX (id) FROM depot_delivery)",
+        //     [JSON.stringify(lastDelivery), JSON.stringify(newCratesTransaction)]
+        //   );
+        // }
 
         await reloadRoute(newObj);
         await reloadMapState();
@@ -696,12 +753,21 @@ const DeliveryMap = ({ theme, navigation }) => {
       fontSize: 18,
       lineHeight: 35,
     },
+    // leftButton: {
+    //   backgroundColor: leftLoading
+    //     ? colors.notActive
+    //     : trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
+    //     ? colors.notActive
+    //     : lastLeft
+    //     ? colors.notActive
+    //     : colors.danger,
+    // },
     leftButton: {
       backgroundColor: leftLoading
         ? colors.notActive
         : trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
         ? colors.notActive
-        : lastLeft
+        : doneDelivery
         ? colors.notActive
         : colors.danger,
     },
@@ -714,6 +780,22 @@ const DeliveryMap = ({ theme, navigation }) => {
           : colors.success,
     },
     doneContainer: { position: "absolute", bottom: 0, left: 0, right: 0 },
+    // doneButton: {
+    //   backgroundColor:
+    //     trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
+    //       ? colors.notActive
+    //       : trip?.locations?.length === 0
+    //       ? colors.notActive
+    //       : leftLoading
+    //       ? colors.notActive
+    //       : arrivedLoading
+    //       ? colors.notActive
+    //       : doneLoading
+    //       ? colors.notActive
+    //       : trip?.locations?.length % 2 === 0 && !lastLeft
+    //       ? colors.notActive
+    //       : colors.dark,
+    // },
     doneButton: {
       backgroundColor:
         trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
@@ -726,7 +808,7 @@ const DeliveryMap = ({ theme, navigation }) => {
           ? colors.notActive
           : doneLoading
           ? colors.notActive
-          : trip?.locations?.length % 2 === 0 && !lastLeft
+          : trip?.locations?.length % 2 === 0 && !doneDelivery
           ? colors.notActive
           : colors.dark,
     },
@@ -773,21 +855,34 @@ const DeliveryMap = ({ theme, navigation }) => {
                 mode="contained"
                 style={styles.leftButton}
                 labelStyle={styles.buttonLabelStyle}
+                // disabled={
+                //   leftLoading ||
+                //   arrivedLoading ||
+                //   (trip?.locations?.length % 2 !== 0 &&
+                //     trip?.locations?.length > 0) ||
+                //   lastLeft
+                // }
                 disabled={
                   leftLoading ||
                   arrivedLoading ||
                   (trip?.locations?.length % 2 !== 0 &&
                     trip?.locations?.length > 0) ||
-                  lastLeft
+                  doneDelivery
                 }
                 loading={leftLoading}
+                // onPress={
+                //   trip?.locations?.length === 0
+                //     ? onToggleDestination
+                //     : sqliteLeft
+                // }
                 onPress={
                   trip?.locations?.length === 0
                     ? onToggleDestination
-                    : sqliteLeft
+                    : onToggleArrivedModal
                 }
               >
-                {trip?.locations?.length === 0 ? "Left" : " Left Store"}
+                {/* {trip?.locations?.length === 0 ? "Left" : " Left Store"} */}
+                Left
               </Button>
             </View>
 
@@ -803,11 +898,13 @@ const DeliveryMap = ({ theme, navigation }) => {
                   trip?.locations?.length === 0
                 }
                 loading={arrivedLoading}
-                onPress={
-                  doneDelivery ? onToggleDestination : onToggleArrivedModal
-                }
+                // onPress={
+                //   doneDelivery ? onToggleDestination : onToggleArrivedModal
+                // }
+                onPress={onToggleDestination}
               >
-                {doneDelivery ? "Arrived" : "Arrived Store"}
+                {/* {doneDelivery ? "Arrived" : "Arrived Store"} */}
+                Arrived
               </Button>
             </View>
           </View>
@@ -837,6 +934,15 @@ const DeliveryMap = ({ theme, navigation }) => {
               mode="contained"
               style={styles.doneButton}
               labelStyle={styles.buttonLabelStyle}
+              // disabled={
+              //   (trip?.locations?.length % 2 !== 0 &&
+              //     trip?.locations?.length > 0) ||
+              //   trip?.locations?.length === 0 ||
+              //   arrivedLoading ||
+              //   leftLoading ||
+              //   doneLoading ||
+              //   (trip?.locations?.length % 2 === 0 && !lastLeft)
+              // }
               disabled={
                 (trip?.locations?.length % 2 !== 0 &&
                   trip?.locations?.length > 0) ||
@@ -844,7 +950,7 @@ const DeliveryMap = ({ theme, navigation }) => {
                 arrivedLoading ||
                 leftLoading ||
                 doneLoading ||
-                (trip?.locations?.length % 2 === 0 && !lastLeft)
+                (trip?.locations?.length % 2 === 0 && !doneDelivery)
               }
               onPress={onToggleDoneModal}
             >
@@ -859,7 +965,10 @@ const DeliveryMap = ({ theme, navigation }) => {
         isOpenDestination={isOpenDestination}
         onCloseDestination={onCloseDestination}
         loading={arrivedLoading || leftLoading}
-        onSubmit={doneDelivery ? sqliteArrived : sqliteLeft}
+        // onSubmit={doneDelivery ? sqliteArrived : sqliteLeft}
+        onSubmit={trip?.locations.length === 0 ? sqliteLeft : sqliteArrived}
+        currentOdo={currentOdo}
+        onArrived={trip?.locations.length % 2 === 0 ? false : true}
       />
 
       {/* DONE MODAL */}
@@ -881,12 +990,24 @@ const DeliveryMap = ({ theme, navigation }) => {
       />
 
       {/* ARRIVED MODAL */}
-      <ArrivedDeliveryModal
+      {/* <ArrivedDeliveryModal
         arrivedLoading={arrivedLoading}
         onCloseArrivedModal={onCloseArrivedModal}
         showArrivedModal={showArrivedModal}
         onSubmit={sqliteArrived}
         checkboxState={{ lastDelivery, onToggleLastDelivery }}
+        currentOdo={currentOdo}
+        onArrived={trip?.locations.length % 2 === 0 ? false : true}
+      /> */}
+
+      <ArrivedDeliveryModal
+        arrivedLoading={leftLoading}
+        onCloseArrivedModal={onCloseArrivedModal}
+        showArrivedModal={showArrivedModal}
+        onSubmit={sqliteLeft}
+        checkboxState={{ lastDelivery, onToggleLastDelivery }}
+        currentOdo={currentOdo}
+        onArrived={trip?.locations.length % 2 === 0 ? false : true}
       />
     </>
   );

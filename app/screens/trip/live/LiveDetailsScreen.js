@@ -289,6 +289,10 @@ const LiveDetailsScreen = ({ route, theme, navigation }) => {
                             loc?.address[0]?.subregion || "(No Subregion)"
                           }`}
                         />
+
+                        {loc?.odometer && (
+                          <Content label="Odometer" details={loc?.odometer} />
+                        )}
                         {loc?.destination && (
                           <Content
                             label="Destination"
@@ -296,8 +300,9 @@ const LiveDetailsScreen = ({ route, theme, navigation }) => {
                           />
                         )}
 
-                        {loc?.status == "arrived" &&
-                          newLocations.length !== i + 1 && (
+                        {loc?.status == "left" &&
+                          newLocations.length !== i + 1 &&
+                          i != 0 && (
                             <Content
                               label="Bags Delivered"
                               details={

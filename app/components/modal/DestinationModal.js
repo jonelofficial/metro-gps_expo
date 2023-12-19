@@ -11,6 +11,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
 import SubmitButton from "../form/SubmitButton";
 import {
+  destinationArrivedOthersSchema,
+  destinationArrivedSchema,
   destinationOthersSchema,
   destinationSchema,
 } from "../../utility/schema/validation";
@@ -24,6 +26,8 @@ const DestinationModal = ({
   loading,
   onSubmit,
   theme,
+  currentOdo,
+  onArrived,
 }) => {
   const { colors } = theme;
   const [loadingDestination, setLoadingDestination] = useState(true);
@@ -102,9 +106,17 @@ const DestinationModal = ({
         </View>
 
         <Formik
-          initialValues={{ destination: destination, destination_name: "" }}
+          initialValues={{
+            destination: destination,
+            destination_name: "",
+            arrivedOdo: "",
+          }}
           validationSchema={
-            destination?.title === "OTHER LOCATION"
+            destination?.title === "OTHER LOCATION" && onArrived
+              ? destinationArrivedOthersSchema
+              : destination?.title !== "OTHER LOCATION" && onArrived
+              ? destinationArrivedSchema
+              : destination?.title === "OTHER LOCATION"
               ? destinationOthersSchema
               : destinationSchema
           }
@@ -181,11 +193,48 @@ const DestinationModal = ({
                   />
                 )}
 
+                {onArrived && (
+                  <TextField
+                    touched={touched}
+                    errors={errors}
+                    handleChange={handleChange}
+                    handleBlur={handleBlur}
+                    values={values}
+                    name="arrivedOdo"
+                    label="Vehicle Odometer"
+                    keyboardType="numeric"
+                    defaultValue={values["arrivedOdo"]}
+                  />
+                )}
+                {(parseFloat(currentOdo) > parseFloat(values["arrivedOdo"]) ||
+                  parseFloat(currentOdo) == parseFloat(values["arrivedOdo"])) &&
+                  onArrived &&
+                  !loading && (
+                    <Text
+                      style={{
+                        color: "red",
+                        fontSize: 14,
+                        padding: 5,
+                        marginTop: -10,
+                      }}
+                    >
+                      Done odometer must be greater than previous odometer
+                      inputted.
+                    </Text>
+                  )}
+
                 <SubmitButton
                   onPress={handleSubmit}
                   title="Proceed"
                   isLoading={loading}
-                  disabled={loading}
+                  disabled={
+                    loading ||
+                    ((parseFloat(currentOdo) ==
+                      parseFloat(values["arrivedOdo"]) ||
+                      parseFloat(currentOdo) >
+                        parseFloat(values["arrivedOdo"])) &&
+                      onArrived)
+                  }
                 />
               </>
             );

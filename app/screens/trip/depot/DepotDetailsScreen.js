@@ -366,6 +366,10 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                               loc?.address[0]?.subregion || "(No Subregion)"
                             }`}
                           />
+
+                          {loc?.odometer && (
+                            <Content label="Odometer" details={loc?.odometer} />
+                          )}
                           {loc?.destination && (
                             <Content
                               label="Destination"
@@ -426,7 +430,7 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                             }`}
                           />
 
-                          {loc?.status === "arrived" &&
+                          {loc?.status === "left" &&
                             newLocations.length !== i + 1 && (
                               <>
                                 <Content
@@ -452,7 +456,9 @@ const DepotDetailsScreen = ({ route, theme, navigation }) => {
                                 />
                               </>
                             )}
-
+                          {loc?.odometer && (
+                            <Content label="Odometer" details={loc?.odometer} />
+                          )}
                           {loc?.destination && (
                             <Content
                               label="Destination"

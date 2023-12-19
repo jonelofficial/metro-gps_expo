@@ -284,6 +284,9 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
                             loc?.address[0]?.subregion || "(No Subregion)"
                           }`}
                         />
+                        {loc?.odometer && (
+                          <Content label="Odometer" details={loc?.odometer} />
+                        )}
                         {loc?.destination && (
                           <Content
                             label="Destination"
@@ -330,10 +333,10 @@ const TripDetailsScreen = ({ route, theme, navigation }) => {
             )}
           </ScrollView>
         </View>
-
         {(newLocations.length % 2 !== 0 ||
           newLocations.length === 0 ||
-          isNaN(item?.odometer_done)) && (
+          isNaN(item?.odometer_done) ||
+          item?.odometer_done == null) && (
           <View
             style={{
               paddingBottom: 15,

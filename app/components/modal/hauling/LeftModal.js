@@ -224,19 +224,20 @@ const LeftModal = ({
                   ))} */}
 
                 {(!trip?.locations?.length <= 0 ||
-                  (!destination && trip?.locations?.length > 0)) && (
-                  <TextField
-                    touched={touched}
-                    errors={errors}
-                    handleChange={handleChange}
-                    handleBlur={handleBlur}
-                    values={values}
-                    name="item_count"
-                    label="Item Count"
-                    keyboardType="numeric"
-                    disabled={destination}
-                  />
-                )}
+                  (!destination && trip?.locations?.length > 0)) &&
+                  !leftLoading && (
+                    <TextField
+                      touched={touched}
+                      errors={errors}
+                      handleChange={handleChange}
+                      handleBlur={handleBlur}
+                      values={values}
+                      name="item_count"
+                      label="Item Count"
+                      keyboardType="numeric"
+                      disabled={destination}
+                    />
+                  )}
 
                 <SubmitButton
                   onPress={handleSubmit}

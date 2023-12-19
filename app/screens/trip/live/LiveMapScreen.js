@@ -341,6 +341,11 @@ const LiveMapScreen = ({ theme, navigation }) => {
       setTrip({
         locations: [...newLocations],
       });
+      if (locPoint?.length % 2 == 0 && locPoint?.length > 1) {
+        setCurrentOdo(locPoint[locPoint.length - 1]?.odometer);
+      } else if (locPoint?.length % 2 != 0 && locPoint?.length > 1) {
+        setCurrentOdo(locPoint[locPoint.length - 2]?.odometer);
+      }
     }
   };
 
@@ -421,10 +426,56 @@ const LiveMapScreen = ({ theme, navigation }) => {
               : data?.destination || lastDestination,
         };
 
-        if (doneDelivery) {
+        // if (doneDelivery) {
+        //   await updateToTable(
+        //     "UPDATE live SET last_left = (?) WHERE id = (SELECT MAX (id) FROM live)",
+        //     [JSON.stringify(doneDelivery)]
+        //   );
+        // }
+
+        const delivery = await selectTable(
+          "live WHERE id = (SELECT MAX(id) FROM live)"
+        );
+
+        const transactions = JSON.parse(
+          delivery[delivery.length - 1].transactions
+        );
+
+        if (!transactions && !doneDelivery) {
+          const newTransaction = [data];
           await updateToTable(
-            "UPDATE live SET last_left = (?) WHERE id = (SELECT MAX (id) FROM live)",
-            [JSON.stringify(doneDelivery)]
+            "UPDATE live SET transactions = (?) WHERE id = (SELECT MAX (id) FROM live)",
+            [JSON.stringify(newTransaction)]
+          );
+        } else if (!doneDelivery && !lastDelivery) {
+          transactions.push(data);
+          await updateToTable(
+            "UPDATE live SET transactions = (?) WHERE id = (SELECT MAX (id) FROM live)",
+            [JSON.stringify(transactions)]
+          );
+        }
+
+        if (transactions && lastDelivery) {
+          transactions.push(data);
+
+          await updateToTable(
+            "UPDATE live SET last_delivery = (?), transactions = (?) , last_left = (?) WHERE id = (SELECT MAX (id) FROM live)",
+            [
+              JSON.stringify(lastDelivery),
+              JSON.stringify(transactions),
+              JSON.stringify(doneDelivery),
+            ]
+          );
+        } else if (!transactions && lastDelivery) {
+          const newCratesTransaction = [data];
+
+          await updateToTable(
+            "UPDATE live SET last_delivery = (?), transactions = (?) , last_left = (?)  WHERE id = (SELECT MAX (id) FROM live)",
+            [
+              JSON.stringify(lastDelivery),
+              JSON.stringify(newCratesTransaction),
+              JSON.stringify(doneDelivery),
+            ]
           );
         }
 
@@ -435,6 +486,7 @@ const LiveMapScreen = ({ theme, navigation }) => {
       // resetForm();
       onCloseDestination();
       stopLefLoading();
+      onCloseArrivedModal();
       handleSuccess();
     } catch (error) {
       stopLefLoading();
@@ -485,8 +537,11 @@ const LiveMapScreen = ({ theme, navigation }) => {
             timezone: null,
           },
         ],
+        odometer: data.arrivedOdo,
         status: "arrived",
       };
+
+      setCurrentOdo(data.arrivedOdo);
 
       if (arrivedRes) {
         const newObj = {
@@ -498,43 +553,43 @@ const LiveMapScreen = ({ theme, navigation }) => {
               : data?.destination,
         };
 
-        const delivery = await selectTable(
-          "live WHERE id = (SELECT MAX(id) FROM live)"
-        );
+        // const delivery = await selectTable(
+        //   "live WHERE id = (SELECT MAX(id) FROM live)"
+        // );
 
-        const transactions = JSON.parse(
-          delivery[delivery.length - 1].transactions
-        );
+        // const transactions = JSON.parse(
+        //   delivery[delivery.length - 1].transactions
+        // );
 
-        if (!transactions && !doneDelivery) {
-          const newTransaction = [data];
-          await updateToTable(
-            "UPDATE live SET transactions = (?) WHERE id = (SELECT MAX (id) FROM live)",
-            [JSON.stringify(newTransaction)]
-          );
-        } else if (!doneDelivery && !lastDelivery) {
-          transactions.push(data);
-          await updateToTable(
-            "UPDATE live SET transactions = (?) WHERE id = (SELECT MAX (id) FROM live)",
-            [JSON.stringify(transactions)]
-          );
-        }
+        // if (!transactions && !doneDelivery) {
+        //   const newTransaction = [data];
+        //   await updateToTable(
+        //     "UPDATE live SET transactions = (?) WHERE id = (SELECT MAX (id) FROM live)",
+        //     [JSON.stringify(newTransaction)]
+        //   );
+        // } else if (!doneDelivery && !lastDelivery) {
+        //   transactions.push(data);
+        //   await updateToTable(
+        //     "UPDATE live SET transactions = (?) WHERE id = (SELECT MAX (id) FROM live)",
+        //     [JSON.stringify(transactions)]
+        //   );
+        // }
 
-        if (transactions && lastDelivery && !doneDelivery) {
-          transactions.push(data);
+        // if (transactions && lastDelivery && !doneDelivery) {
+        //   transactions.push(data);
 
-          await updateToTable(
-            "UPDATE live SET last_delivery = (?), transactions = (?)  WHERE id = (SELECT MAX (id) FROM live)",
-            [JSON.stringify(lastDelivery), JSON.stringify(transactions)]
-          );
-        } else if (!transactions && lastDelivery && !doneDelivery) {
-          const newCratesTransaction = [data];
+        //   await updateToTable(
+        //     "UPDATE live SET last_delivery = (?), transactions = (?)  WHERE id = (SELECT MAX (id) FROM live)",
+        //     [JSON.stringify(lastDelivery), JSON.stringify(transactions)]
+        //   );
+        // } else if (!transactions && lastDelivery && !doneDelivery) {
+        //   const newCratesTransaction = [data];
 
-          await updateToTable(
-            "UPDATE live SET last_delivery = (?), transactions = (?)  WHERE id = (SELECT MAX (id) FROM live)",
-            [JSON.stringify(lastDelivery), JSON.stringify(newCratesTransaction)]
-          );
-        }
+        //   await updateToTable(
+        //     "UPDATE live SET last_delivery = (?), transactions = (?)  WHERE id = (SELECT MAX (id) FROM live)",
+        //     [JSON.stringify(lastDelivery), JSON.stringify(newCratesTransaction)]
+        //   );
+        // }
 
         // await updateToTable(
         //   `UPDATE live SET
@@ -806,12 +861,21 @@ const LiveMapScreen = ({ theme, navigation }) => {
       fontSize: 18,
       lineHeight: 35,
     },
+    // leftButton: {
+    //   backgroundColor: leftLoading
+    //     ? colors.notActive
+    //     : trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
+    //     ? colors.notActive
+    //     : lastLeft
+    //     ? colors.notActive
+    //     : colors.danger,
+    // },
     leftButton: {
       backgroundColor: leftLoading
         ? colors.notActive
         : trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
         ? colors.notActive
-        : lastLeft
+        : doneDelivery
         ? colors.notActive
         : colors.danger,
     },
@@ -829,6 +893,22 @@ const LiveMapScreen = ({ theme, navigation }) => {
       left: 0,
       right: 0,
     },
+    // doneButton: {
+    //   backgroundColor:
+    //     trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
+    //       ? colors.notActive
+    //       : trip?.locations?.length === 0
+    //       ? colors.notActive
+    //       : leftLoading
+    //       ? colors.notActive
+    //       : arrivedLoading
+    //       ? colors.notActive
+    //       : doneLoading
+    //       ? colors.notActive
+    //       : trip?.locations?.length % 2 === 0 && !lastLeft
+    //       ? colors.notActive
+    //       : colors.dark,
+    // },
     doneButton: {
       backgroundColor:
         trip?.locations?.length % 2 !== 0 && trip?.locations?.length > 0
@@ -841,7 +921,7 @@ const LiveMapScreen = ({ theme, navigation }) => {
           ? colors.notActive
           : doneLoading
           ? colors.notActive
-          : trip?.locations?.length % 2 === 0 && !lastLeft
+          : trip?.locations?.length % 2 === 0 && !doneDelivery
           ? colors.notActive
           : colors.dark,
     },
@@ -908,21 +988,34 @@ const LiveMapScreen = ({ theme, navigation }) => {
                 mode="contained"
                 style={styles.leftButton}
                 labelStyle={styles.buttonLabelStyle}
+                // disabled={
+                //   leftLoading ||
+                //   arrivedLoading ||
+                //   (trip?.locations?.length % 2 !== 0 &&
+                //     trip?.locations?.length > 0) ||
+                //   lastLeft
+                // }
                 disabled={
                   leftLoading ||
                   arrivedLoading ||
                   (trip?.locations?.length % 2 !== 0 &&
                     trip?.locations?.length > 0) ||
-                  lastLeft
+                  doneDelivery
                 }
                 loading={leftLoading}
+                // onPress={
+                //   trip?.locations?.length === 0
+                //     ? onToggleDestination
+                //     : sqliteLeft
+                // }
                 onPress={
                   trip?.locations?.length === 0
                     ? onToggleDestination
-                    : sqliteLeft
+                    : onToggleArrivedModal
                 }
               >
-                {trip?.locations?.length === 0 ? "Left" : " Left Store"}
+                {/* {trip?.locations?.length === 0 ? "Left" : " Left"} */}
+                Left
               </Button>
             </View>
 
@@ -931,6 +1024,12 @@ const LiveMapScreen = ({ theme, navigation }) => {
                 mode="contained"
                 style={styles.arrivedButton}
                 labelStyle={styles.buttonLabelStyle}
+                // disabled={
+                //   arrivedLoading ||
+                //   leftLoading ||
+                //   trip?.locations?.length % 2 === 0 ||
+                //   trip?.locations?.length === 0
+                // }
                 disabled={
                   arrivedLoading ||
                   leftLoading ||
@@ -938,11 +1037,13 @@ const LiveMapScreen = ({ theme, navigation }) => {
                   trip?.locations?.length === 0
                 }
                 loading={arrivedLoading}
-                onPress={
-                  doneDelivery ? onToggleDestination : onToggleArrivedModal
-                }
+                // onPress={
+                //   doneDelivery ? onToggleDestination : onToggleArrivedModal
+                // }
+                onPress={onToggleDestination}
               >
-                {doneDelivery ? "Arrived" : "Arrived Store"}
+                {/* {doneDelivery ? "Arrived" : "Arrived Store"} */}
+                Arrived
               </Button>
             </View>
           </View>
@@ -972,6 +1073,15 @@ const LiveMapScreen = ({ theme, navigation }) => {
               mode="contained"
               style={styles.doneButton}
               labelStyle={styles.buttonLabelStyle}
+              // disabled={
+              //   (trip?.locations.length % 2 !== 0 &&
+              //     trip?.locations.length > 0) ||
+              //   trip?.locations.length === 0 ||
+              //   arrivedLoading ||
+              //   leftLoading ||
+              //   doneLoading ||
+              //   (trip?.locations?.length % 2 === 0 && !lastLeft)
+              // }
               disabled={
                 (trip?.locations.length % 2 !== 0 &&
                   trip?.locations.length > 0) ||
@@ -979,7 +1089,7 @@ const LiveMapScreen = ({ theme, navigation }) => {
                 arrivedLoading ||
                 leftLoading ||
                 doneLoading ||
-                (trip?.locations?.length % 2 === 0 && !lastLeft)
+                (trip?.locations?.length % 2 === 0 && !doneDelivery)
               }
               onPress={onToggleDoneModal}
             >
@@ -994,7 +1104,10 @@ const LiveMapScreen = ({ theme, navigation }) => {
         isOpenDestination={isOpenDestination}
         onCloseDestination={onCloseDestination}
         loading={arrivedLoading || leftLoading}
-        onSubmit={doneDelivery ? sqliteArrived : sqliteLeft}
+        // onSubmit={doneDelivery ? sqliteArrived : sqliteLeft}
+        onSubmit={trip?.locations.length === 0 ? sqliteLeft : sqliteArrived}
+        currentOdo={currentOdo}
+        onArrived={trip?.locations.length % 2 === 0 ? false : true}
       />
 
       {/* DONE MODAL */}
@@ -1016,12 +1129,24 @@ const LiveMapScreen = ({ theme, navigation }) => {
       />
 
       {/* ARRIVED MODAL */}
-      <ArrivedModal
+      {/* <ArrivedModal
         arrivedLoading={arrivedLoading}
         onCloseArrivedModal={onCloseArrivedModal}
         showArrivedModal={showArrivedModal}
         onSubmit={sqliteArrived}
         checkboxState={{ lastDelivery, onToggleLastDelivery }}
+        currentOdo={currentOdo}
+        onArrived={trip?.locations.length % 2 === 0 ? false : true}
+      /> */}
+
+      <ArrivedModal
+        arrivedLoading={leftLoading}
+        onCloseArrivedModal={onCloseArrivedModal}
+        showArrivedModal={showArrivedModal}
+        onSubmit={sqliteLeft}
+        checkboxState={{ lastDelivery, onToggleLastDelivery }}
+        currentOdo={currentOdo}
+        onArrived={trip?.locations.length % 2 === 0 ? false : true}
       />
     </>
   );

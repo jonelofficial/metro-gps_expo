@@ -60,6 +60,31 @@ export const destinationOthersSchema = Yup.object().shape({
     .label("Destination Name is required"),
 });
 
+export const destinationArrivedSchema = Yup.object().shape({
+  destination: Yup.string()
+    .nullable()
+    .required()
+    .label("Destination is required"),
+  arrivedOdo: Yup.string()
+    .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+    .required()
+    .label("Odometer"),
+});
+
+export const destinationArrivedOthersSchema = Yup.object().shape({
+  destination: Yup.string()
+    .nullable()
+    .required()
+    .label("Destination is required"),
+  destination_name: Yup.string()
+    .required()
+    .label("Destination Name is required"),
+  arrivedOdo: Yup.string()
+    .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+    .required()
+    .label("Odometer"),
+});
+
 // DEFAULT HAULING
 
 export const depotDefaultFormSchema = Yup.object().shape({
@@ -90,6 +115,10 @@ export const arrivedModalSchema = Yup.object().shape({
     .required()
     .label("Destination is required"),
   destination_name: Yup.string().label("Destination Name is required"),
+  arrivedOdo: Yup.string()
+    .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+    .required()
+    .label("Odometer"),
 });
 
 export const arrivedModalFullSchema = Yup.object().shape({
@@ -101,6 +130,10 @@ export const arrivedModalFullSchema = Yup.object().shape({
     .required()
     .label("Destination is required"),
   destination_name: Yup.string().label("Destination Name is required"),
+  arrivedOdo: Yup.string()
+    .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+    .required()
+    .label("Odometer"),
 });
 
 export const leftModalSchema = Yup.object().shape({
@@ -135,17 +168,25 @@ export const arrivedDeliveryModalSchema = Yup.object().shape({
   crates_dropped: Yup.number().required().label("Crates Dropped"),
   crates_collected: Yup.number().required().label("Crates Collected"),
   crates_borrowed: Yup.number().required().label("Crates Borrowed"),
-  destination: Yup.string().nullable().required().label("Destination"),
+  // destination: Yup.string().nullable().required().label("Destination"),
+  // arrivedOdo: Yup.string()
+  //   .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+  //   .required()
+  //   .label("Odometer"),
 });
 
 export const arrivedDeliveryModalOthersSchema = Yup.object().shape({
   crates_dropped: Yup.number().required().label("Crates Dropped"),
   crates_collected: Yup.number().required().label("Crates Collected"),
   crates_borrowed: Yup.number().required().label("Crates Borrowed"),
-  destination: Yup.string().nullable().required().label("Destination"),
-  destination_name: Yup.string()
-    .required()
-    .label("Destination Name is required"),
+  // destination: Yup.string().nullable().required().label("Destination"),
+  // destination_name: Yup.string()
+  //   .required()
+  //   .label("Destination Name is required"),
+  // arrivedOdo: Yup.string()
+  //   .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+  //   .required()
+  //   .label("Odometer"),
 });
 
 // DEPOT LIVE
@@ -161,13 +202,21 @@ export const liveFormSchema = Yup.object().shape({
 
 export const arrivedLiveModalSchema = Yup.object().shape({
   total_bags_delivered: Yup.number().required().label("Total Bags Delivered"),
-  destination: Yup.string().nullable().required().label("Destination"),
+  // destination: Yup.string().nullable().required().label("Destination"),
+  // arrivedOdo: Yup.string()
+  //   .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+  //   .required()
+  //   .label("Odometer"),
 });
 
 export const arrivedLiveModalOthersSchema = Yup.object().shape({
   total_bags_delivered: Yup.number().required().label("Total Bags Delivered"),
-  destination: Yup.string().nullable().required().label("Destination"),
-  destination_name: Yup.string()
-    .required()
-    .label("Destination Name is required"),
+  // destination: Yup.string().nullable().required().label("Destination"),
+  // destination_name: Yup.string()
+  //   .required()
+  //   .label("Destination Name is required"),
+  // arrivedOdo: Yup.string()
+  //   .matches(/^\d*\.?(?:\d{1,9})?$/, "Must be only digits")
+  //   .required()
+  //   .label("Odometer"),
 });

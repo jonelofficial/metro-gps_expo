@@ -63,7 +63,8 @@ const DoneModal = ({
           <Formik
             initialValues={{
               odometer_image_path: image,
-              odometer_done: estimatedOdo.toString(),
+              // odometer_done: estimatedOdo.toString(),
+              odometer_done: currentOdo,
             }}
             validationSchema={doneModalSchema}
             onSubmit={onSubmit}
@@ -91,6 +92,7 @@ const DoneModal = ({
                   null;
                 };
               }, [image]);
+
               return (
                 <>
                   {/* IMAGE */}

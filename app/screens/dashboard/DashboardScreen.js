@@ -192,8 +192,10 @@ const DashboardScreen = ({ theme, navigation }) => {
                 odometer: JSON.parse(parseFloat(item?.odometer)),
                 // odometer: JSON.parse(item?.odometer),
                 // odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
-                odometer_done: JSON.parse(parseFloat(item?.odometer_done)),
-                points: JSON.parse(item?.points),
+                odometer_done: item?.odometer_done
+                  ? JSON.parse(parseFloat(item?.odometer_done))
+                  : null,
+                points: JSON.parse(item?.points || "[]"),
                 image: JSON.parse(item?.image),
                 user_id: {
                   _id: user?.userId,
@@ -215,8 +217,10 @@ const DashboardScreen = ({ theme, navigation }) => {
               diesels: JSON.parse(item?.gas),
               locations: JSON.parse(item?.locations),
               odometer: JSON.parse(item?.odometer),
-              odometer_done: parseFloat(JSON.parse(item?.odometer_done)),
-              points: JSON.parse(item?.points),
+              odometer_done: item?.odometer_done
+                ? JSON.parse(parseFloat(item?.odometer_done))
+                : null,
+              points: JSON.parse(item?.points || "[]"),
               image: JSON.parse(item?.image),
               user_id: {
                 _id: user?.userId,

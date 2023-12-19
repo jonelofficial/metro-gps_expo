@@ -22,11 +22,15 @@ const ArrivedModal = ({
   tareWeight,
   theme,
   itemCount,
+  currentOdo,
+  onArrived,
 }) => {
   const { colors } = theme;
   const [formSchema, setFormSchema] = useState(arrivedModalSchema);
 
   const [showError, setShowError] = useState(false);
+
+  console.log(currentOdo);
 
   useEffect(() => {
     itemCount && setFormSchema(arrivedModalFullSchema);
@@ -111,6 +115,7 @@ const ArrivedModal = ({
             gross_weight: "",
             doa_count: "",
             destination: destination,
+            arrivedOdo: "",
           }}
           validationSchema={formSchema}
           onSubmit={onSubmit}
@@ -186,6 +191,13 @@ const ArrivedModal = ({
                       },
                     }}
                   />
+                  {/* TRIP TYPE ERROR HANDLING */}
+                  {touched?.destination && errors?.destination && (
+                    <Text style={{ color: "red", fontSize: 14, padding: 5 }}>
+                      {errors.destination}
+                    </Text>
+                  )}
+
                   {destination?.title === "OTHER LOCATION" && (
                     <TextField
                       touched={touched}
@@ -197,6 +209,38 @@ const ArrivedModal = ({
                       label="Destination Name"
                     />
                   )}
+
+                  {onArrived && (
+                    <TextField
+                      touched={touched}
+                      errors={errors}
+                      handleChange={handleChange}
+                      handleBlur={handleBlur}
+                      values={values}
+                      name="arrivedOdo"
+                      label="Vehicle Odometer"
+                      keyboardType="numeric"
+                      defaultValue={values["arrivedOdo"]}
+                    />
+                  )}
+                  {(parseFloat(currentOdo) > parseFloat(values["arrivedOdo"]) ||
+                    parseFloat(currentOdo) ==
+                      parseFloat(values["arrivedOdo"])) &&
+                    onArrived &&
+                    !arrivedLoading && (
+                      <Text
+                        style={{
+                          color: "red",
+                          fontSize: 14,
+                          padding: 5,
+                          marginTop: -10,
+                        }}
+                      >
+                        Done odometer must be greater than previous odometer
+                        inputted.
+                      </Text>
+                    )}
+
                   {itemCount && (
                     <>
                       <TextField
@@ -249,7 +293,15 @@ const ArrivedModal = ({
                   onPress={handleSubmit}
                   title="Proceed"
                   isLoading={arrivedLoading}
-                  disabled={arrivedLoading || showError}
+                  disabled={
+                    arrivedLoading ||
+                    showError ||
+                    ((parseFloat(currentOdo) ==
+                      parseFloat(values["arrivedOdo"]) ||
+                      parseFloat(currentOdo) >
+                        parseFloat(values["arrivedOdo"])) &&
+                      onArrived)
+                  }
                 />
               </>
             );

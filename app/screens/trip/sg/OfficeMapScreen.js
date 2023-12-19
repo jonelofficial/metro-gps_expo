@@ -328,6 +328,18 @@ const OfficeMapScreen = ({ theme, navigation }) => {
       setTrip({
         locations: [...newLocations],
       });
+
+      // if (locPoint?.length % 2 == 0) {
+      //   setCurrentOdo(locPoint[locPoint.length - 1]?.odometer);
+      // } else {
+      //   setCurrentOdo(locPoint[locPoint.length - 2]?.odometer);
+      // }
+
+      if (locPoint?.length % 2 == 0 && locPoint?.length > 1) {
+        setCurrentOdo(locPoint[locPoint.length - 1]?.odometer);
+      } else if (locPoint?.length % 2 != 0 && locPoint?.length > 1) {
+        setCurrentOdo(locPoint[locPoint.length - 2]?.odometer);
+      }
     }
   };
 
@@ -455,8 +467,11 @@ const OfficeMapScreen = ({ theme, navigation }) => {
             timezone: null,
           },
         ],
+        odometer: data.arrivedOdo,
         status: "arrived",
       };
+
+      setCurrentOdo(data.arrivedOdo);
 
       if (arrivedRes) {
         const newObj = {
@@ -791,6 +806,8 @@ const OfficeMapScreen = ({ theme, navigation }) => {
         onCloseDestination={onCloseDestination}
         loading={arrivedLoading || leftLoading}
         onSubmit={trip?.locations.length % 2 === 0 ? sqliteLeft : sqliteArrived}
+        currentOdo={currentOdo}
+        onArrived={trip?.locations.length % 2 === 0 ? false : true}
       />
 
       {/* DONE MODAL */}
