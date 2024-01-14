@@ -147,10 +147,11 @@ const DoneModal = ({
                     keyboardType="numeric"
                     defaultValue={values["odometer_done"]}
                   />
-                  {(parseFloat(currentOdo) >
-                    parseFloat(values["odometer_done"]) ||
-                    parseFloat(currentOdo) ==
-                      parseFloat(values["odometer_done"])) && (
+                  {parseFloat(currentOdo) >
+                    parseFloat(values["odometer_done"]) && (
+                    // ||
+                    // parseFloat(currentOdo) ==
+                    //   parseFloat(values["odometer_done"])
                     <Text
                       style={{
                         color: "red",
@@ -159,8 +160,8 @@ const DoneModal = ({
                         marginTop: -10,
                       }}
                     >
-                      Done odometer must be greater than previous odometer
-                      inputted.
+                      Done odometer must be greater than or equal from previous
+                      odometer inputted.
                     </Text>
                   )}
                   <SubmitButton
@@ -169,8 +170,8 @@ const DoneModal = ({
                     isLoading={doneLoading}
                     disabled={
                       doneLoading ||
-                      parseFloat(currentOdo) ==
-                        parseFloat(values["odometer_done"]) ||
+                      // parseFloat(currentOdo) ==
+                      //   parseFloat(values["odometer_done"]) ||
                       parseFloat(currentOdo) >
                         parseFloat(values["odometer_done"])
                     }

@@ -59,6 +59,9 @@ const LiveMapScreen = ({ theme, navigation }) => {
   const [doneDelivery, setDoneDelivery] = useState(false);
   const [lastLeft, setLastLeft] = useState(false);
 
+  const [totalBags, setTotalBags] = useState(0);
+  const [currentBags, setCurrentBags] = useState(0);
+
   // TIMER
   const { seconds, minutes, hours, start, pause } = useStopwatch({});
 
@@ -323,6 +326,23 @@ const LiveMapScreen = ({ theme, navigation }) => {
 
   const reloadMapState = async () => {
     const tripRes = await selectTable("live");
+    setTotalBags(tripRes[tripRes.length - 1]?.total_bags);
+    const transactions = JSON.parse(tripRes[tripRes.length - 1]?.transactions);
+    if (transactions?.length > 0) {
+      const totalBagsDelivered = transactions.reduce(
+        (accumulator, transaction) => {
+          // Check if the property exists before adding to the sum
+          if (transaction.total_bags_delivered) {
+            return accumulator + parseInt(transaction.total_bags_delivered, 10);
+          } else {
+            return accumulator;
+          }
+        },
+        0
+      );
+
+      setCurrentBags(totalBagsDelivered);
+    }
 
     setCurrentOdo(tripRes[tripRes.length - 1].odometer);
 
@@ -1147,6 +1167,8 @@ const LiveMapScreen = ({ theme, navigation }) => {
         checkboxState={{ lastDelivery, onToggleLastDelivery }}
         currentOdo={currentOdo}
         onArrived={trip?.locations.length % 2 === 0 ? false : true}
+        totalBags={totalBags}
+        currentBags={currentBags}
       />
     </>
   );

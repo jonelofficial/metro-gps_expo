@@ -30,8 +30,6 @@ const ArrivedModal = ({
 
   const [showError, setShowError] = useState(false);
 
-  console.log(currentOdo);
-
   useEffect(() => {
     itemCount && setFormSchema(arrivedModalFullSchema);
 

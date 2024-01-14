@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  FlatList,
 } from "react-native";
 import { Text, withTheme } from "react-native-paper";
 import SubmitButton from "../../../components/form/SubmitButton";
@@ -134,258 +135,278 @@ const TripFormScreen = ({ theme, route, navigation }) => {
   return (
     <>
       <Screen>
-        <View
-          style={{
-            margin: 15,
-            flex: 1,
-          }}
-        >
-          <View
-            style={[
-              styles.plateContainer,
-              {
-                borderColor: colors.primary,
-                backgroundColor: colors.white,
-              },
-            ]}
-          >
-            <Text>Vehicle Plate: {vehicle_id?.plate_no}</Text>
-          </View>
-
-          <View>
-            <Text style={{ fontSize: 13, color: colors.light }}>
-              If the autofill does not match the actual odometer, please edit
-              based on the actual odometer
-            </Text>
-          </View>
-
-          <View
-            style={{
-              paddingVertical: 5,
-              justifyContent: "space-between",
-              flex: 1,
-            }}
-          >
-            <Formik
-              initialValues={{
-                odometer: "",
-                others: "",
-                odometer_image_path: image,
-                companion: companion,
-                charging: value,
+        <FlatList
+          data={[{ id: "1" }]}
+          renderItem={() => (
+            <View
+              style={{
+                margin: 15,
+                flex: 1,
+                height: "100%",
               }}
-              validationSchema={officeFormSchema}
-              onSubmit={onSubmit}
             >
-              {({
-                handleChange,
-                handleBlur,
-                handleSubmit,
-                values,
-                errors,
-                touched,
-                setFieldValue,
-                setErrors,
-              }) => {
-                useEffect(() => {
-                  if (image) {
-                    setFieldValue("odometer_image_path", image);
-                    setErrors("odometer_image_path", null);
-                  } else {
-                    setFieldValue("odometer_image_path", null);
-                    setErrors("odometer_image_path", null);
-                  }
+              <View
+                style={[
+                  styles.plateContainer,
+                  {
+                    borderColor: colors.primary,
+                    backgroundColor: colors.white,
+                  },
+                ]}
+              >
+                <Text>Vehicle Plate: {vehicle_id?.plate_no}</Text>
+              </View>
 
-                  return () => {
-                    null;
-                  };
-                }, [image]);
+              <View>
+                <Text style={{ fontSize: 13, color: colors.light }}>
+                  If the autofill does not match the actual odometer, please
+                  edit based on the actual odometer
+                </Text>
+              </View>
 
-                useEffect(() => {
-                  if (companion) {
-                    setFieldValue("companion", companion);
-                    setErrors("companion", null);
-                  }
+              <View
+                style={{
+                  paddingVertical: 5,
+                  justifyContent: "space-between",
+                  flex: 1,
+                }}
+              >
+                <Formik
+                  initialValues={{
+                    odometer: "",
+                    others: "",
+                    odometer_image_path: image,
+                    companion: companion,
+                    charging: value,
+                  }}
+                  validationSchema={officeFormSchema}
+                  onSubmit={onSubmit}
+                >
+                  {({
+                    handleChange,
+                    handleBlur,
+                    handleSubmit,
+                    values,
+                    errors,
+                    touched,
+                    setFieldValue,
+                    setErrors,
+                  }) => {
+                    useEffect(() => {
+                      if (image) {
+                        setFieldValue("odometer_image_path", image);
+                        setErrors("odometer_image_path", null);
+                      } else {
+                        setFieldValue("odometer_image_path", null);
+                        setErrors("odometer_image_path", null);
+                      }
 
-                  return () => {
-                    null;
-                  };
-                }, [companion]);
+                      return () => {
+                        null;
+                      };
+                    }, [image]);
 
-                useEffect(() => {
-                  if (value !== "") {
-                    setFieldValue("charging", value);
-                    setErrors("charging", null);
-                  }
+                    useEffect(() => {
+                      if (companion) {
+                        setFieldValue("companion", companion);
+                        setErrors("companion", null);
+                      }
 
-                  return () => {
-                    null;
-                  };
-                }, [value]);
+                      return () => {
+                        null;
+                      };
+                    }, [companion]);
 
-                return (
-                  <>
-                    <View>
-                      <TextField
-                        touched={touched}
-                        errors={errors}
-                        handleChange={handleChange}
-                        handleBlur={handleBlur}
-                        values={values}
-                        name="odometer"
-                        label="Odometer"
-                        keyboardType="numeric"
-                      />
+                    useEffect(() => {
+                      if (value !== "") {
+                        setFieldValue("charging", value);
+                        setErrors("charging", null);
+                      }
 
-                      {/* IMAGE */}
-                      <Text style={{ marginBottom: 8 }}>Odometer Picture:</Text>
-                      <View style={{ flexDirection: "row", marginBottom: 8 }}>
-                        {image && (
-                          <Image
-                            source={{ uri: image?.uri }}
-                            style={{
-                              width: 100,
-                              height: 100,
-                              marginRight: 10,
-                              borderRadius: 10,
-                            }}
+                      return () => {
+                        null;
+                      };
+                    }, [value]);
+
+                    return (
+                      <View>
+                        <View>
+                          <TextField
+                            touched={touched}
+                            errors={errors}
+                            handleChange={handleChange}
+                            handleBlur={handleBlur}
+                            values={values}
+                            name="odometer"
+                            label="Odometer"
+                            keyboardType="numeric"
                           />
-                        )}
 
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (image) {
-                              dispatch(removeImage());
-                              onToggleCamera();
-                            } else {
-                              Keyboard.dismiss();
-                              onToggleCamera();
-                            }
-                          }}
-                        >
-                          <Ionicons
-                            name={image ? "ios-camera-reverse" : "ios-camera"}
-                            size={40}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      {touched.odometer_image_path &&
-                        errors.odometer_image_path && (
-                          <Text
-                            style={{ color: "red", fontSize: 14, padding: 5 }}
-                          >
-                            {errors?.odometer_image_path &&
-                              "Odometer Picture is a required field"}
+                          {/* IMAGE */}
+                          <Text style={{ marginBottom: 8 }}>
+                            Odometer Picture:
                           </Text>
-                        )}
-
-                      {/* IMAGE */}
-                      <Text style={{ marginBottom: 8 }}>Companion:</Text>
-                      <View style={{ marginBottom: 8 }}>
-                        <TouchableOpacity onPress={onToggleScanner}>
-                          {companion.length > 0 &&
-                            companion.map((item, i) => (
-                              <View
-                                key={i}
+                          <View
+                            style={{ flexDirection: "row", marginBottom: 8 }}
+                          >
+                            {image && (
+                              <Image
+                                source={{ uri: image?.uri }}
                                 style={{
-                                  marginBottom: 5,
-                                  flexDirection: "row",
+                                  width: 100,
+                                  height: 100,
+                                  marginRight: 10,
+                                  borderRadius: 10,
+                                }}
+                              />
+                            )}
+
+                            <TouchableOpacity
+                              onPress={() => {
+                                if (image) {
+                                  dispatch(removeImage());
+                                  onToggleCamera();
+                                } else {
+                                  Keyboard.dismiss();
+                                  onToggleCamera();
+                                }
+                              }}
+                            >
+                              <Ionicons
+                                name={
+                                  image ? "ios-camera-reverse" : "ios-camera"
+                                }
+                                size={40}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          {touched.odometer_image_path &&
+                            errors.odometer_image_path && (
+                              <Text
+                                style={{
+                                  color: "red",
+                                  fontSize: 14,
+                                  padding: 5,
                                 }}
                               >
-                                <Text style={{ marginRight: 10 }}>
-                                  {item.first_name}
-                                </Text>
-                                <TouchableOpacity
-                                  onPress={() => dispatch(spliceCompanion(i))}
-                                >
-                                  <Ionicons
-                                    name={"close-circle"}
-                                    size={20}
-                                    color={colors.danger}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                            ))}
-                          <Text style={{ fontSize: 14, color: colors.primary }}>
-                            Add Companion
-                          </Text>
-                        </TouchableOpacity>
+                                {errors?.odometer_image_path &&
+                                  "Odometer Picture is a required field"}
+                              </Text>
+                            )}
+
+                          {/* IMAGE */}
+                          <Text style={{ marginBottom: 8 }}>Companion:</Text>
+                          <View style={{ marginBottom: 8 }}>
+                            <TouchableOpacity onPress={onToggleScanner}>
+                              {companion.length > 0 &&
+                                companion.map((item, i) => (
+                                  <View
+                                    key={i}
+                                    style={{
+                                      marginBottom: 5,
+                                      flexDirection: "row",
+                                    }}
+                                  >
+                                    <Text style={{ marginRight: 10 }}>
+                                      {item.first_name}
+                                    </Text>
+                                    <TouchableOpacity
+                                      onPress={() =>
+                                        dispatch(spliceCompanion(i))
+                                      }
+                                    >
+                                      <Ionicons
+                                        name={"close-circle"}
+                                        size={20}
+                                        color={colors.danger}
+                                      />
+                                    </TouchableOpacity>
+                                  </View>
+                                ))}
+                              <Text
+                                style={{ fontSize: 14, color: colors.primary }}
+                              >
+                                Add Companion
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+
+                          {/* CHARGING */}
+                          <Text style={{ marginBottom: 8 }}>Charging:</Text>
+                          {departments && departments.length !== 0 && (
+                            <DropDownPicker
+                              open={showDropdown}
+                              value={value}
+                              items={departments}
+                              onChangeValue={handleChange}
+                              setOpen={onToggleDropdown}
+                              setValue={setValue}
+                              setItems={setDepartments}
+                              placeholder="Select department"
+                              textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
+                              style={{
+                                borderRadius: 15,
+                                borderColor: colors.light,
+                                marginBottom:
+                                  touched.charging && errors.charging ? 0 : 12,
+                              }}
+                              dropDownContainerStyle={{
+                                borderColor: colors.light,
+                                maxHeight: 150,
+                              }}
+                            />
+                          )}
+                          {touched?.charging && errors?.charging && (
+                            <Text
+                              style={{
+                                color: "red",
+                                fontSize: 14,
+                                padding: 5,
+                              }}
+                            >
+                              {errors.charging}
+                            </Text>
+                          )}
+
+                          <TextField
+                            touched={touched}
+                            errors={errors}
+                            handleChange={handleChange}
+                            handleBlur={handleBlur}
+                            values={values}
+                            name="others"
+                            label="Others"
+                            multiline={true}
+                            numberOfLines={3}
+                          />
+
+                          <PrivacyPolicyComponent
+                            navigation={navigation}
+                            checkboxState={chexboxState}
+                          />
+                        </View>
+
+                        <View>
+                          <SubmitButton
+                            onPress={handleSubmit}
+                            title="Drive"
+                            isLoading={showLoadingBtn}
+                            style={{
+                              backgroundColor: !chexboxState.isOpen
+                                ? colors.notActive
+                                : colors.primary,
+                            }}
+                            disabled={!chexboxState.isOpen}
+                          />
+                        </View>
                       </View>
-
-                      {/* CHARGING */}
-                      <Text style={{ marginBottom: 8 }}>Charging:</Text>
-                      {departments && departments.length !== 0 && (
-                        <DropDownPicker
-                          open={showDropdown}
-                          value={value}
-                          items={departments}
-                          onChangeValue={handleChange}
-                          setOpen={onToggleDropdown}
-                          setValue={setValue}
-                          setItems={setDepartments}
-                          placeholder="Select department"
-                          textStyle={{ fontFamily: "Khyay", fontSize: 16 }}
-                          style={{
-                            borderRadius: 15,
-                            borderColor: colors.light,
-                            marginBottom:
-                              touched.charging && errors.charging ? 0 : 12,
-                          }}
-                          dropDownContainerStyle={{
-                            borderColor: colors.light,
-                            maxHeight: 150,
-                          }}
-                        />
-                      )}
-                      {touched?.charging && errors?.charging && (
-                        <Text
-                          style={{
-                            color: "red",
-                            fontSize: 14,
-                            padding: 5,
-                          }}
-                        >
-                          {errors.charging}
-                        </Text>
-                      )}
-
-                      <TextField
-                        touched={touched}
-                        errors={errors}
-                        handleChange={handleChange}
-                        handleBlur={handleBlur}
-                        values={values}
-                        name="others"
-                        label="Others"
-                        multiline={true}
-                        numberOfLines={3}
-                      />
-
-                      <PrivacyPolicyComponent
-                        navigation={navigation}
-                        checkboxState={chexboxState}
-                      />
-                    </View>
-
-                    <View>
-                      <SubmitButton
-                        onPress={handleSubmit}
-                        title="Drive"
-                        isLoading={showLoadingBtn}
-                        style={{
-                          backgroundColor: !chexboxState.isOpen
-                            ? colors.notActive
-                            : colors.primary,
-                        }}
-                        disabled={!chexboxState.isOpen}
-                      />
-                    </View>
-                  </>
-                );
-              }}
-            </Formik>
-          </View>
-        </View>
+                    );
+                  }}
+                </Formik>
+              </View>
+            </View>
+          )}
+        />
       </Screen>
       {showCamera && <AppCamera onCloseCamera={onCloseCamera} />}
       {showScanner && <Scanner onCloseScanner={onCloseScanner} />}

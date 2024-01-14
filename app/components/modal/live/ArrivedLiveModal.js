@@ -29,13 +29,14 @@ const ArrivedModal = ({
   onSubmit,
   checkboxState,
   theme,
+  totalBags,
+  currentBags,
   currentOdo,
   onArrived,
 }) => {
   const { colors } = theme;
   const { lastDelivery, onToggleLastDelivery } = checkboxState;
   const { isOpen, onClose, onToggle } = useDisclosure();
-
   const [loadingDestination, setLoadingDestination] = useState(true);
   const [destination, setDestination] = useState(null);
   const [destinations, setDestinations] = useState([]);
@@ -126,6 +127,16 @@ const ArrivedModal = ({
             touched,
             setFieldValue,
           }) => {
+            useEffect(() => {
+              if (values?.total_bags_delivered == totalBags - currentBags) {
+                onToggle();
+              }
+              if (!values?.total_bags_delivered && lastDelivery) {
+                onToggleLastDelivery();
+              }
+              return () => {};
+            }, [values?.total_bags_delivered]);
+
             return (
               <>
                 {/* <AutocompleteDropdown
@@ -215,6 +226,16 @@ const ArrivedModal = ({
                     </Text>
                   )} */}
 
+                <Text
+                  style={{
+                    color: "#9e9e9e",
+                    fontSize: 14,
+                    padding: 5,
+                    marginTop: -10,
+                  }}
+                >
+                  Remaining: {totalBags - currentBags} bags
+                </Text>
                 <TextField
                   touched={touched}
                   errors={errors}
@@ -225,6 +246,18 @@ const ArrivedModal = ({
                   label="Total bags delivered"
                   keyboardType="numeric"
                 />
+                {values?.total_bags_delivered > totalBags - currentBags && (
+                  <Text
+                    style={{
+                      color: "red",
+                      fontSize: 14,
+                      padding: 5,
+                      marginTop: -10,
+                    }}
+                  >
+                    Total bag delivered should not greater than remaining bags.
+                  </Text>
+                )}
 
                 <View
                   style={{
@@ -258,7 +291,8 @@ const ArrivedModal = ({
                   title="Proceed"
                   isLoading={arrivedLoading}
                   disabled={
-                    arrivedLoading
+                    arrivedLoading ||
+                    values?.total_bags_delivered > totalBags - currentBags
                     // ||
                     // ((parseFloat(currentOdo) ==
                     //   parseFloat(values["arrivedOdo"]) ||
